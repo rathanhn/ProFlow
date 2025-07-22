@@ -52,8 +52,15 @@ const statusColors: Record<string, string> = {
 };
 
 export default async function AdminDashboardPage() {
-  const tasks = await getTasks();
+  const rawTasks = await getTasks();
   const clients = await getClients();
+
+  // Serialize task dates
+  const tasks = rawTasks.map(task => ({
+    ...task,
+    acceptedDate: new Date(task.acceptedDate).toISOString(),
+    submissionDate: new Date(task.submissionDate).toISOString(),
+  }));
   
   const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
   const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);
