@@ -8,10 +8,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { KeyRound } from 'lucide-react';
-import { getClient, signInClient } from '@/lib/firebase-service';
+import { getClient, signInClient, updateClientPassword } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Client } from '@/lib/types';
+import { auth } from '@/lib/firebase';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 export default function ClientAuthPage() {
@@ -21,6 +32,9 @@ export default function ClientAuthPage() {
     const id = params.id as string;
     const { toast } = useToast();
     const [client, setClient] = useState<Client | null>(null);
+    const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
     useEffect(() => {
         const fetchClient = async () => {
@@ -39,12 +53,20 @@ export default function ClientAuthPage() {
     const handleVerification = async () => {
         if (client) {
             try {
-                await signInClient(client.email, password);
-                toast({
-                    title: 'Access Granted!',
-                    description: 'Redirecting to your dashboard...',
-                });
-                router.push(`/client/${client.id}`);
+                const user = await signInClient(client.email, password);
+                 // Check if it's the first sign-in
+                const creationTime = new Date(user.metadata.creationTime).getTime();
+                const lastSignInTime = new Date(user.metadata.lastSignInTime).getTime();
+
+                if (Math.abs(lastSignInTime - creationTime) < 5000) { // e.g., within 5 seconds
+                    setShowPasswordResetDialog(true);
+                } else {
+                    toast({
+                        title: 'Access Granted!',
+                        description: 'Redirecting to your dashboard...',
+                    });
+                    router.push(`/client/${client.id}`);
+                }
             } catch (error) {
                 toast({
                     title: 'Access Denied',
@@ -54,12 +76,33 @@ export default function ClientAuthPage() {
             }
         }
     };
+
+    const handlePasswordReset = async () => {
+        if (newPassword !== confirmNewPassword) {
+            toast({ title: "Passwords do not match.", variant: "destructive" });
+            return;
+        }
+        if (newPassword.length < 6) {
+            toast({ title: "Password must be at least 6 characters.", variant: "destructive" });
+            return;
+        }
+
+        try {
+            await updateClientPassword(newPassword);
+            toast({ title: "Password updated successfully!" });
+            setShowPasswordResetDialog(false);
+            router.push(`/client/${id}`);
+        } catch (error) {
+            toast({ title: "Failed to update password.", description: "Please try again.", variant: "destructive" });
+        }
+    };
   
   if (!client) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
   
   return (
+    <>
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-md mx-auto shadow-2xl">
         <CardHeader className="text-center">
@@ -98,5 +141,30 @@ export default function ClientAuthPage() {
         </CardContent>
       </Card>
     </div>
+    <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Welcome! Let's secure your account.</AlertDialogTitle>
+            <AlertDialogDescription>
+                This is your first time logging in. For your security, we recommend setting a new password.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input id="new-password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                    <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" />
+                </div>
+            </div>
+            <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => router.push(`/client/${id}`)}>Continue with old password</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePasswordReset}>Set New Password</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

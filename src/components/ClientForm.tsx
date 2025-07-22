@@ -25,10 +25,14 @@ const formSchema = z.object({
   email: z.string().email('Please enter a valid email.'),
   dataAiHint: z.string().min(2, 'AI hint must be at least 2 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
+  confirmPassword: z.string().min(6, 'Password must be at least 6 characters.'),
   avatar: z.string().url().optional(),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
 });
 
-const editFormSchema = formSchema.omit({ password: true });
+const editFormSchema = formSchema.omit({ password: true, confirmPassword: true });
 
 interface ClientFormProps {
   client?: Client;
@@ -45,6 +49,7 @@ export default function ClientForm({ client }: ClientFormProps) {
       email: client?.email || '',
       dataAiHint: client?.dataAiHint || '',
       password: '',
+      confirmPassword: '',
       avatar: client?.avatar || `https://placehold.co/32x32.png`,
     },
   });
@@ -127,6 +132,7 @@ export default function ClientForm({ client }: ClientFormProps) {
                 )}
               />
             {!client && (
+                <>
                  <FormField
                     control={form.control}
                     name="password"
@@ -140,6 +146,20 @@ export default function ClientForm({ client }: ClientFormProps) {
                         </FormItem>
                     )}
                     />
+                <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" placeholder="Confirm the password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </>
             )}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => router.back()}>

@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -28,15 +28,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [clientId, setClientId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-      if (!currentUser && (pathname.startsWith('/admin') || pathname.startsWith('/client'))) {
+      if (currentUser) {
+        setClientId(currentUser.uid);
+      }
+      if (!currentUser && (pathname.startsWith('/admin') || pathname.startsWith('/client/'))) {
           // If not logged in and trying to access a protected route, redirect
-          if(pathname.startsWith('/admin')) router.push('/admin/login');
-          // Client routes have their own auth handling, so we might not need a global redirect for them
+          if(pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) router.push('/admin/login');
+          // For client routes, we check for presence of an ID in the URL before redirecting
+          const pathSegments = pathname.split('/');
+          if(pathname.startsWith('/client/') && pathSegments.length > 2 && pathSegments[2] && !pathname.includes('/auth')) {
+            router.push(`/client/${pathSegments[2]}/auth`);
+          }
       }
     });
     return () => unsubscribe();
@@ -44,7 +52,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
   const handleLogout = async () => {
     await signOut(auth);
-    router.push('/');
+    if(pathname.startsWith('/admin')) {
+      router.push('/admin/login');
+    } else {
+      router.push('/');
+    }
   };
 
   const getAvatarFallback = () => {
@@ -56,10 +68,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const renderContent = () => {
     if (loading) {
-      return <div className='p-8'><Skeleton className="h-[200px] w-full rounded-xl" /></div>;
+      return (
+        <div className='p-8 space-y-4'>
+            <Skeleton className="h-[50px] w-1/2 rounded-xl" />
+            <Skeleton className="h-[150px] w-full rounded-xl" />
+            <Skeleton className="h-[300px] w-full rounded-xl" />
+        </div>
+      );
     }
     return children;
   }
+
+  const isAdminSection = pathname.startsWith('/admin');
+  const isClientSection = pathname.startsWith('/client');
 
 
   return (
@@ -76,31 +97,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/admin'}>
-                  <Link href="/admin">
-                    <Home />
-                    Admin Dashboard
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
-                  <Link href="/admin/clients">
-                    <Users />
-                    Manage Clients
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/client')}>
-                  {/* The specific client link is removed to avoid fetching all clients in the layout */}
-                  <Link href="/client/1/auth">
-                    <Briefcase />
-                    Client Dashboard
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+             {isAdminSection && (
+                <>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/admin'}>
+                    <Link href="/admin">
+                        <Home />
+                        Admin Dashboard
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
+                    <Link href="/admin/clients">
+                        <Users />
+                        Manage Clients
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                </>
+             )}
+             {isClientSection && user && clientId && (
+                <>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === `/client/${clientId}`}>
+                    <Link href={`/client/${clientId}`}>
+                        <Briefcase />
+                        Dashboard
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/settings`)}>
+                    <Link href={`/client/${clientId}/settings`}>
+                        <Settings />
+                        Settings
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                </>
+             )}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>

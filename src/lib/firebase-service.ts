@@ -5,7 +5,7 @@ import { auth, db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc } from 'firebase/firestore';
 import { Client, Task } from './types';
 import { revalidatePath } from 'next/cache';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
 
 // Client Functions
 export async function getClients(): Promise<Client[]> {
@@ -29,6 +29,9 @@ export async function addClient(client: Omit<Client, 'id'>) {
     if (!client.password) {
         throw new Error("Password is required to create a client.");
     }
+    // This part runs with admin privileges on the server, so we don't sign in the admin
+    // We just create a new user. This requires a separate admin-initialized app in a real scenario.
+    // For this environment, we assume the currently configured auth can create users.
     const userCredential = await createUserWithEmailAndPassword(auth, client.email, client.password);
     const uid = userCredential.user.uid;
 
@@ -72,6 +75,15 @@ export async function getClientByEmail(email: string): Promise<Client | null> {
 export async function signInClient(email:string, password: string): Promise<any> {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return userCredential.user;
+}
+
+export async function updateClientPassword(newPassword: string): Promise<void> {
+    const user = auth.currentUser;
+    if (user) {
+        await updatePassword(user, newPassword);
+    } else {
+        throw new Error("No user is currently signed in.");
+    }
 }
 
 
