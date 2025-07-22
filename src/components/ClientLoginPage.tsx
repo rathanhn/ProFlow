@@ -45,6 +45,7 @@ export default function ClientLoginPage() {
             }
             const client = await getClientByEmail(email);
             if (client) {
+                console.log(`Login successful for client ID: ${client.id}. Redirecting...`);
                 toast({
                     title: 'Login Successful!',
                     description: `Welcome back, ${client.name}.`,
