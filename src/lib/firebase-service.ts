@@ -163,11 +163,13 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
     const q = query(
         collection(db, "notifications"), 
         where("userId", "==", userId),
-        orderBy("createdAt", "desc"),
-        limit(20)
+        limit(50) // Limit to last 50 notifications to avoid performance issues
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+    const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+    
+    // Sort by date client-side
+    return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function markNotificationAsRead(id: string) {
