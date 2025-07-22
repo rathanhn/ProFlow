@@ -69,7 +69,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                 setShowPasswordResetDialog(true);
             } else {
                 toast({ title: 'Access Granted!', description: 'Redirecting to your dashboard...' });
-                router.push(`/client/${clientData.id}`);
+                router.push(`/client/${user.uid}`);
             }
         } catch (error) {
             toast({ title: 'Access Denied', description: 'Incorrect password. Please try again.', variant: 'destructive' });
@@ -91,7 +91,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                 toast({ title: 'Password Reset Successful', description: 'Your password has been updated.' });
                 setShowPasswordResetDialog(false);
                 if (client) {
-                    router.push(`/client/${client.id}`);
+                    router.push(`/client/${user.uid}`);
                 }
             } catch (error) {
                 toast({ title: 'Password Reset Failed', description: 'Could not update password.', variant: 'destructive' });
