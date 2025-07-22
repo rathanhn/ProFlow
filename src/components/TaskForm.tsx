@@ -98,7 +98,7 @@ export default function TaskForm({ task }: TaskFormProps) {
             title: 'Error',
             description: 'Failed to save task. Please try again.',
             variant: 'destructive'
-        })
+        });
     }
   }
 
