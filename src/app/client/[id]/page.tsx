@@ -51,11 +51,7 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
 
   const rawClientTasks: Task[] = await getTasksByClientId(client.id);
 
-  const clientTasks = rawClientTasks.map(task => ({
-      ...JSON.parse(JSON.stringify(task)), // Ensure plain object
-      acceptedDate: new Date(task.acceptedDate).toISOString(),
-      submissionDate: new Date(task.submissionDate).toISOString(),
-  }));
+  const clientTasks = JSON.parse(JSON.stringify(rawClientTasks)) as Task[];
 
   const totalSpent = clientTasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
   const outstandingBalance = clientTasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);

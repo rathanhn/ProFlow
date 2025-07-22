@@ -51,8 +51,8 @@ export default function ProjectDetailsPage() {
           notFound();
         }
         
-        setTask(taskData);
-        setClient(clientData);
+        setTask(JSON.parse(JSON.stringify(taskData)));
+        setClient(JSON.parse(JSON.stringify(clientData)));
       };
       fetchDetails();
     }
