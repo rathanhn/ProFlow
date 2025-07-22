@@ -2,7 +2,7 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -19,9 +19,35 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Home, LogOut, Rocket, Users } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+  
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/');
+  };
+
+  const getAvatarFallback = () => {
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  }
+
 
   return (
     <SidebarProvider>
@@ -65,21 +91,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src="https://placehold.co/40x40.png" alt="@admin" data-ai-hint="user avatar" />
-                <AvatarFallback>A</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Admin User</p>
-                <p className="text-xs text-muted-foreground">admin@proflow.app</p>
-              </div>
-               <Link href="/">
-                <Button variant="ghost" size="icon">
+             {loading ? (
+                <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-muted rounded-full animate-pulse" />
+                    <div className='flex-1 space-y-1'>
+                        <div className="h-4 w-24 bg-muted rounded-md animate-pulse" />
+                        <div className="h-3 w-32 bg-muted rounded-md animate-pulse" />
+                    </div>
+                </div>
+             ) : user ? (
+                <div className="flex items-center gap-3">
+                <Avatar>
+                    <AvatarImage src="https://placehold.co/40x40.png" alt="User avatar" data-ai-hint="user avatar" />
+                    <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 overflow-hidden">
+                    <p className="font-semibold text-sm truncate">{user.displayName || 'User'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
                     <LogOut className="h-4 w-4" />
                 </Button>
-              </Link>
-            </div>
+                </div>
+            ) : (
+                 <p className="text-sm text-muted-foreground">Not logged in</p>
+            )}
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
