@@ -11,7 +11,7 @@ import { tasks, clients } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Edit } from 'lucide-react';
+import { ArrowLeft, Edit, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
@@ -80,6 +80,12 @@ export default function TaskDetailsPage({ params }: { params: { id: string } }) 
             <dl className="divide-y divide-border">
                 <DetailItem label="Work Status" value={<Badge variant="outline" className={statusColors[task.workStatus]}>{task.workStatus}</Badge>} />
                 <DetailItem label="Payment Status" value={<Badge variant="outline" className={statusColors[task.paymentStatus]}>{task.paymentStatus}</Badge>} />
+                {task.assignedTo && <DetailItem label="Assigned To" value={
+                    <div className='flex items-center gap-2'>
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        {task.assignedTo}
+                    </div>
+                } />}
                 <Separator />
                 <DetailItem label="Accepted Date" value={new Date(task.acceptedDate).toLocaleDateString()} />
                 <DetailItem label="Submission Date" value={new Date(task.submissionDate).toLocaleDateString()} />

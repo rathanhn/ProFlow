@@ -15,6 +15,7 @@ export interface Task {
   submissionDate: string;
   notes?: string;
   total: number;
+  assignedTo?: string;
 }
 
 export interface Client {
@@ -22,4 +23,9 @@ export interface Client {
   name: string;
   avatar: string;
   dataAiHint: string;
+}
+
+export interface Assignee {
+    id: string;
+    name: string;
 }

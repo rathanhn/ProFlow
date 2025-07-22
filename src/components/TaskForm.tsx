@@ -23,8 +23,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Task, Client, WorkStatus, PaymentStatus } from '@/lib/types';
-import { clients } from '@/lib/data';
+import { Task, Client, WorkStatus, PaymentStatus, Assignee } from '@/lib/types';
+import { clients, assignees } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 
 const workStatuses: WorkStatus[] = ['Pending', 'In Progress', 'Completed'];
@@ -37,6 +37,7 @@ const formSchema = z.object({
   rate: z.coerce.number().min(1, 'Rate must be at least 1'),
   workStatus: z.enum(workStatuses),
   paymentStatus: z.enum(paymentStatuses),
+  assignedTo: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -57,6 +58,7 @@ export default function TaskForm({ task }: TaskFormProps) {
       rate: task?.rate || 100,
       workStatus: task?.workStatus || 'Pending',
       paymentStatus: task?.paymentStatus || 'Unpaid',
+      assignedTo: task?.assignedTo || '',
       notes: task?.notes || '',
     },
   });
@@ -114,6 +116,32 @@ export default function TaskForm({ task }: TaskFormProps) {
                     <FormControl>
                       <Input placeholder="e.g. E-commerce Website" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="assignedTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assigned To</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a team member" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {assignees.map((assignee: Assignee) => (
+                          <SelectItem key={assignee.id} value={assignee.name}>
+                            {assignee.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

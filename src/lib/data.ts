@@ -1,4 +1,4 @@
-import { Client, Task } from './types';
+import { Client, Task, Assignee } from './types';
 
 export const clients: Client[] = [
   { id: '1', name: 'Innovate Corp', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'abstract logo' },
@@ -6,6 +6,12 @@ export const clients: Client[] = [
   { id: '3', name: 'Apex Industries', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'geometric logo' },
   { id: '4', name: 'Synergy Ltd.', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'minimalist logo' },
 ];
+
+export const assignees: Assignee[] = [
+    { id: '1', name: 'Alex' },
+    { id: '2', name: 'Jordan' },
+    { id: '3', name: 'Taylor' },
+]
 
 export const tasks: Task[] = [
   {
@@ -21,6 +27,7 @@ export const tasks: Task[] = [
     paymentStatus: 'Paid',
     submissionDate: '2023-10-25',
     total: 3750,
+    assignedTo: 'Alex',
   },
   {
     id: 'TASK-7878',
@@ -35,6 +42,7 @@ export const tasks: Task[] = [
     paymentStatus: 'Paid',
     submissionDate: '2023-11-01',
     total: 3000,
+    assignedTo: 'Jordan',
   },
   {
     id: 'TASK-1256',
@@ -49,6 +57,7 @@ export const tasks: Task[] = [
     paymentStatus: 'Partial',
     submissionDate: '2023-11-15',
     total: 3600,
+    assignedTo: 'Taylor',
   },
   {
     id: 'TASK-4596',
@@ -63,6 +72,7 @@ export const tasks: Task[] = [
     paymentStatus: 'Unpaid',
     submissionDate: '2023-11-10',
     total: 1800,
+    assignedTo: 'Alex',
   },
   {
     id: 'TASK-8901',
@@ -91,6 +101,7 @@ export const tasks: Task[] = [
     paymentStatus: 'Paid',
     submissionDate: '2023-11-20',
     total: 1500,
+    assignedTo: 'Taylor',
   },
     {
     id: 'TASK-6789',
@@ -105,5 +116,6 @@ export const tasks: Task[] = [
     paymentStatus: 'Unpaid',
     submissionDate: '2024-01-10',
     total: 12500,
+    assignedTo: 'Jordan',
   },
 ];

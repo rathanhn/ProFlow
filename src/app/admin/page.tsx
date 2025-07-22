@@ -160,6 +160,7 @@ export default function AdminDashboardPage() {
                 <TableRow>
                   <TableHead>Client</TableHead>
                   <TableHead className="hidden md:table-cell">Project Name</TableHead>
+                  <TableHead className="hidden md:table-cell">Assigned To</TableHead>
                   <TableHead>Work Status</TableHead>
                   <TableHead>Payment Status</TableHead>
                   <TableHead className="hidden md:table-cell">Total</TableHead>
@@ -183,6 +184,7 @@ export default function AdminDashboardPage() {
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{task.projectName}</TableCell>
+                    <TableCell className="hidden md:table-cell">{task.assignedTo || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[task.workStatus]}>
                         {task.workStatus}
