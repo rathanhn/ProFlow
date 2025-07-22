@@ -29,13 +29,8 @@ const statusColors: Record<string, string> = {
 };
 
 
-export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
-  const id = params.id as string;
+export default async function ClientDashboardPage({ params: { id } }: { params: { id: string } }) {
   const rawClient = await getClient(id);
-  
-  console.log('--- Client Dashboard Page ---');
-  console.log('Raw client data fetched from Firebase:', rawClient);
-
 
   if (!rawClient) {
     notFound();
@@ -45,8 +40,6 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
 
   const rawClientTasks = await getTasksByClientId(client.id);
-  console.log('Raw client tasks fetched from Firebase:', rawClientTasks);
-
 
   // Properly serialize the tasks array, ensuring all dates are strings
   const clientTasks = rawClientTasks.map(task => ({
@@ -60,11 +53,6 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
   const outstandingBalance = clientTasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);
   const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
   
-  console.log('--- Data being passed to components ---');
-  console.log('Serialized client:', client);
-  console.log('Serialized tasks:', clientTasks);
-
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
