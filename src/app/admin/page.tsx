@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -67,8 +68,10 @@ export default function AdminDashboardPage() {
                 <Button variant="outline">
                     <File className="mr-2 h-4 w-4" /> Export
                 </Button>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Task
+                <Button asChild>
+                    <Link href="/admin/tasks/new">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Task
+                    </Link>
                 </Button>
             </div>
         </div>
@@ -201,8 +204,12 @@ export default function AdminDashboardPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/tasks/${task.id}/edit`}>Edit</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/tasks/${task.id}`}>View Details</Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

@@ -1,3 +1,7 @@
+'use client'
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -18,7 +22,6 @@ import { Badge } from '@/components/ui/badge';
 import {
     DollarSign,
     ListChecks,
-    CheckCircle,
 } from 'lucide-react';
 import { clients, tasks } from '@/lib/data';
 import { Task, Client } from '@/lib/types';
@@ -36,6 +39,7 @@ const statusColors = {
 
 
 export default function ClientDashboardPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const client: Client | undefined = clients.find(c => c.id === params.id);
   if (!client) {
     notFound();
@@ -46,6 +50,10 @@ export default function ClientDashboardPage({ params }: { params: { id: string }
   const outstandingBalance = clientTasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);
   const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
   
+  const handleRowClick = (taskId: string) => {
+    router.push(`/client/${client.id}/projects/${taskId}`);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -110,7 +118,7 @@ export default function ClientDashboardPage({ params }: { params: { id: string }
               </TableHeader>
               <TableBody>
                 {clientTasks.map((task: Task) => (
-                  <TableRow key={task.id}>
+                  <TableRow key={task.id} onClick={() => handleRowClick(task.id)} className="cursor-pointer">
                     <TableCell className="font-medium">{task.projectName}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[task.workStatus]}>
