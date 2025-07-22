@@ -24,7 +24,7 @@ export default function AdminSettingsPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex items-center justify-between">
-                       <p className="text-sm font-medium">Toggle dark or light mode</p>
+                       <p className="text-sm font-medium">Toggle dark, light, or system theme</p>
                        <ThemeToggle />
                     </CardContent>
                 </Card>
