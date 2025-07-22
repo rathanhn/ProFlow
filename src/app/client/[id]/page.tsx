@@ -29,7 +29,8 @@ const statusColors: Record<string, string> = {
 };
 
 
-export default async function ClientDashboardPage({ params: { id } }: { params: { id: string } }) {
+export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
+  const id = params.id;
   const rawClient = await getClient(id);
 
   if (!rawClient) {
