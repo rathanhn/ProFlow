@@ -14,7 +14,6 @@ export function ThemeToggle() {
     if (storedTheme) {
       setTheme(storedTheme);
     } else {
-      // Set theme based on system preference if no theme is stored
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setTheme(systemPrefersDark ? 'dark' : 'light');
     }
@@ -32,15 +31,14 @@ export function ThemeToggle() {
     }
   }, [theme, isMounted]);
 
-  if (!isMounted) {
-    // Render a placeholder or null on the server and initial client render
-    return <div className="h-10 w-10" />;
-  }
-  
   const toggleTheme = () => {
     setTheme(currentTheme => (currentTheme === 'light' ? 'dark' : 'light'));
   };
 
+  if (!isMounted) {
+    return <div className="h-10 w-10" />;
+  }
+  
   return (
     <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
       <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
