@@ -183,26 +183,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarInset>
           <header className="flex items-center justify-between p-4 border-b h-16">
             <SidebarTrigger />
-            <div className="flex items-center gap-2">
-                <ThemeToggle />
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <Bell className="h-5 w-5" />
-                            <span className="sr-only">Toggle notifications</span>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent align="end" className="w-80">
-                         <div className="p-2">
-                            <h4 className="font-semibold mb-2">Notifications</h4>
-                            <div className="text-center text-sm text-muted-foreground py-4">
-                                <p>No new notifications.</p>
-                            </div>
-                        </div>
-                    </PopoverContent>
-                </Popover>
-            </div>
+            {/* Icons are now outside the header for fixed positioning */}
           </header>
+          <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+            <ThemeToggle />
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <Bell className="h-5 w-5" />
+                        <span className="sr-only">Toggle notifications</span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80">
+                      <div className="p-2">
+                        <h4 className="font-semibold mb-2">Notifications</h4>
+                        <div className="text-center text-sm text-muted-foreground py-4">
+                            <p>No new notifications.</p>
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
+          </div>
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
             {renderContent()}
           </main>
