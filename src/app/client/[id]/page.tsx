@@ -11,15 +11,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import {
     DollarSign,
     ListChecks,
 } from 'lucide-react';
@@ -40,18 +31,24 @@ const statusColors: Record<string, string> = {
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
   const id = params.id as string;
-  const rawClient: Client | null = await getClient(id);
+  const rawClient = await getClient(id);
 
   if (!rawClient) {
     notFound();
   }
   
-  // Ensure the client object is serializable
+  // Properly serialize the client object to pass to client components
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
 
-  const rawClientTasks: Task[] = await getTasksByClientId(client.id);
+  const rawClientTasks = await getTasksByClientId(client.id);
 
-  const clientTasks = JSON.parse(JSON.stringify(rawClientTasks)) as Task[];
+  // Properly serialize the tasks array, ensuring all dates are strings
+  const clientTasks = rawClientTasks.map(task => ({
+    ...JSON.parse(JSON.stringify(task)),
+     // Ensure dates are strings, even if they come from Firestore as Timestamps
+    acceptedDate: new Date(task.acceptedDate).toISOString(),
+    submissionDate: new Date(task.submissionDate).toISOString(),
+  })) as Task[];
 
   const totalSpent = clientTasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
   const outstandingBalance = clientTasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);

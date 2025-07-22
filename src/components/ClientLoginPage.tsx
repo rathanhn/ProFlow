@@ -18,21 +18,33 @@ export default function ClientLoginPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
+        setIsLoading(true);
         if (!email || !password) {
             toast({
                 title: 'Login Failed',
                 description: 'Please enter both email and password.',
                 variant: 'destructive',
             });
+            setIsLoading(false);
             return;
         }
         
         try {
             const user = await signInClient(email, password);
+            if (!user) {
+                 toast({
+                    title: 'Login Failed',
+                    description: 'Invalid email or password. Please try again.',
+                    variant: 'destructive',
+                });
+                setIsLoading(false);
+                return;
+            }
             const client = await getClientByEmail(email);
-            if (user && client) {
+            if (client) {
                 toast({
                     title: 'Login Successful!',
                     description: `Welcome back, ${client.name}.`,
@@ -41,7 +53,7 @@ export default function ClientLoginPage() {
             } else {
                  toast({
                     title: 'Login Failed',
-                    description: 'Invalid email or password. Please try again.',
+                    description: 'Could not find client data after login.',
                     variant: 'destructive',
                 });
             }
@@ -52,6 +64,8 @@ export default function ClientLoginPage() {
                 description: 'Invalid email or password. Please try again.',
                 variant: 'destructive',
             });
+        } finally {
+            setIsLoading(false);
         }
     };
   
@@ -90,8 +104,8 @@ export default function ClientLoginPage() {
             </div>
           </div>
           <div className="mt-6 space-y-2">
-            <Button onClick={handleLogin} className="w-full" disabled={!email || !password}>
-                Login as Client
+            <Button onClick={handleLogin} className="w-full" disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Login as Client'}
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
