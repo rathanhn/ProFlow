@@ -30,14 +30,24 @@ import {
     MoreHorizontal,
     PlusCircle,
 } from 'lucide-react';
-import { clients } from '@/lib/data';
+import { deleteClient, getClients } from '@/lib/firebase-service';
 import { Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import React from 'react';
 
 
 export default function AdminClientsPage() {
     const { toast } = useToast();
+    const [clients, setClients] = React.useState<Client[]>([]);
+
+    React.useEffect(() => {
+        const fetchClients = async () => {
+            const clients = await getClients();
+            setClients(clients);
+        };
+        fetchClients();
+    }, []);
 
     const copyToClipboard = (id: string) => {
         const url = `${window.location.origin}/client/${id}/auth`;
@@ -46,6 +56,18 @@ export default function AdminClientsPage() {
             title: "Link Copied!",
             description: "The client's dashboard link has been copied to your clipboard.",
         });
+    };
+
+    const handleDelete = async (id: string) => {
+        if (confirm('Are you sure you want to delete this client?')) {
+            await deleteClient(id);
+            setClients(clients.filter(c => c.id !== id));
+            toast({
+                title: "Client Deleted",
+                description: "The client has been successfully deleted.",
+                variant: 'destructive'
+            });
+        }
     };
     
   return (
@@ -111,7 +133,7 @@ export default function AdminClientsPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/clients/${client.id}/edit`}>Edit</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(client.id)} className="text-red-500">Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

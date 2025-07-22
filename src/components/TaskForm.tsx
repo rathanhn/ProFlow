@@ -1,3 +1,4 @@
+
 'use client';
 
 import { z } from 'zod';
@@ -24,8 +25,10 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Task, Client, WorkStatus, PaymentStatus, Assignee } from '@/lib/types';
-import { clients, assignees } from '@/lib/data';
+import { assignees } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+import { addTask, updateTask, getClients } from '@/lib/firebase-service';
+import React from 'react';
 
 const workStatuses: WorkStatus[] = ['Pending', 'In Progress', 'Completed'];
 const paymentStatuses: PaymentStatus[] = ['Unpaid', 'Partial', 'Paid'];
@@ -48,6 +51,15 @@ interface TaskFormProps {
 export default function TaskForm({ task }: TaskFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [clients, setClients] = React.useState<Client[]>([]);
+
+  React.useEffect(() => {
+      const fetchClients = async () => {
+          const clientData = await getClients();
+          setClients(clientData);
+      }
+      fetchClients();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,15 +75,31 @@ export default function TaskForm({ task }: TaskFormProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // In a real app, you would handle form submission here,
-    // e.g., send data to an API endpoint.
-    console.log(values);
-    toast({
-      title: task ? 'Task Updated!' : 'Task Created!',
-      description: `Project "${values.projectName}" has been saved.`,
-    });
-    router.push('/admin');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+        if (task) {
+            await updateTask(task.id, values);
+            toast({
+                title: 'Task Updated!',
+                description: `Project "${values.projectName}" has been saved.`,
+            });
+        } else {
+            await addTask(values as any); // Type assertion needed for server-side fields
+            toast({
+                title: 'Task Created!',
+                description: `Project "${values.projectName}" has been added.`,
+            });
+        }
+        router.push('/admin');
+        router.refresh();
+    } catch (error) {
+        console.error("Failed to save task:", error);
+        toast({
+            title: 'Error',
+            description: 'Failed to save task. Please try again.',
+            variant: 'destructive'
+        })
+    }
   }
 
   return (
@@ -132,7 +160,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a team member" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         {assignees.map((assignee: Assignee) => (

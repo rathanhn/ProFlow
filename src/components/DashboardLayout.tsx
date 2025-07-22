@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
@@ -18,11 +19,22 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Home, LogOut, Rocket, Users } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { clients } from '@/lib/data';
+import { getClients } from '@/lib/firebase-service';
+import { Client } from '@/lib/types';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const firstClientId = clients[0]?.id || '1';
+  const [firstClientId, setFirstClientId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchFirstClient = async () => {
+      const clients = await getClients();
+      if (clients.length > 0) {
+        setFirstClientId(clients[0].id);
+      }
+    };
+    fetchFirstClient();
+  }, []);
 
   return (
     <SidebarProvider>
@@ -56,7 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/client')}>
-                  <Link href={`/client/${firstClientId}/auth`}>
+                  <Link href={firstClientId ? `/client/${firstClientId}/auth` : '/client/1/auth'}>
                     <Briefcase />
                     Client Dashboard
                   </Link>

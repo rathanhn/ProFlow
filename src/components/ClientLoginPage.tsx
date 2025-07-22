@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Rocket, User } from 'lucide-react';
-import { clients } from '@/lib/data';
+import { getClientByEmail } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ClientLoginPage() {
@@ -18,18 +18,36 @@ export default function ClientLoginPage() {
     const router = useRouter();
     const { toast } = useToast();
 
-    const handleLogin = () => {
-        const client = clients.find(c => c.email === email);
-        if (client && client.password === password) {
-            toast({
-                title: 'Login Successful!',
-                description: `Welcome back, ${client.name}.`,
-            });
-            router.push(`/client/${client.id}`);
-        } else {
+    const handleLogin = async () => {
+        if (!email || !password) {
             toast({
                 title: 'Login Failed',
-                description: 'Invalid email or password. Please try again.',
+                description: 'Please enter both email and password.',
+                variant: 'destructive',
+            });
+            return;
+        }
+        
+        try {
+            const client = await getClientByEmail(email);
+            if (client && client.password === password) {
+                toast({
+                    title: 'Login Successful!',
+                    description: `Welcome back, ${client.name}.`,
+                });
+                router.push(`/client/${client.id}`);
+            } else {
+                toast({
+                    title: 'Login Failed',
+                    description: 'Invalid email or password. Please try again.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            toast({
+                title: 'Login Error',
+                description: 'An error occurred during login. Please try again.',
                 variant: 'destructive',
             });
         }
@@ -55,7 +73,7 @@ export default function ClientLoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required onKeyDown={(e) => e.key === 'Enter' && handleLogin()}/>
             </div>
           </div>
           <div className="mt-6 space-y-2">

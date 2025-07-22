@@ -1,6 +1,4 @@
 
-'use client';
-
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -10,8 +8,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { tasks, clients } from '@/lib/data';
-import { notFound, useParams } from 'next/navigation';
+import { getTask, getClient } from '@/lib/firebase-service';
+import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Edit, User } from 'lucide-react';
@@ -19,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
   Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
   Unpaid: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30',
@@ -36,16 +34,15 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 );
 
 
-export default function TaskDetailsPage() {
-  const params = useParams();
+export default async function TaskDetailsPage({ params }: { params: { id: string } }) {
   const id = params.id as string;
-  const task = tasks.find(t => t.id === id);
+  const task = await getTask(id);
 
   if (!task) {
     notFound();
   }
   
-  const client = clients.find(c => c.id === task.clientId);
+  const client = await getClient(task.clientId);
 
   return (
     <DashboardLayout>

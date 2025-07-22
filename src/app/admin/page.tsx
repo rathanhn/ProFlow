@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -34,14 +35,14 @@ import {
     ListChecks,
     Users
 } from 'lucide-react';
-import { clients, tasks } from '@/lib/data';
+import { getTasks, getClients } from '@/lib/firebase-service';
 import { Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import EarningsChart from '@/components/EarningsChart';
 
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
   Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
   Unpaid: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30',
@@ -50,7 +51,10 @@ const statusColors = {
   Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
 };
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const tasks = await getTasks();
+  const clients = await getClients();
+  
   const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
   const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);
   const completedProjects = tasks.filter(t => t.workStatus === 'Completed').length;

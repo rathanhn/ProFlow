@@ -10,15 +10,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { tasks, clients } from '@/lib/data';
+import { getTask, getClient } from '@/lib/firebase-service';
 import { notFound, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Task, Client } from '@/lib/types';
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
   Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
   Unpaid: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30',
@@ -37,11 +38,28 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 export default function ProjectDetailsPage() {
   const params = useParams();
   const { id, taskId } = params as { id: string; taskId: string };
-  const client = clients.find(c => c.id === id);
-  const task = tasks.find(t => t.id === taskId && t.clientId === id);
+  const [task, setTask] = useState<Task | null>(null);
+  const [client, setClient] = useState<Client | null>(null);
+
+  useEffect(() => {
+    if (id && taskId) {
+      const fetchDetails = async () => {
+        const taskData = await getTask(taskId);
+        const clientData = await getClient(id);
+        
+        if (!taskData || !clientData || taskData.clientId !== clientData.id) {
+          notFound();
+        }
+        
+        setTask(taskData);
+        setClient(clientData);
+      };
+      fetchDetails();
+    }
+  }, [id, taskId]);
 
   if (!task || !client) {
-    notFound();
+    return <DashboardLayout><div>Loading...</div></DashboardLayout>;
   }
 
   return (

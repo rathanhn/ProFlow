@@ -1,9 +1,7 @@
 
-'use client'
-
 import React from 'react';
 import Link from 'next/link';
-import { useRouter, useParams, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -25,12 +23,12 @@ import {
     DollarSign,
     ListChecks,
 } from 'lucide-react';
-import { clients, tasks } from '@/lib/data';
+import { getClient, getTasksByClientId } from '@/lib/firebase-service';
 import { Task, Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import ClientProjectsTable from './ClientProjectsTable';
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
   Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
   Unpaid: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30',
@@ -40,27 +38,19 @@ const statusColors = {
 };
 
 
-export default function ClientDashboardPage() {
-  const router = useRouter();
-  const params = useParams();
+export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
   const id = params.id as string;
+  const client: Client | null = await getClient(id);
 
-  // In a real app, you'd check for a valid session here.
-  // For this prototype, we'll just check if the client exists.
-  const client: Client | undefined = clients.find(c => c.id === id);
   if (!client) {
     notFound();
   }
 
-  const clientTasks: Task[] = tasks.filter(task => task.clientId === client.id);
+  const clientTasks: Task[] = await getTasksByClientId(client.id);
   const totalSpent = clientTasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
   const outstandingBalance = clientTasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);
   const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
   
-  const handleRowClick = (taskId: string) => {
-    router.push(`/client/${client.id}/projects/${taskId}`);
-  };
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -114,34 +104,7 @@ export default function ClientDashboardPage() {
             <CardDescription>An overview of all your projects and their current status.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project Name</TableHead>
-                  <TableHead>Work Status</TableHead>
-                  <TableHead>Payment Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clientTasks.map((task: Task) => (
-                  <TableRow key={task.id} onClick={() => handleRowClick(task.id)} className="cursor-pointer">
-                    <TableCell className="font-medium">{task.projectName}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={statusColors[task.workStatus]}>
-                        {task.workStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={statusColors[task.paymentStatus]}>
-                        {task.paymentStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">₹{task.total.toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ClientProjectsTable tasks={clientTasks} statusColors={statusColors} clientId={client.id} />
           </CardContent>
         </Card>
       </div>

@@ -1,122 +1,14 @@
 
-import { Client, Task, Assignee } from './types';
+import { Assignee } from './types';
 
-export const clients: Client[] = [
-  { id: '1', name: 'Innovate Corp', email: 'client1@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'abstract logo', password: 'password123' },
-  { id: '2', name: 'Quantum Solutions', email: 'client2@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'tech logo', password: 'password123' },
-  { id: '3', name: 'Apex Industries', email: 'client3@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'geometric logo', password: 'password123' },
-  { id: '4', name: 'Synergy Ltd.', email: 'client4@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'minimalist logo', password: 'password123' },
-];
+// This data is now fetched from Firebase. 
+// These arrays are kept to prevent breaking imports, but they should be empty.
+export const clients = [];
+export const tasks = [];
+
 
 export const assignees: Assignee[] = [
     { id: '1', name: 'Alex' },
     { id: '2', name: 'Jordan' },
     { id: '3', name: 'Taylor' },
 ]
-
-export const tasks: Task[] = [
-  {
-    id: 'TASK-8782',
-    slNo: 1,
-    clientName: 'Innovate Corp',
-    clientId: '1',
-    acceptedDate: '2023-10-01',
-    projectName: 'E-commerce Platform',
-    pages: 25,
-    rate: 150,
-    workStatus: 'Completed',
-    paymentStatus: 'Paid',
-    submissionDate: '2023-10-25',
-    total: 3750,
-    assignedTo: 'Alex',
-  },
-  {
-    id: 'TASK-7878',
-    slNo: 2,
-    clientName: 'Quantum Solutions',
-    clientId: '2',
-    acceptedDate: '2023-10-05',
-    projectName: 'Mobile App Design',
-    pages: 15,
-    rate: 200,
-    workStatus: 'Completed',
-    paymentStatus: 'Paid',
-    submissionDate: '2023-11-01',
-    total: 3000,
-    assignedTo: 'Jordan',
-  },
-  {
-    id: 'TASK-1256',
-    slNo: 3,
-    clientName: 'Apex Industries',
-    clientId: '3',
-    acceptedDate: '2023-10-15',
-    projectName: 'Marketing Website',
-    pages: 30,
-    rate: 120,
-    workStatus: 'In Progress',
-    paymentStatus: 'Partial',
-    submissionDate: '2023-11-15',
-    total: 3600,
-    assignedTo: 'Taylor',
-  },
-  {
-    id: 'TASK-4596',
-    slNo: 4,
-    clientName: 'Innovate Corp',
-    clientId: '1',
-    acceptedDate: '2023-10-20',
-    projectName: 'Brand Identity',
-    pages: 10,
-    rate: 180,
-    workStatus: 'In Progress',
-    paymentStatus: 'Unpaid',
-    submissionDate: '2023-11-10',
-    total: 1800,
-    assignedTo: 'Alex',
-  },
-  {
-    id: 'TASK-8901',
-    slNo: 5,
-    clientName: 'Synergy Ltd.',
-    clientId: '4',
-    acceptedDate: '2023-11-01',
-    projectName: 'Internal Dashboard',
-    pages: 40,
-    rate: 160,
-    workStatus: 'Pending',
-    paymentStatus: 'Unpaid',
-    submissionDate: '2023-12-01',
-    total: 6400,
-  },
-  {
-    id: 'TASK-3456',
-    slNo: 6,
-    clientName: 'Apex Industries',
-    clientId: '3',
-    acceptedDate: '2023-11-05',
-    projectName: 'API Integration',
-    pages: 5,
-    rate: 300,
-    workStatus: 'Completed',
-    paymentStatus: 'Paid',
-    submissionDate: '2023-11-20',
-    total: 1500,
-    assignedTo: 'Taylor',
-  },
-    {
-    id: 'TASK-6789',
-    slNo: 7,
-    clientName: 'Quantum Solutions',
-    clientId: '2',
-    acceptedDate: '2023-11-10',
-    projectName: 'Cloud Migration',
-    pages: 50,
-    rate: 250,
-    workStatus: 'In Progress',
-    paymentStatus: 'Unpaid',
-    submissionDate: '2024-01-10',
-    total: 12500,
-    assignedTo: 'Jordan',
-  },
-];

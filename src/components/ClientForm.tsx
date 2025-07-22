@@ -18,12 +18,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Client } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { addClient, updateClient } from '@/lib/firebase-service';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
   dataAiHint: z.string().min(2, 'AI hint must be at least 2 characters'),
   password: z.string().min(1, 'Password is required'),
+  avatar: z.string().url().optional(),
 });
 
 interface ClientFormProps {
@@ -41,18 +43,35 @@ export default function ClientForm({ client }: ClientFormProps) {
       email: client?.email || '',
       dataAiHint: client?.dataAiHint || '',
       password: client?.password || '',
+      avatar: client?.avatar || `https://placehold.co/32x32.png`,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // In a real app, you would handle form submission here,
-    // e.g., send data to an API endpoint.
-    console.log(values);
-    toast({
-      title: client ? 'Client Updated!' : 'Client Created!',
-      description: `Client "${values.name}" has been saved.`,
-    });
-    router.push('/admin/clients');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+        if (client) {
+            await updateClient(client.id, values);
+            toast({
+                title: 'Client Updated!',
+                description: `Client "${values.name}" has been saved.`,
+            });
+        } else {
+            await addClient(values);
+            toast({
+                title: 'Client Created!',
+                description: `Client "${values.name}" has been added.`,
+            });
+        }
+        router.push('/admin/clients');
+        router.refresh();
+    } catch (error) {
+        console.error("Failed to save client:", error);
+        toast({
+            title: 'Error',
+            description: 'Failed to save client. Please try again.',
+            variant: 'destructive'
+        })
+    }
   }
 
   return (

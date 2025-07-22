@@ -1,15 +1,17 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams, notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { KeyRound } from 'lucide-react';
-import { clients } from '@/lib/data';
+import { getClient } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Client } from '@/lib/types';
 
 
 export default function ClientAuthPage() {
@@ -18,14 +20,24 @@ export default function ClientAuthPage() {
     const params = useParams();
     const id = params.id as string;
     const { toast } = useToast();
-    const client = clients.find(c => c.id === id);
+    const [client, setClient] = useState<Client | null>(null);
 
-    if (!client) {
-        notFound();
-    }
+    useEffect(() => {
+        const fetchClient = async () => {
+            const clientData = await getClient(id);
+            if (!clientData) {
+                notFound();
+            }
+            setClient(clientData);
+        };
+        if (id) {
+            fetchClient();
+        }
+    }, [id]);
+
 
     const handleVerification = () => {
-        if (client.password === password) {
+        if (client && client.password === password) {
             toast({
                 title: 'Access Granted!',
                 description: 'Redirecting to your dashboard...',
@@ -40,6 +52,10 @@ export default function ClientAuthPage() {
             });
         }
     };
+  
+  if (!client) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  }
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -67,6 +83,7 @@ export default function ClientAuthPage() {
                     onChange={e => setPassword(e.target.value)} 
                     required 
                     className="pl-10"
+                    onKeyDown={(e) => e.key === 'Enter' && handleVerification()}
                 />
               </div>
             </div>
