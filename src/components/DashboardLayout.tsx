@@ -17,32 +17,19 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Bell, XCircle, Banknote } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { getNotifications, markNotificationAsRead, deleteNotification, clearNotifications } from '@/lib/firebase-service';
-import { Notification } from '@/lib/types';
-import { Badge } from './ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import NotificationBell from './NotificationBell';
+
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { toast } = useToast();
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [clientId, setClientId] = React.useState<string | null>(null);
-  const [notifications, setNotifications] = React.useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = React.useState(0);
-  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
-  const [deletingNotificationId, setDeletingNotificationId] = React.useState<string | null>(null);
-
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -50,10 +37,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setLoading(false);
       if (currentUser) {
         setClientId(currentUser.uid);
-        const isAdmin = pathname.startsWith('/admin');
-        const userId = isAdmin ? 'admin' : currentUser.uid;
-        setCurrentUserId(userId);
-        fetchNotifications(userId);
       } else {
         if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
           router.push('/admin/login');
@@ -66,12 +49,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
     return () => unsubscribe();
   }, [pathname, router]);
-
-  const fetchNotifications = async (userId: string) => {
-      const notifs = await getNotifications(userId);
-      setNotifications(notifs);
-      setUnreadCount(notifs.filter(n => !n.isRead).length);
-  };
   
   const handleLogout = async () => {
     await signOut(auth);
@@ -81,46 +58,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.push('/');
     }
   };
-
-  const handleNotificationClick = async (notification: Notification) => {
-    if (!notification.isRead && currentUserId) {
-        await markNotificationAsRead(notification.id);
-        fetchNotifications(currentUserId);
-    }
-    router.push(notification.link);
-  };
-
-  const handleDeleteNotification = (e: React.MouseEvent, notificationId: string) => {
-    e.stopPropagation(); // Prevent popover from closing or navigating
-    setDeletingNotificationId(notificationId);
-
-    setTimeout(async () => {
-        try {
-            if (currentUserId) {
-                await deleteNotification(notificationId);
-                toast({ title: "Notification deleted." });
-                fetchNotifications(currentUserId);
-            }
-        } catch {
-            toast({ title: "Error", description: "Could not delete notification.", variant: 'destructive' });
-        } finally {
-            setDeletingNotificationId(null);
-        }
-    }, 500); // Wait for animation to complete
-  };
-
-  const handleClearAllNotifications = async () => {
-    try {
-        if (currentUserId) {
-            await clearNotifications(currentUserId);
-            fetchNotifications(currentUserId);
-            toast({ title: "All notifications cleared." });
-        }
-    } catch {
-        toast({ title: "Error", description: "Could not clear notifications.", variant: 'destructive' });
-    }
-  };
-
 
   const getAvatarFallback = () => {
     if (user?.email) {
@@ -268,64 +205,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              {/* This space is intentionally left blank to push other items to the right */}
           </header>
           
-           <div className="fixed top-4 right-4 z-50">
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="relative rounded-full h-10 w-10 bg-background border">
-                            <Bell className="h-5 w-5" />
-                            {unreadCount > 0 && (
-                                <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 justify-center rounded-full p-0">{unreadCount}</Badge>
-                            )}
-                            <span className="sr-only">Toggle notifications</span>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent align="end" className="w-80 p-0">
-                          <div className="p-2 border-b">
-                            <h4 className="font-semibold">Notifications</h4>
-                          </div>
-                          <div className="max-h-80 overflow-y-auto">
-                            {notifications.length > 0 ? (
-                                 <div className="divide-y">
-                                    {notifications.map(n => (
-                                        <div
-                                            key={n.id}
-                                            className={`
-                                                flex items-start gap-2 p-3 transition-all duration-500 ease-in-out
-                                                ${deletingNotificationId === n.id ? 'animate-slide-out-to-right' : ''}
-                                                ${!n.isRead ? 'bg-primary/10' : ''}
-                                                cursor-pointer hover:bg-muted
-                                            `}
-                                            onClick={() => handleNotificationClick(n)}
-                                        >
-                                            <div className="flex-1">
-                                                <p className="text-sm">{n.message}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {new Date(n.createdAt).toLocaleString()}
-                                                </p>
-                                            </div>
-                                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => handleDeleteNotification(e, n.id)}>
-                                                <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                                                <span className="sr-only">Delete notification</span>
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center text-sm text-muted-foreground py-8">
-                                    <p>You have no new notifications.</p>
-                                </div>
-                            )}
-                        </div>
-                         {notifications.length > 0 && (
-                            <div className="p-2 border-t">
-                                <Button variant="outline" size="sm" className="w-full" onClick={handleClearAllNotifications}>
-                                    Clear All Notifications
-                                </Button>
-                            </div>
-                         )}
-                    </PopoverContent>
-                </Popover>
-            </div>
+           <NotificationBell />
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
             {renderContent()}
