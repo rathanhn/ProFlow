@@ -2,8 +2,8 @@
 'use server';
 
 import { auth, db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc } from 'firebase/firestore';
-import { Client, Task, Assignee } from './types';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, limit } from 'firebase/firestore';
+import { Client, Task, Assignee, Notification } from './types';
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
 
@@ -150,4 +150,27 @@ export async function deleteAssignee(id: string) {
     const assigneeDocRef = doc(db, 'assignees', id);
     await deleteDoc(assigneeDocRef);
     revalidatePath('/admin/team');
+}
+
+// Notification Functions
+export async function createNotification(notification: Omit<Notification, 'id'>) {
+    const notificationsCol = collection(db, 'notifications');
+    await addDoc(notificationsCol, notification);
+    // We don't need to revalidate paths for notifications as they are fetched client-side.
+}
+
+export async function getNotifications(userId: string): Promise<Notification[]> {
+    const q = query(
+        collection(db, "notifications"), 
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc"),
+        limit(20)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+}
+
+export async function markNotificationAsRead(id: string) {
+    const notificationDocRef = doc(db, 'notifications', id);
+    await updateDoc(notificationDocRef, { isRead: true });
 }

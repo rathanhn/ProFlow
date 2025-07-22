@@ -33,3 +33,12 @@ export interface Assignee {
     name: string;
     email?: string;
 }
+
+export interface Notification {
+    id: string;
+    userId: string; // 'admin' or client UID
+    message: string;
+    link: string;
+    isRead: boolean;
+    createdAt: string;
+}

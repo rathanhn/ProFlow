@@ -26,6 +26,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { getNotifications, markNotificationAsRead } from '@/lib/firebase-service';
+import { Notification } from '@/lib/types';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -33,6 +37,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [clientId, setClientId] = React.useState<string | null>(null);
+  const [notifications, setNotifications] = React.useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = React.useState(0);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -40,11 +46,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setLoading(false);
       if (currentUser) {
         setClientId(currentUser.uid);
+        const isAdmin = pathname.startsWith('/admin');
+        const userId = isAdmin ? 'admin' : currentUser.uid;
+        fetchNotifications(userId);
       }
       if (!currentUser && (pathname.startsWith('/admin') || pathname.startsWith('/client/'))) {
-          // If not logged in and trying to access a protected route, redirect
           if(pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) router.push('/admin/login');
-          // For client routes, we check for presence of an ID in the URL before redirecting
           const pathSegments = pathname.split('/');
           if(pathname.startsWith('/client/') && pathSegments.length > 2 && pathSegments[2] && !pathname.includes('/auth')) {
             router.push(`/client/${pathSegments[2]}/auth`);
@@ -53,6 +60,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
     return () => unsubscribe();
   }, [pathname, router]);
+
+  const fetchNotifications = async (userId: string) => {
+      const notifs = await getNotifications(userId);
+      setNotifications(notifs);
+      setUnreadCount(notifs.filter(n => !n.isRead).length);
+  };
   
   const handleLogout = async () => {
     await signOut(auth);
@@ -61,6 +74,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } else {
       router.push('/');
     }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.isRead) {
+        await markNotificationAsRead(notification.id);
+        fetchNotifications(notification.userId); // Refresh notifications
+    }
+    router.push(notification.link);
   };
 
   const getAvatarFallback = () => {
@@ -190,22 +211,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarInset>
           <header className="flex items-center justify-between p-4 border-b h-16">
             <SidebarTrigger />
-            {/* Icons are now outside the header for fixed positioning */}
           </header>
           <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="relative">
                         <Bell className="h-5 w-5" />
+                        {unreadCount > 0 && (
+                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 justify-center rounded-full p-0">{unreadCount}</Badge>
+                        )}
                         <span className="sr-only">Toggle notifications</span>
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-80">
                       <div className="p-2">
                         <h4 className="font-semibold mb-2">Notifications</h4>
-                        <div className="text-center text-sm text-muted-foreground py-4">
-                            <p>No new notifications.</p>
-                        </div>
+                        {notifications.length > 0 ? (
+                             <div className="space-y-2">
+                                {notifications.map(n => (
+                                    <React.Fragment key={n.id}>
+                                    <div
+                                        className={`p-2 rounded-md cursor-pointer ${!n.isRead ? 'bg-primary/10' : ''}`}
+                                        onClick={() => handleNotificationClick(n)}
+                                    >
+                                        <p className="text-sm">{n.message}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {new Date(n.createdAt).toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <Separator />
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center text-sm text-muted-foreground py-4">
+                                <p>No new notifications.</p>
+                            </div>
+                        )}
                     </div>
                 </PopoverContent>
             </Popover>

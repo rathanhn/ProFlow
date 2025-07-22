@@ -103,7 +103,7 @@ export default function ProjectDetailsPage() {
             </Card>
           </div>
           <div className="space-y-6">
-            <ClientActions />
+            <ClientActions task={task} client={client} />
           </div>
         </div>
       </div>

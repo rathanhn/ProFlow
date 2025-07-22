@@ -114,7 +114,7 @@ export default async function TaskDetailsPage({ params }: { params: { id: string
             </Card>
           </div>
           <div className="space-y-6">
-            <AdminActions />
+            <AdminActions task={task}/>
           </div>
         </div>
       </div>

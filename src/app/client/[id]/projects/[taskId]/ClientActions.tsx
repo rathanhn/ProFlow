@@ -4,23 +4,55 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { createNotification } from '@/lib/firebase-service';
+import { Task, Client } from '@/lib/types';
 import { Bell, Zap } from 'lucide-react';
 
-export default function ClientActions() {
+export default function ClientActions({ task, client }: { task: Task, client: Client }) {
     const { toast } = useToast();
 
-    const handleNotify = () => {
-        toast({
-            title: "Admin Notified!",
-            description: "We've notified the admin that you've completed payment for this project.",
-        });
+    const handleNotify = async () => {
+        try {
+            await createNotification({
+                userId: 'admin', // Generic admin user for notifications
+                message: `${client.name} has marked project '${task.projectName}' as paid.`,
+                link: `/admin/tasks/${task.id}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            });
+            toast({
+                title: "Admin Notified!",
+                description: "We've notified the admin that you've completed payment for this project.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Could not notify admin.",
+                variant: 'destructive',
+            });
+        }
     };
 
-    const handlePrioritize = () => {
-        toast({
-            title: "Request Sent!",
-            description: "We've sent a request to prioritize this project.",
-        });
+    const handlePrioritize = async () => {
+         try {
+            await createNotification({
+                userId: 'admin',
+                message: `${client.name} has requested to prioritize project '${task.projectName}'.`,
+                link: `/admin/tasks/${task.id}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            });
+            toast({
+                title: "Request Sent!",
+                description: "We've sent a request to prioritize this project.",
+            });
+        } catch (error) {
+             toast({
+                title: "Error",
+                description: "Could not send prioritization request.",
+                variant: 'destructive',
+            });
+        }
     };
 
     return (
