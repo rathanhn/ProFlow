@@ -17,11 +17,16 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Bell } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -178,7 +183,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarInset>
           <header className="flex items-center justify-between p-4 border-b h-16">
             <SidebarTrigger />
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Bell className="h-5 w-5" />
+                            <span className="sr-only">Toggle notifications</span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-80">
+                         <div className="p-2">
+                            <h4 className="font-semibold mb-2">Notifications</h4>
+                            <div className="text-center text-sm text-muted-foreground py-4">
+                                <p>No new notifications.</p>
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
             {renderContent()}
