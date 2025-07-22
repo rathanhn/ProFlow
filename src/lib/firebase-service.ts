@@ -261,7 +261,7 @@ export async function addTransactionAndUpdateTask(
 
 export async function getTransactions(): Promise<Transaction[]> {
     const transactionsCol = collection(db, 'transactions');
-    const transactionSnapshot = await getDocs(query(transactionsCol, orderBy("transactionDate", "desc")));
+    const transactionSnapshot = await getDocs(query(transactionsCol));
     const transactionList = transactionSnapshot.docs.map(doc => {
         const data = doc.data();
         return { 
@@ -270,14 +270,14 @@ export async function getTransactions(): Promise<Transaction[]> {
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
     });
-    return transactionList;
+     // Sort by date descending in code
+    return transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
 }
 
 export async function getTransactionsByClientId(clientId: string): Promise<Transaction[]> {
     const q = query(
         collection(db, "transactions"), 
-        where("clientId", "==", clientId),
-        orderBy("transactionDate", "desc")
+        where("clientId", "==", clientId)
     );
     const transactionSnapshot = await getDocs(q);
     const transactionList = transactionSnapshot.docs.map(doc => {
@@ -288,5 +288,6 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
     });
-    return transactionList;
+    // Sort by date descending in code to avoid needing a composite index
+    return transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
 }
