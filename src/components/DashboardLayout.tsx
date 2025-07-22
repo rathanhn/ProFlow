@@ -3,20 +3,20 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  SidebarProvider,
   Sidebar,
-  SidebarHeader,
   SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
-  SidebarInset,
-  SidebarTrigger,
+  SidebarProvider,
+  SidebarTrigger
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Home, Users, Briefcase, LogOut, Rocket } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { clients } from '@/lib/data';
 
@@ -28,15 +28,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <SidebarProvider>
       <div className="flex min-h-screen">
         <Sidebar>
-          <SidebarContent>
-            <SidebarHeader>
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary rounded-lg">
-                  <Rocket className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <h1 className="text-xl font-semibold">ProFlow</h1>
+          <SidebarHeader>
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-primary rounded-lg">
+                <Rocket className="w-6 h-6 text-primary-foreground" />
               </div>
-            </SidebarHeader>
+              <h1 className="text-xl font-semibold">ProFlow</h1>
+            </div>
+          </SidebarHeader>
+          <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/admin'}>
@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/client')}>
-                  <Link href={`/client/${firstClientId}`}>
+                  <Link href={`/client/${firstClientId}/auth`}>
                     <Briefcase />
                     Client Dashboard
                   </Link>

@@ -1,6 +1,7 @@
 
 'use client'
 
+import React from 'react';
 import Link from 'next/link';
 import { useRouter, useParams, notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -27,7 +28,7 @@ import {
 import { clients, tasks } from '@/lib/data';
 import { Task, Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import React from 'react';
+import { Button } from '@/components/ui/button';
 
 const statusColors = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
@@ -43,6 +44,9 @@ export default function ClientDashboardPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+
+  // In a real app, you'd check for a valid session here.
+  // For this prototype, we'll just check if the client exists.
   const client: Client | undefined = clients.find(c => c.id === id);
   if (!client) {
     notFound();

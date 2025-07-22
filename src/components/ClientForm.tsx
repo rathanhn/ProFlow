@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   dataAiHint: z.string().min(2, 'AI hint must be at least 2 characters'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 interface ClientFormProps {
@@ -36,6 +37,7 @@ export default function ClientForm({ client }: ClientFormProps) {
     defaultValues: {
       name: client?.name || '',
       dataAiHint: client?.dataAiHint || '',
+      password: client?.password || '',
     },
   });
 
@@ -87,6 +89,19 @@ export default function ClientForm({ client }: ClientFormProps) {
                   </FormItem>
                 )}
               />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Enter a password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel

@@ -9,7 +9,6 @@ import { Rocket } from 'lucide-react';
 import { clients } from '@/lib/data';
 
 export default function LoginPage() {
-  const firstClientId = clients[0]?.id || '1';
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -20,8 +19,8 @@ export default function LoginPage() {
                     <Rocket className="w-8 h-8 text-primary-foreground" />
                 </div>
             </div>
-          <CardTitle className="text-3xl font-bold">ProFlow</CardTitle>
-          <CardDescription>Welcome back! Sign in to continue.</CardDescription>
+          <CardTitle className="text-3xl font-bold">ProFlow - Admin</CardTitle>
+          <CardDescription>Sign in to the admin dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -36,16 +35,13 @@ export default function LoginPage() {
           </div>
           <div className="mt-6 space-y-2">
             <Button asChild className="w-full">
-              <Link href="/admin">Login as Admin</Link>
-            </Button>
-            <Button asChild variant="secondary" className="w-full">
-              <Link href={`/client/${firstClientId}`}>Login as Client</Link>
+              <Link href="/admin">Login</Link>
             </Button>
           </div>
-          <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
-            <Link href="#" className="underline">
-              Sign up
+           <div className="mt-4 text-center text-sm">
+            Are you a client?{' '}
+            <Link href="/" className="underline">
+              Login here
             </Link>
           </div>
         </CardContent>

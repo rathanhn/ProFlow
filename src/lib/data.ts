@@ -1,10 +1,10 @@
 import { Client, Task, Assignee } from './types';
 
 export const clients: Client[] = [
-  { id: '1', name: 'Innovate Corp', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'abstract logo' },
-  { id: '2', name: 'Quantum Solutions', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'tech logo' },
-  { id: '3', name: 'Apex Industries', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'geometric logo' },
-  { id: '4', name: 'Synergy Ltd.', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'minimalist logo' },
+  { id: '1', name: 'Innovate Corp', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'abstract logo', password: 'password123' },
+  { id: '2', name: 'Quantum Solutions', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'tech logo', password: 'password123' },
+  { id: '3', name: 'Apex Industries', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'geometric logo', password: 'password123' },
+  { id: '4', name: 'Synergy Ltd.', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'minimalist logo', password: 'password123' },
 ];
 
 export const assignees: Assignee[] = [

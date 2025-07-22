@@ -23,6 +23,7 @@ export interface Client {
   name: string;
   avatar: string;
   dataAiHint: string;
+  password?: string;
 }
 
 export interface Assignee {
