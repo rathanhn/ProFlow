@@ -14,7 +14,7 @@ import { getTask, getClient } from '@/lib/firebase-service';
 import { notFound, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import React, { useEffect, useState } from 'react';
 import { Task, Client } from '@/lib/types';
@@ -84,6 +84,12 @@ export default function ProjectDetailsPage() {
             <dl className="divide-y divide-border">
                 <DetailItem label="Work Status" value={<Badge variant="outline" className={statusColors[task.workStatus]}>{task.workStatus}</Badge>} />
                 <DetailItem label="Payment Status" value={<Badge variant="outline" className={statusColors[task.paymentStatus]}>{task.paymentStatus}</Badge>} />
+                {task.assignedTo && <DetailItem label="Assigned To" value={
+                    <div className='flex items-center gap-2'>
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        {task.assignedTo}
+                    </div>
+                } />}
                 <Separator />
                 <DetailItem label="Project Start Date" value={new Date(task.acceptedDate).toLocaleDateString()} />
                 <DetailItem label="Estimated Completion" value={new Date(task.submissionDate).toLocaleDateString()} />
