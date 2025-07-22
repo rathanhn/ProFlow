@@ -20,19 +20,22 @@ import { Client } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { addClient, updateClient } from '@/lib/firebase-service';
 
-const formSchema = z.object({
+const baseSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
   dataAiHint: z.string().min(2, 'AI hint must be at least 2 characters'),
+  avatar: z.string().url().optional(),
+});
+
+const formSchema = baseSchema.extend({
   password: z.string().min(6, 'Password must be at least 6 characters.'),
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters.'),
-  avatar: z.string().url().optional(),
 }).refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
 });
 
-const editFormSchema = formSchema.omit({ password: true, confirmPassword: true });
+const editFormSchema = baseSchema;
 
 interface ClientFormProps {
   client?: Client;
@@ -42,8 +45,10 @@ export default function ClientForm({ client }: ClientFormProps) {
   const router = useRouter();
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(client ? editFormSchema : formSchema),
+  const currentSchema = client ? editFormSchema : formSchema;
+
+  const form = useForm<z.infer<typeof currentSchema>>({
+    resolver: zodResolver(currentSchema),
     defaultValues: {
       name: client?.name || '',
       email: client?.email || '',
@@ -54,7 +59,7 @@ export default function ClientForm({ client }: ClientFormProps) {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof currentSchema>) {
     try {
         if (client) {
             await updateClient(client.id, values);
@@ -63,7 +68,7 @@ export default function ClientForm({ client }: ClientFormProps) {
                 description: `Client "${values.name}" has been saved.`,
             });
         } else {
-            await addClient(values);
+            await addClient(values as Omit<Client, 'id'>);
             toast({
                 title: 'Client Created!',
                 description: `Client "${values.name}" has been added.`,
