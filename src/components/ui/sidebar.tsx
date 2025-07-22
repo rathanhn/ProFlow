@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -45,6 +45,9 @@ export const Sidebar = ({ children }: { children: React.ReactNode }) => {
       {/* Mobile Sidebar */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="left" className="w-64 p-0">
+          <SheetHeader>
+            <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
+          </SheetHeader>
           {children}
         </SheetContent>
       </Sheet>
