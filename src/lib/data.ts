@@ -1,10 +1,11 @@
+
 import { Client, Task, Assignee } from './types';
 
 export const clients: Client[] = [
-  { id: '1', name: 'Innovate Corp', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'abstract logo', password: 'password123' },
-  { id: '2', name: 'Quantum Solutions', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'tech logo', password: 'password123' },
-  { id: '3', name: 'Apex Industries', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'geometric logo', password: 'password123' },
-  { id: '4', name: 'Synergy Ltd.', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'minimalist logo', password: 'password123' },
+  { id: '1', name: 'Innovate Corp', email: 'client1@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'abstract logo', password: 'password123' },
+  { id: '2', name: 'Quantum Solutions', email: 'client2@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'tech logo', password: 'password123' },
+  { id: '3', name: 'Apex Industries', email: 'client3@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'geometric logo', password: 'password123' },
+  { id: '4', name: 'Synergy Ltd.', email: 'client4@example.com', avatar: 'https://placehold.co/32x32.png', dataAiHint: 'minimalist logo', password: 'password123' },
 ];
 
 export const assignees: Assignee[] = [

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,17 +11,15 @@ import { Label } from '@/components/ui/label';
 import { Rocket, User } from 'lucide-react';
 import { clients } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
 
 export default function ClientLoginPage() {
-    const [selectedClientId, setSelectedClientId] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
     const { toast } = useToast();
 
     const handleLogin = () => {
-        const client = clients.find(c => c.id === selectedClientId);
+        const client = clients.find(c => c.email === email);
         if (client && client.password === password) {
             toast({
                 title: 'Login Successful!',
@@ -30,7 +29,7 @@ export default function ClientLoginPage() {
         } else {
             toast({
                 title: 'Login Failed',
-                description: 'Invalid client or password. Please try again.',
+                description: 'Invalid email or password. Please try again.',
                 variant: 'destructive',
             });
         }
@@ -51,17 +50,8 @@ export default function ClientLoginPage() {
         <CardContent>
           <div className="space-y-4">
              <div className="space-y-2">
-                <Label htmlFor="client">Select Your Account</Label>
-                 <Select onValueChange={setSelectedClientId} value={selectedClientId}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select your name" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {clients.map(client => (
-                            <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -69,7 +59,7 @@ export default function ClientLoginPage() {
             </div>
           </div>
           <div className="mt-6 space-y-2">
-            <Button onClick={handleLogin} className="w-full" disabled={!selectedClientId || !password}>
+            <Button onClick={handleLogin} className="w-full" disabled={!email || !password}>
                 Login as Client
             </Button>
           </div>

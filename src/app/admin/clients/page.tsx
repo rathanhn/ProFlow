@@ -1,3 +1,6 @@
+
+'use client';
+
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -23,15 +26,28 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+    Copy,
     MoreHorizontal,
     PlusCircle,
 } from 'lucide-react';
 import { clients } from '@/lib/data';
 import { Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function AdminClientsPage() {
+    const { toast } = useToast();
+
+    const copyToClipboard = (id: string) => {
+        const url = `${window.location.origin}/client/${id}/auth`;
+        navigator.clipboard.writeText(url);
+        toast({
+            title: "Link Copied!",
+            description: "The client's dashboard link has been copied to your clipboard.",
+        });
+    };
+    
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -52,14 +68,15 @@ export default function AdminClientsPage() {
         <Card>
           <CardHeader>
             <CardTitle>All Clients</CardTitle>
-            <CardDescription>Manage your clients.</CardDescription>
+            <CardDescription>Manage your clients and their dashboard access.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Client</TableHead>
-                  <TableHead>ID</TableHead>
+                  <TableHead className="hidden md:table-cell">Email</TableHead>
+                  <TableHead className="hidden md:table-cell">Sharable Link</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
@@ -75,7 +92,13 @@ export default function AdminClientsPage() {
                         <p className="font-medium">{client.name}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{client.id}</TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground">{client.email}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(client.id)}>
+                            <Copy className="mr-2 h-3 w-3" />
+                            Copy Link
+                        </Button>
+                    </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

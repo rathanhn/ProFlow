@@ -1,3 +1,4 @@
+
 'use client';
 
 import { z } from 'zod';
@@ -20,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
+  email: z.string().email('Please enter a valid email.'),
   dataAiHint: z.string().min(2, 'AI hint must be at least 2 characters'),
   password: z.string().min(1, 'Password is required'),
 });
@@ -36,6 +38,7 @@ export default function ClientForm({ client }: ClientFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: client?.name || '',
+      email: client?.email || '',
       dataAiHint: client?.dataAiHint || '',
       password: client?.password || '',
     },
@@ -71,6 +74,19 @@ export default function ClientForm({ client }: ClientFormProps) {
                   <FormLabel>Client Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Innovate Corp" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="client@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,3 +1,4 @@
+
 export type WorkStatus = "Pending" | "In Progress" | "Completed";
 export type PaymentStatus = "Unpaid" | "Partial" | "Paid";
 
@@ -21,6 +22,7 @@ export interface Task {
 export interface Client {
   id: string;
   name: string;
+  email: string;
   avatar: string;
   dataAiHint: string;
   password?: string;
