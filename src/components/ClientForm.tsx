@@ -19,6 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Client } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { addClient, updateClient } from '@/lib/firebase-service';
+import React from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const baseSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
@@ -44,6 +46,8 @@ interface ClientFormProps {
 export default function ClientForm({ client }: ClientFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   const currentSchema = client ? editFormSchema : formSchema;
 
@@ -144,9 +148,20 @@ export default function ClientForm({ client }: ClientFormProps) {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" placeholder="Enter a password" {...field} />
-                        </FormControl>
+                          <FormControl>
+                            <div className="relative">
+                              <Input type={showPassword ? 'text' : 'password'} placeholder="Enter a password" {...field} />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
@@ -157,9 +172,20 @@ export default function ClientForm({ client }: ClientFormProps) {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" placeholder="Confirm the password" {...field} />
-                        </FormControl>
+                           <FormControl>
+                            <div className="relative">
+                              <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm the password" {...field} />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              >
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}

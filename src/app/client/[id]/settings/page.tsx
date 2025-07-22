@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { updateClientPassword } from '@/lib/firebase-service';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Eye, EyeOff } from 'lucide-react';
 
 
 const formSchema = z.object({
@@ -32,6 +32,8 @@ const formSchema = z.object({
 
 export default function ClientSettingsPage() {
     const { toast } = useToast();
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -85,7 +87,16 @@ export default function ClientSettingsPage() {
                                             <FormControl>
                                                 <div className="relative">
                                                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input type="password" placeholder="Enter new password" {...field} className="pl-10" />
+                                                    <Input type={showNewPassword ? 'text' : 'password'} placeholder="Enter new password" {...field} className="pl-10 pr-10" />
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                                        >
+                                                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </Button>
                                                 </div>
                                             </FormControl>
                                             <FormMessage />
@@ -101,7 +112,16 @@ export default function ClientSettingsPage() {
                                             <FormControl>
                                                  <div className="relative">
                                                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input type="password" placeholder="Confirm new password" {...field} className="pl-10" />
+                                                    <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        >
+                                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </Button>
                                                 </div>
                                             </FormControl>
                                             <FormMessage />

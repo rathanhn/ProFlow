@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User } from 'lucide-react';
+import { User, Eye, EyeOff } from 'lucide-react';
 import { getClientByEmail, signInClient } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +17,7 @@ export default function ClientLoginPage() {
     const [password, setPassword] = useState('');
     const router = useRouter();
     const { toast } = useToast();
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -74,7 +75,18 @@ export default function ClientLoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required onKeyDown={(e) => e.key === 'Enter' && handleLogin()}/>
+              <div className="relative">
+                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required onKeyDown={(e) => e.key === 'Enter' && handleLogin()}/>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                    >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
           </div>
           <div className="mt-6 space-y-2">

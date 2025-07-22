@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Eye, EyeOff } from 'lucide-react';
 import { getClient, signInClient, updateClientPassword } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,6 +35,10 @@ export default function ClientAuthPage() {
     const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+
 
     useEffect(() => {
         const fetchClient = async () => {
@@ -123,13 +127,22 @@ export default function ClientAuthPage() {
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                     id="password" 
-                    type="password" 
+                    type={showPassword ? 'text' : 'password'}
                     value={password} 
                     onChange={e => setPassword(e.target.value)} 
                     required 
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     onKeyDown={(e) => e.key === 'Enter' && handleVerification()}
                 />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                    >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
               </div>
             </div>
           </div>
@@ -152,11 +165,33 @@ export default function ClientAuthPage() {
             <div className="space-y-4 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="new-password">New Password</Label>
-                    <Input id="new-password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" />
+                    <div className="relative">
+                        <Input id="new-password" type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" />
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                    </div>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                    <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" />
+                    <div className="relative">
+                        <Input id="confirm-new-password" type={showConfirmNewPassword ? 'text' : 'password'} value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" />
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                            onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                            >
+                            {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                    </div>
                 </div>
             </div>
             <AlertDialogFooter>
