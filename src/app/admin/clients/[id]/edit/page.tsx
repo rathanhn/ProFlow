@@ -12,6 +12,7 @@ export default function EditClientPage() {
     const params = useParams();
     const id = params.id as string;
     const [client, setClient] = React.useState<Client | null>(null);
+    const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
         const fetchClient = async () => {
@@ -20,17 +21,29 @@ export default function EditClientPage() {
                 notFound();
             }
             setClient(clientData);
+            setLoading(false);
         };
         fetchClient();
     }, [id]);
 
-    if (!client) {
+    if (loading) {
+        return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+    }
+
+    // Ensure client data is serializable
+    const serializableClient = client ? {
+        ...client,
+        // Convert any non-serializable fields here if necessary
+    } : null;
+
+
+    if (!serializableClient) {
         return <DashboardLayout><div>Loading...</div></DashboardLayout>;
     }
 
     return (
         <DashboardLayout>
-            <ClientForm client={client} />
+            <ClientForm client={serializableClient} />
         </DashboardLayout>
     );
 }
