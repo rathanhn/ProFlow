@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-    BarChart,
+    BarChart as BarChartIcon,
     File,
     Filter,
     MoreHorizontal,
@@ -38,7 +38,7 @@ import { Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, Bar, XAxis, YAxis } from '@/components/ui/chart';
-import { RechartsBarChart } from 'recharts';
+import { BarChart } from 'recharts';
 
 
 const statusColors = {
@@ -142,12 +142,12 @@ export default function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                     <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                        <RechartsBarChart data={chartData} accessibilityLayer>
+                        <BarChart data={chartData} accessibilityLayer>
                             <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
                             <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={12} tickFormatter={(value) => `$${value/1000}k`} />
                             <ChartTooltip content={<ChartTooltipContent />} />
                             <Bar dataKey="earnings" fill="var(--color-earnings)" radius={4} />
-                        </RechartsBarChart>
+                        </BarChart>
                     </ChartContainer>
                 </CardContent>
             </Card>
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
                    <div className="space-y-4">
                         <Input placeholder="e.g., 'Show top clients by earnings'" />
                         <Button className="w-full">
-                            <BarChart className="mr-2 h-4 w-4" /> Generate Visualization
+                            <BarChartIcon className="mr-2 h-4 w-4" /> Generate Visualization
                         </Button>
                         <div className="mt-4 p-4 border rounded-lg bg-muted/50 text-center text-sm text-muted-foreground">
                             Your generated chart will appear here.
