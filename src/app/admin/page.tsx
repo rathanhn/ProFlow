@@ -37,8 +37,7 @@ import { clients, tasks } from '@/lib/data';
 import { Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, Bar, XAxis, YAxis } from '@/components/ui/chart';
-import { BarChart } from 'recharts';
+import EarningsChart from '@/components/EarningsChart';
 
 
 const statusColors = {
@@ -49,23 +48,6 @@ const statusColors = {
   'In Progress': 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30',
   Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
 };
-
-const chartData = [
-  { month: 'January', earnings: 1860 },
-  { month: 'February', earnings: 3050 },
-  { month: 'March', earnings: 2370 },
-  { month: 'April', earnings: 730 },
-  { month: 'May', earnings: 2090 },
-  { month: 'June', earnings: 2140 },
-];
-
-const chartConfig = {
-  earnings: {
-    label: 'Earnings',
-    color: 'hsl(var(--primary))',
-  },
-};
-
 
 export default function AdminDashboardPage() {
   const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
@@ -135,22 +117,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="lg:col-span-4">
-                <CardHeader>
-                    <CardTitle>Earnings Overview</CardTitle>
-                    <CardDescription>Monthly earnings overview for the last 6 months.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                        <BarChart data={chartData} accessibilityLayer>
-                            <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-                            <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={12} tickFormatter={(value) => `$${value/1000}k`} />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <Bar dataKey="earnings" fill="var(--color-earnings)" radius={4} />
-                        </BarChart>
-                    </ChartContainer>
-                </CardContent>
-            </Card>
+            <EarningsChart />
             <Card className="lg:col-span-3">
                 <CardHeader>
                     <CardTitle>AI-Powered Insights</CardTitle>
