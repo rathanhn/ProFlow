@@ -9,8 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Eye, EyeOff } from 'lucide-react';
-import { getClientByEmail, signInClient } from '@/lib/firebase-service';
+import { getClientByEmail } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function ClientLoginPage() {
     const [email, setEmail] = useState('');
@@ -33,16 +35,10 @@ export default function ClientLoginPage() {
         }
         
         try {
-            const user = await signInClient(email, password);
-            if (!user) {
-                 toast({
-                    title: 'Login Failed',
-                    description: 'Invalid email or password. Please try again.',
-                    variant: 'destructive',
-                });
-                setIsLoading(false);
-                return;
-            }
+            // Use client-side auth directly
+            await signInWithEmailAndPassword(auth, email, password);
+            
+            // On success, get client data and redirect
             const client = await getClientByEmail(email);
             if (client) {
                 console.log(`Login successful for client ID: ${client.id}. Redirecting...`);

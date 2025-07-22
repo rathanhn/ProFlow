@@ -5,7 +5,7 @@ import { auth, db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc } from 'firebase/firestore';
 import { Client, Task } from './types';
 import { revalidatePath } from 'next/cache';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
 
 // Client Functions
 export async function getClients(): Promise<Client[]> {
@@ -62,11 +62,6 @@ export async function getClientByEmail(email: string): Promise<Client | null> {
         return { id: doc.id, ...doc.data() } as Client;
     }
     return null;
-}
-
-export async function signInClient(email:string, password: string): Promise<any> {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
 }
 
 export async function updateClientPassword(newPassword: string): Promise<void> {
@@ -142,4 +137,3 @@ export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'sl
     revalidatePath(`/admin/tasks/${id}`);
     revalidatePath(`/admin/tasks/${id}/edit`);
 }
-
