@@ -19,7 +19,9 @@ export async function getClient(id: string): Promise<Client | null> {
     const clientDocRef = doc(db, 'clients', id);
     const clientSnap = await getDoc(clientDocRef);
     if (clientSnap.exists()) {
-        return { id: clientSnap.id, ...clientSnap.data() } as Client;
+        const clientData = clientSnap.data();
+        // Ensure data is serializable
+        return JSON.parse(JSON.stringify({ id: clientSnap.id, ...clientData })) as Client;
     } else {
         return null;
     }
@@ -64,34 +66,36 @@ export async function getClientByEmail(email: string): Promise<Client | null> {
     return null;
 }
 
-export async function updateClientPassword(newPassword: string): Promise<void> {
-    const user = auth.currentUser;
-    if (user) {
-        try {
-            await updatePassword(user, newPassword);
-        } catch (error) {
-            console.error("Firebase update password error:", error);
-            // Re-throw the error to be caught by the calling function
-            throw new Error("Failed to update password in Firebase.");
-        }
-    } else {
-        throw new Error("No user is currently signed in.");
-    }
-}
-
 
 // Task Functions
 export async function getTasks(): Promise<Task[]> {
     const tasksCol = collection(db, 'tasks');
     const taskSnapshot = await getDocs(tasksCol);
-    const taskList = taskSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+    const taskList = taskSnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Ensure dates are strings
+        return { 
+            id: doc.id, 
+            ...data,
+            acceptedDate: new Date(data.acceptedDate).toISOString(),
+            submissionDate: new Date(data.submissionDate).toISOString(),
+        } as Task;
+    });
     return taskList;
 }
 
 export async function getTasksByClientId(clientId: string): Promise<Task[]> {
     const q = query(collection(db, "tasks"), where("clientId", "==", clientId));
     const taskSnapshot = await getDocs(q);
-    const taskList = taskSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+    const taskList = taskSnapshot.docs.map(doc => {
+        const data = doc.data();
+         return { 
+            id: doc.id, 
+            ...data,
+            acceptedDate: new Date(data.acceptedDate).toISOString(),
+            submissionDate: new Date(data.submissionDate).toISOString(),
+        } as Task;
+    });
     return taskList;
 }
 
@@ -99,7 +103,9 @@ export async function getTask(id: string): Promise<Task | null> {
     const taskDocRef = doc(db, 'tasks', id);
     const taskSnap = await getDoc(taskDocRef);
     if (taskSnap.exists()) {
-        return { id: taskSnap.id, ...taskSnap.data() } as Task;
+        const taskData = taskSnap.data();
+        // Ensure data is serializable
+        return JSON.parse(JSON.stringify({ id: taskSnap.id, ...taskData })) as Task;
     } else {
         return null;
     }

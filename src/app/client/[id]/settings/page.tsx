@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { updateClientPassword } from '@/lib/firebase-service';
+import { updateClientPassword } from '@/lib/firebase-client-service';
 import { KeyRound, Eye, EyeOff } from 'lucide-react';
 
 
