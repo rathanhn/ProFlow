@@ -149,13 +149,13 @@ export default function ClientForm({ client }: ClientFormProps) {
                         <FormItem>
                         <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <div className="relative">
-                              <Input type={showPassword ? 'text' : 'password'} placeholder="Enter a password" {...field} />
+                            <div className="relative flex items-center">
+                              <Input type={showPassword ? 'text' : 'password'} placeholder="Enter a password" {...field} className="pr-10" />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
                                 onClick={() => setShowPassword(!showPassword)}
                               >
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -173,13 +173,13 @@ export default function ClientForm({ client }: ClientFormProps) {
                         <FormItem>
                         <FormLabel>Confirm Password</FormLabel>
                            <FormControl>
-                            <div className="relative">
-                              <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm the password" {...field} />
+                            <div className="relative flex items-center">
+                              <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm the password" {...field} className="pr-10" />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                               >
                                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
