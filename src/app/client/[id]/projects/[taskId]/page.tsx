@@ -63,6 +63,10 @@ export default function ProjectDetailsPage() {
     return <DashboardLayout><div>Loading...</div></DashboardLayout>;
   }
 
+  const amountPaid = task.amountPaid ?? 0;
+  const total = task.total ?? 0;
+  const remainingAmount = total - amountPaid;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -97,9 +101,9 @@ export default function ProjectDetailsPage() {
                     <DetailItem label="Project Start Date" value={new Date(task.acceptedDate).toLocaleDateString()} />
                     <DetailItem label="Estimated Completion" value={new Date(task.submissionDate).toLocaleDateString()} />
                     <Separator />
-                    <DetailItem label="Total Cost" value={<span className="text-lg font-bold">₹{task.total.toLocaleString()}</span>} />
-                    <DetailItem label="Amount Paid" value={<span className="font-bold text-green-600">₹{task.amountPaid.toLocaleString()}</span>} />
-                    <DetailItem label="Remaining Amount" value={<span className="font-bold text-red-600">₹{(task.total - task.amountPaid).toLocaleString()}</span>} />
+                    <DetailItem label="Total Cost" value={<span className="text-lg font-bold">₹{total.toLocaleString()}</span>} />
+                    <DetailItem label="Amount Paid" value={<span className="font-bold text-green-600">₹{amountPaid.toLocaleString()}</span>} />
+                    <DetailItem label="Remaining Amount" value={<span className="font-bold text-red-600">₹{remainingAmount.toLocaleString()}</span>} />
                 </dl>
               </CardContent>
             </Card>
