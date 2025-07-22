@@ -40,16 +40,19 @@ const statusColors: Record<string, string> = {
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
   const id = params.id as string;
-  const client: Client | null = await getClient(id);
+  const rawClient: Client | null = await getClient(id);
 
-  if (!client) {
+  if (!rawClient) {
     notFound();
   }
+  
+  // Ensure the client object is serializable
+  const client = JSON.parse(JSON.stringify(rawClient)) as Client;
 
   const rawClientTasks: Task[] = await getTasksByClientId(client.id);
 
   const clientTasks = rawClientTasks.map(task => ({
-      ...task,
+      ...JSON.parse(JSON.stringify(task)), // Ensure plain object
       acceptedDate: new Date(task.acceptedDate).toISOString(),
       submissionDate: new Date(task.submissionDate).toISOString(),
   }));

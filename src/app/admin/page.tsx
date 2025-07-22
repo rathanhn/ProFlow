@@ -57,7 +57,7 @@ export default async function AdminDashboardPage() {
 
   // Serialize task dates
   const tasks = rawTasks.map(task => ({
-    ...task,
+    ...JSON.parse(JSON.stringify(task)), // Ensure plain object
     acceptedDate: new Date(task.acceptedDate).toISOString(),
     submissionDate: new Date(task.submissionDate).toISOString(),
   }));
