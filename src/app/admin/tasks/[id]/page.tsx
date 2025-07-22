@@ -12,11 +12,12 @@ import { getTask, getClient } from '@/lib/firebase-service';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Edit, User } from 'lucide-react';
+import { ArrowLeft, Edit, User, Bell } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
 import { Task, Client } from '@/lib/types';
+import AdminActions from './AdminActions';
 
 const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
@@ -66,49 +67,56 @@ export default async function TaskDetailsPage({ params }: { params: { id: string
                 </Link>
             </Button>
         </div>
-        <Card>
-          <CardHeader>
-            <div className="flex items-start gap-4">
-                 {client && (
-                    <Avatar className="h-12 w-12 border">
-                        <AvatarImage src={client.avatar} data-ai-hint={client.dataAiHint} />
-                        <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                 )}
-                <div>
-                    <CardTitle className="text-2xl">{task.projectName}</CardTitle>
-                    <CardDescription>
-                        Task ID: {task.id} &middot; For {task.clientName}
-                    </CardDescription>
-                </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <dl className="divide-y divide-border">
-                <DetailItem label="Work Status" value={<Badge variant="outline" className={statusColors[task.workStatus]}>{task.workStatus}</Badge>} />
-                <DetailItem label="Payment Status" value={<Badge variant="outline" className={statusColors[task.paymentStatus]}>{task.paymentStatus}</Badge>} />
-                {task.assignedTo && <DetailItem label="Assigned To" value={
-                    <div className='flex items-center gap-2'>
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        {task.assignedTo}
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-start gap-4">
+                    {client && (
+                        <Avatar className="h-12 w-12 border">
+                            <AvatarImage src={client.avatar} data-ai-hint={client.dataAiHint} />
+                            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                    )}
+                    <div>
+                        <CardTitle className="text-2xl">{task.projectName}</CardTitle>
+                        <CardDescription>
+                            Task ID: {task.id} &middot; For {task.clientName}
+                        </CardDescription>
                     </div>
-                } />}
-                <Separator />
-                <DetailItem label="Accepted Date" value={new Date(task.acceptedDate).toLocaleDateString()} />
-                <DetailItem label="Submission Date" value={new Date(task.submissionDate).toLocaleDateString()} />
-                 <Separator />
-                <DetailItem label="Number of Pages" value={task.pages} />
-                <DetailItem label="Rate per Page" value={`₹${task.rate.toLocaleString()}`} />
-                <DetailItem label="Total Amount" value={<span className="text-lg font-bold text-primary">₹{task.total.toLocaleString()}</span>} />
-            </dl>
-            {task.notes && (
-                <div className="mt-6">
-                    <h3 className="font-semibold mb-2">Notes</h3>
-                    <p className="text-sm text-muted-foreground p-4 bg-muted rounded-md">{task.notes}</p>
                 </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                <dl className="divide-y divide-border">
+                    <DetailItem label="Work Status" value={<Badge variant="outline" className={statusColors[task.workStatus]}>{task.workStatus}</Badge>} />
+                    <DetailItem label="Payment Status" value={<Badge variant="outline" className={statusColors[task.paymentStatus]}>{task.paymentStatus}</Badge>} />
+                    {task.assignedTo && <DetailItem label="Assigned To" value={
+                        <div className='flex items-center gap-2'>
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            {task.assignedTo}
+                        </div>
+                    } />}
+                    <Separator />
+                    <DetailItem label="Accepted Date" value={new Date(task.acceptedDate).toLocaleDateString()} />
+                    <DetailItem label="Submission Date" value={new Date(task.submissionDate).toLocaleDateString()} />
+                    <Separator />
+                    <DetailItem label="Number of Pages" value={task.pages} />
+                    <DetailItem label="Rate per Page" value={`₹${task.rate.toLocaleString()}`} />
+                    <DetailItem label="Total Amount" value={<span className="text-lg font-bold text-primary">₹{task.total.toLocaleString()}</span>} />
+                </dl>
+                {task.notes && (
+                    <div className="mt-6">
+                        <h3 className="font-semibold mb-2">Notes</h3>
+                        <p className="text-sm text-muted-foreground p-4 bg-muted rounded-md">{task.notes}</p>
+                    </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-6">
+            <AdminActions />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
