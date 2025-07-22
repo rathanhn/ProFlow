@@ -39,6 +39,7 @@ import {
     DialogClose,
 } from '@/components/ui/dialog';
 import { PlusCircle } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 
 const workStatuses = ['Pending', 'In Progress', 'Completed'] as const;
