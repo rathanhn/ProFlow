@@ -22,6 +22,7 @@ import { clients } from '@/lib/data';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const firstClientId = clients[0]?.id || '1';
 
   return (
     <SidebarProvider>
@@ -38,17 +39,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')}>
+                <SidebarMenuButton asChild isActive={pathname === '/admin'}>
                   <Link href="/admin">
                     <Home />
                     Admin Dashboard
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
+                  <Link href="/admin/clients">
+                    <Users />
+                    Manage Clients
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/client')}>
-                  <Link href={`/client/${clients[0].id}`}>
-                    <Users />
+                  <Link href={`/client/${firstClientId}`}>
+                    <Briefcase />
                     Client Dashboard
                   </Link>
                 </SidebarMenuButton>
@@ -65,11 +74,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <p className="font-semibold text-sm">Admin User</p>
                 <p className="text-xs text-muted-foreground">admin@proflow.app</p>
               </div>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/">
+               <Link href="/">
+                <Button variant="ghost" size="icon">
                     <LogOut className="h-4 w-4" />
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </div>
           </SidebarFooter>
         </Sidebar>
