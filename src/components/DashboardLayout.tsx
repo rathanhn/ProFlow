@@ -249,10 +249,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarInset>
           <header className="flex items-center justify-between p-4 border-b h-16">
             <SidebarTrigger />
-            <div className="flex items-center gap-2">
+             {/* This space is intentionally left blank to push other items to the right */}
+          </header>
+          
+           <div className="fixed top-4 right-4 z-50">
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="relative">
+                        <Button variant="ghost" size="icon" className="relative rounded-full h-10 w-10 bg-background border">
                             <Bell className="h-5 w-5" />
                             {unreadCount > 0 && (
                                 <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 justify-center rounded-full p-0">{unreadCount}</Badge>
@@ -307,7 +310,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </PopoverContent>
                 </Popover>
             </div>
-          </header>
+
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
             {renderContent()}
           </main>
