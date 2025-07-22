@@ -20,16 +20,6 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    // Hardcoded admin credentials
-    if (email !== 'admin@proflow.app' || password !== 'password123') {
-        toast({
-            title: 'Login Failed',
-            description: 'Invalid credentials for admin.',
-            variant: 'destructive',
-        });
-        return;
-    }
-    
     try {
         await signInWithEmailAndPassword(auth, email, password);
         toast({
@@ -41,7 +31,7 @@ export default function LoginPage() {
         console.error("Admin login error:", error);
         toast({
             title: 'Login Failed',
-            description: 'Could not sign in the admin user. Please check credentials or Firebase setup.',
+            description: 'Invalid credentials. Please make sure you have created an admin user in your Firebase project.',
             variant: 'destructive',
         });
     }
