@@ -27,7 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Task, Client, WorkStatus, PaymentStatus, Assignee } from '@/lib/types';
 import { assignees } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { addTask, updateTask, getClients } from '@/lib/firebase-service';
+import { addTask, updateTask, getClients, getTasks } from '@/lib/firebase-service';
 import React from 'react';
 
 const workStatuses: WorkStatus[] = ['Pending', 'In Progress', 'Completed'];
@@ -77,14 +77,36 @@ export default function TaskForm({ task }: TaskFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+        const client = clients.find(c => c.name === values.clientName);
+        if (!client) {
+            toast({
+                title: 'Error',
+                description: 'Selected client not found.',
+                variant: 'destructive'
+            });
+            return;
+        }
+
+        const taskData = {
+            ...values,
+            clientId: client.id,
+            total: values.pages * values.rate,
+        };
+        
         if (task) {
-            await updateTask(task.id, values);
+            await updateTask(task.id, taskData);
             toast({
                 title: 'Task Updated!',
                 description: `Project "${values.projectName}" has been saved.`,
             });
         } else {
-            await addTask(values as any); // Type assertion needed for server-side fields
+            const newTaskData = {
+                ...taskData,
+                 acceptedDate: new Date().toISOString(),
+                 submissionDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
+                 slNo: (await getTasks()).length + 1
+            }
+            await addTask(newTaskData as any);
             toast({
                 title: 'Task Created!',
                 description: `Project "${values.projectName}" has been added.`,
@@ -160,7 +182,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a team member" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         {assignees.map((assignee: Assignee) => (
