@@ -21,6 +21,7 @@ import { Briefcase, Home, LogOut, Rocket, Users } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { Skeleton } from './ui/skeleton';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -32,9 +33,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      if (!currentUser && (pathname.startsWith('/admin') || pathname.startsWith('/client'))) {
+          // If not logged in and trying to access a protected route, redirect
+          if(pathname.startsWith('/admin')) router.push('/admin/login');
+          // Client routes have their own auth handling, so we might not need a global redirect for them
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [pathname, router]);
   
   const handleLogout = async () => {
     await signOut(auth);
@@ -46,6 +52,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return user.email.charAt(0).toUpperCase();
     }
     return 'U';
+  }
+
+  const renderContent = () => {
+    if (loading) {
+      return <div className='p-8'><Skeleton className="h-[200px] w-full rounded-xl" /></div>;
+    }
+    return children;
   }
 
 
@@ -93,10 +106,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarFooter>
              {loading ? (
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-muted rounded-full animate-pulse" />
+                    <Skeleton className="h-10 w-10 rounded-full" />
                     <div className='flex-1 space-y-1'>
-                        <div className="h-4 w-24 bg-muted rounded-md animate-pulse" />
-                        <div className="h-3 w-32 bg-muted rounded-md animate-pulse" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-32" />
                     </div>
                 </div>
              ) : user ? (
@@ -124,7 +137,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <ThemeToggle />
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
-            {children}
+            {renderContent()}
           </main>
         </SidebarInset>
       </div>
