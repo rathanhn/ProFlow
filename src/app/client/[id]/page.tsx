@@ -41,7 +41,8 @@ const statusColors = {
 
 export default function ClientDashboardPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const client: Client | undefined = clients.find(c => c.id === params.id);
+  const id = params.id;
+  const client: Client | undefined = clients.find(c => c.id === id);
   if (!client) {
     notFound();
   }

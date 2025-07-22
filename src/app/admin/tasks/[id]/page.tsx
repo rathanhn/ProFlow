@@ -34,7 +34,8 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 
 
 export default function TaskDetailsPage({ params }: { params: { id: string } }) {
-  const task = tasks.find(t => t.id === params.id);
+  const id = params.id;
+  const task = tasks.find(t => t.id === id);
 
   if (!task) {
     notFound();

@@ -32,8 +32,9 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 );
 
 export default function ProjectDetailsPage({ params }: { params: { id: string; taskId: string } }) {
-  const client = clients.find(c => c.id === params.id);
-  const task = tasks.find(t => t.id === params.taskId && t.clientId === params.id);
+  const { id, taskId } = params;
+  const client = clients.find(c => c.id === id);
+  const task = tasks.find(t => t.id === taskId && t.clientId === id);
 
   if (!task || !client) {
     notFound();

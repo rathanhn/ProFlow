@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 export default function EditTaskPage({ params }: { params: { id: string } }) {
-    const task = tasks.find(t => t.id === params.id);
+    const id = params.id;
+    const task = tasks.find(t => t.id === id);
 
     if (!task) {
         notFound();
