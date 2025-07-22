@@ -12,6 +12,8 @@ export default function EditTaskPage() {
     const params = useParams();
     const id = params.id as string;
     const [task, setTask] = React.useState<Task | null>(null);
+    const [loading, setLoading] = React.useState(true);
+
 
     React.useEffect(() => {
         const fetchTask = async () => {
@@ -20,17 +22,29 @@ export default function EditTaskPage() {
                 notFound();
             }
             setTask(taskData);
+            setLoading(false);
         };
         fetchTask();
     }, [id]);
 
-    if (!task) {
+    if (loading) {
+        return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+    }
+    
+    // Ensure task data is serializable
+    const serializableTask = task ? {
+        ...task,
+        acceptedDate: new Date(task.acceptedDate).toISOString(),
+        submissionDate: new Date(task.submissionDate).toISOString(),
+    } : null;
+
+    if (!serializableTask) {
         return <DashboardLayout><div>Loading...</div></DashboardLayout>;
     }
 
     return (
         <DashboardLayout>
-            <TaskForm task={task} />
+            <TaskForm task={serializableTask} />
         </DashboardLayout>
     );
 }
