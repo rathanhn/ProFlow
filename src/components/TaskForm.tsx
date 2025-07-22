@@ -160,7 +160,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a team member" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {assignees.map((assignee: Assignee) => (
@@ -214,7 +214,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select work status" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {workStatuses.map((status) => (
@@ -238,7 +238,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select payment status" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {paymentStatuses.map((status) => (
