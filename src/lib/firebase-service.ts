@@ -2,7 +2,7 @@
 'use server';
 
 import { auth, db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, limit, writeBatch } from 'firebase/firestore';
 import { Client, Task, Assignee, Notification } from './types';
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
@@ -163,16 +163,38 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
     const q = query(
         collection(db, "notifications"), 
         where("userId", "==", userId),
-        limit(50) // Limit to last 50 notifications to avoid performance issues
+        orderBy("createdAt", "desc"),
+        limit(50)
     );
     const snapshot = await getDocs(q);
     const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
-    
-    // Sort by date client-side
-    return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return notifications;
 }
 
 export async function markNotificationAsRead(id: string) {
     const notificationDocRef = doc(db, 'notifications', id);
     await updateDoc(notificationDocRef, { isRead: true });
 }
+
+export async function deleteNotification(id: string) {
+    const notificationDocRef = doc(db, 'notifications', id);
+    await deleteDoc(notificationDocRef);
+}
+
+export async function clearNotifications(userId: string) {
+    const q = query(collection(db, "notifications"), where("userId", "==", userId));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) {
+        return;
+    }
+
+    const batch = writeBatch(db);
+    snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+}
+
+    
