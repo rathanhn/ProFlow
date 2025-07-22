@@ -48,7 +48,9 @@ export default function StatusUpdater({ task, field }: StatusUpdaterProps) {
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('UPI');
   const [notes, setNotes] = React.useState('');
   
-  const remainingAmount = task.total - task.amountPaid;
+  const totalAmount = task.total || 0;
+  const amountPaid = task.amountPaid || 0;
+  const remainingAmount = totalAmount - amountPaid;
 
   const handleWorkStatusChange = async (newStatus: WorkStatus) => {
     try {
@@ -79,17 +81,17 @@ export default function StatusUpdater({ task, field }: StatusUpdaterProps) {
   };
 
   const handleAddPayment = async () => {
-    const paidAmount = parseFloat(amount);
-    if (isNaN(paidAmount) || paidAmount <= 0) {
+    const paidAmountValue = parseFloat(amount);
+    if (isNaN(paidAmountValue) || paidAmountValue <= 0) {
       toast({ title: 'Invalid Amount', description: 'Please enter a valid amount.', variant: 'destructive' });
       return;
     }
 
     try {
-      await addTransactionAndUpdateTask(task.id, paidAmount, paymentMethod, notes);
+      await addTransactionAndUpdateTask(task.id, paidAmountValue, paymentMethod, notes);
       toast({
         title: 'Payment Recorded!',
-        description: `A payment of ₹${paidAmount} has been recorded for ${task.projectName}.`,
+        description: `A payment of ₹${paidAmountValue} has been recorded for ${task.projectName}.`,
       });
       setPaymentDialogOpen(false);
       setAmount('');
@@ -141,8 +143,8 @@ export default function StatusUpdater({ task, field }: StatusUpdaterProps) {
           <DialogHeader>
             <DialogTitle>Record a Payment for {task.projectName}</DialogTitle>
             <DialogDescription>
-                The total amount for this project is ₹{task.total.toLocaleString()}. 
-                So far, ₹{task.amountPaid.toLocaleString()} has been paid. 
+                The total amount for this project is ₹{totalAmount.toLocaleString()}. 
+                So far, ₹{amountPaid.toLocaleString()} has been paid. 
                 Remaining: ₹{remainingAmount.toLocaleString()}.
             </DialogDescription>
           </DialogHeader>
