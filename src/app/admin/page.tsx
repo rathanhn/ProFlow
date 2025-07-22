@@ -1,4 +1,5 @@
 
+
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -40,6 +41,7 @@ import { Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import EarningsChart from '@/components/EarningsChart';
+import StatusUpdater from './StatusUpdater';
 
 
 const statusColors: Record<string, string> = {
@@ -197,14 +199,10 @@ export default async function AdminDashboardPage() {
                     <TableCell className="hidden md:table-cell">{task.projectName}</TableCell>
                     <TableCell className="hidden md:table-cell">{task.assignedTo || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={statusColors[task.workStatus]}>
-                        {task.workStatus}
-                      </Badge>
+                      <StatusUpdater task={task} field="workStatus" />
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={statusColors[task.paymentStatus]}>
-                        {task.paymentStatus}
-                      </Badge>
+                      <StatusUpdater task={task} field="paymentStatus" />
                     </TableCell>
                     <TableCell className="hidden md:table-cell">₹{task.total.toLocaleString()}</TableCell>
                     <TableCell className="hidden md:table-cell">{new Date(task.submissionDate).toLocaleDateString()}</TableCell>
