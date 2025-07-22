@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -112,6 +112,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link href="/admin/clients">
                         <Users />
                         Manage Clients
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
+                    <Link href="/admin/team">
+                        <UserPlus />
+                        Team Members
                     </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

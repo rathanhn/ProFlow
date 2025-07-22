@@ -7,8 +7,6 @@ export const clients = [];
 export const tasks = [];
 
 
+// This is now fetched from Firebase, this is just for reference
 export const assignees: Assignee[] = [
-    { id: '1', name: 'Alex' },
-    { id: '2', name: 'Jordan' },
-    { id: '3', name: 'Taylor' },
 ]

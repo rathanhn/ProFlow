@@ -3,7 +3,7 @@
 
 import { auth, db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc } from 'firebase/firestore';
-import { Client, Task } from './types';
+import { Client, Task, Assignee } from './types';
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
 
@@ -111,30 +111,10 @@ export async function getTask(id: string): Promise<Task | null> {
     }
 }
 
-export async function addTask(task: Omit<Task, 'id' | 'slNo' | 'total'>) {
-    const q = query(collection(db, "clients"), where("name", "==", task.clientName));
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-        throw new Error("Client not found");
-    }
-    const clientDoc = querySnapshot.docs[0];
-    const client = { id: clientDoc.id, ...clientDoc.data() } as Client;
-
-    const tasks = await getTasks();
-
-    const newTask: Omit<Task, 'id'> = {
-        ...task,
-        clientId: client.id,
-        slNo: tasks.length + 1,
-        total: task.pages * task.rate,
-        acceptedDate: new Date().toISOString(),
-        submissionDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(), // Placeholder submission
-    };
+export async function addTask(task: Omit<Task, 'id'>) {
     const tasksCol = collection(db, 'tasks');
-    const docRef = await addDoc(tasksCol, newTask);
+    await addDoc(tasksCol, task);
     revalidatePath('/admin');
-    return docRef.id;
 }
 
 export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'total'>>) {
@@ -148,4 +128,26 @@ export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'sl
     revalidatePath('/admin');
     revalidatePath(`/admin/tasks/${id}`);
     revalidatePath(`/admin/tasks/${id}/edit`);
+}
+
+// Assignee Functions
+export async function getAssignees(): Promise<Assignee[]> {
+    const assigneesCol = collection(db, 'assignees');
+    const assigneeSnapshot = await getDocs(assigneesCol);
+    return assigneeSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Assignee));
+}
+
+export async function addAssignee(assignee: Omit<Assignee, 'id'>): Promise<Assignee> {
+    const assigneesCol = collection(db, 'assignees');
+    const docRef = await addDoc(assigneesCol, assignee);
+    revalidatePath('/admin/team');
+    revalidatePath('/admin/tasks/new');
+    revalidatePath('/admin/tasks/*');
+    return { id: docRef.id, ...assignee };
+}
+
+export async function deleteAssignee(id: string) {
+    const assigneeDocRef = doc(db, 'assignees', id);
+    await deleteDoc(assigneeDocRef);
+    revalidatePath('/admin/team');
 }

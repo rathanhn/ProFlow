@@ -31,4 +31,5 @@ export interface Client {
 export interface Assignee {
     id: string;
     name: string;
+    email?: string;
 }
