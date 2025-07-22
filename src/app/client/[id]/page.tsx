@@ -50,8 +50,8 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
     submissionDate: new Date(task.submissionDate).toISOString(),
   })) as Task[];
 
-  const totalSpent = clientTasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
-  const outstandingBalance = clientTasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);
+  const totalSpent = clientTasks.reduce((acc, task) => acc + task.amountPaid, 0);
+  const outstandingBalance = clientTasks.reduce((acc, task) => acc + (task.total - task.amountPaid), 0);
   const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
   
   return (

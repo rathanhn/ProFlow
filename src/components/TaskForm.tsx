@@ -51,7 +51,8 @@ const formSchema = z.object({
   pages: z.coerce.number().min(1, 'Pages must be at least 1'),
   rate: z.coerce.number().min(1, 'Rate must be at least 1'),
   workStatus: z.enum(workStatuses),
-  paymentStatus: z.enum(paymentStatuses),
+  // paymentStatus is handled by transactions now, so we remove it from the form
+  // paymentStatus: z.enum(paymentStatuses), 
   assignedTo: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -98,7 +99,6 @@ export default function TaskForm({ task }: TaskFormProps) {
       pages: task?.pages || 1,
       rate: task?.rate || 100,
       workStatus: task?.workStatus || 'Pending',
-      paymentStatus: task?.paymentStatus || 'Unpaid',
       assignedTo: task?.assignedTo || '',
       notes: task?.notes || '',
     },
@@ -137,15 +137,13 @@ export default function TaskForm({ task }: TaskFormProps) {
             return;
         }
 
-        const taskData = {
-            ...values,
-            clientId: client.id,
-            total: values.pages * values.rate,
-            workStatus: values.workStatus as WorkStatus,
-            paymentStatus: values.paymentStatus as PaymentStatus,
-        };
-        
         if (task) {
+             const taskData = {
+                ...values,
+                clientId: client.id,
+                total: values.pages * values.rate,
+                workStatus: values.workStatus as WorkStatus,
+            };
             await updateTask(task.id, taskData);
             toast({
                 title: 'Task Updated!',
@@ -153,12 +151,17 @@ export default function TaskForm({ task }: TaskFormProps) {
             });
         } else {
             const newTaskData = {
-                ...taskData,
+                ...values,
+                clientId: client.id,
+                total: values.pages * values.rate,
+                workStatus: values.workStatus as WorkStatus,
+                paymentStatus: 'Unpaid' as PaymentStatus,
+                amountPaid: 0,
                 acceptedDate: new Date().toISOString(),
                 submissionDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
                 slNo: (await getTasks()).length + 1
             }
-            await addTask(newTaskData);
+            await addTask(newTaskData as Omit<Task, 'id'>);
             toast({
                 title: 'Task Created!',
                 description: `Project "${values.projectName}" has been added.`,
@@ -239,6 +242,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="">N/A</SelectItem>
                             {assignees.map((assignee: Assignee) => (
                               <SelectItem key={assignee.id} value={assignee.name}>
                                 {assignee.name}
@@ -282,6 +286,30 @@ export default function TaskForm({ task }: TaskFormProps) {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                  control={form.control}
+                  name="workStatus"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Work Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select work status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {workStatuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
@@ -306,56 +334,6 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="workStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Work Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select work status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {workStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="paymentStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select payment status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {paymentStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

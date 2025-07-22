@@ -102,7 +102,9 @@ export default async function TaskDetailsPage({ params }: { params: { id: string
                     <Separator />
                     <DetailItem label="Number of Pages" value={task.pages} />
                     <DetailItem label="Rate per Page" value={`₹${task.rate.toLocaleString()}`} />
-                    <DetailItem label="Total Amount" value={<span className="text-lg font-bold text-primary">₹{task.total.toLocaleString()}</span>} />
+                    <DetailItem label="Total Amount" value={<span className="text-lg font-bold">₹{task.total.toLocaleString()}</span>} />
+                     <DetailItem label="Amount Paid" value={<span className="font-bold text-green-600">₹{task.amountPaid.toLocaleString()}</span>} />
+                    <DetailItem label="Remaining Amount" value={<span className="font-bold text-red-600">₹{(task.total - task.amountPaid).toLocaleString()}</span>} />
                 </dl>
                 {task.notes && (
                     <div className="mt-6">

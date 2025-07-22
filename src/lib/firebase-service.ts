@@ -2,8 +2,8 @@
 'use server';
 
 import { auth, db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, limit, writeBatch } from 'firebase/firestore';
-import { Client, Task, Assignee, Notification } from './types';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, limit, writeBatch, runTransaction } from 'firebase/firestore';
+import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from './types';
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
 
@@ -117,7 +117,7 @@ export async function addTask(task: Omit<Task, 'id'>) {
     revalidatePath('/admin');
 }
 
-export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'total'>>) {
+export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'total' | 'amountPaid'>>) {
     const taskDocRef = doc(db, 'tasks', id);
     const existingTask = await getTask(id);
     if (!existingTask) throw new Error("Task not found");
@@ -198,4 +198,95 @@ export async function clearNotifications(userId: string) {
     await batch.commit();
 }
 
-    
+// Transaction Functions
+export async function addTransactionAndUpdateTask(
+    taskId: string,
+    amountPaid: number,
+    paymentMethod: PaymentMethod,
+    notes?: string
+) {
+    const taskDocRef = doc(db, 'tasks', taskId);
+    const transactionCol = collection(db, 'transactions');
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const taskDoc = await transaction.get(taskDocRef);
+            if (!taskDoc.exists()) {
+                throw "Task document does not exist!";
+            }
+
+            const taskData = taskDoc.data() as Task;
+            const newAmountPaid = (taskData.amountPaid || 0) + amountPaid;
+            const remainingAmount = taskData.total - newAmountPaid;
+            
+            let newPaymentStatus = taskData.paymentStatus;
+            if (remainingAmount <= 0) {
+                newPaymentStatus = 'Paid';
+            } else if (newAmountPaid > 0) {
+                newPaymentStatus = 'Partial';
+            } else {
+                newPaymentStatus = 'Unpaid';
+            }
+
+            // Update the task document
+            transaction.update(taskDocRef, { 
+                amountPaid: newAmountPaid,
+                paymentStatus: newPaymentStatus
+            });
+
+            // Create a new transaction document
+            const newTransaction: Omit<Transaction, 'id'> = {
+                taskId: taskId,
+                clientId: taskData.clientId,
+                projectName: taskData.projectName,
+                clientName: taskData.clientName,
+                amount: amountPaid,
+                paymentMethod: paymentMethod,
+                transactionDate: new Date().toISOString(),
+                notes: notes,
+            };
+            transaction.set(doc(transactionCol), newTransaction);
+        });
+
+        revalidatePath('/admin');
+        revalidatePath('/admin/transactions');
+        revalidatePath(`/client/${(await getDoc(taskDocRef)).data()?.clientId}/transactions`);
+
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error("Failed to process transaction.");
+    }
+}
+
+
+export async function getTransactions(): Promise<Transaction[]> {
+    const transactionsCol = collection(db, 'transactions');
+    const transactionSnapshot = await getDocs(query(transactionsCol, orderBy("transactionDate", "desc")));
+    const transactionList = transactionSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+            id: doc.id, 
+            ...data,
+            transactionDate: new Date(data.transactionDate).toISOString(),
+        } as Transaction;
+    });
+    return transactionList;
+}
+
+export async function getTransactionsByClientId(clientId: string): Promise<Transaction[]> {
+    const q = query(
+        collection(db, "transactions"), 
+        where("clientId", "==", clientId),
+        orderBy("transactionDate", "desc")
+    );
+    const transactionSnapshot = await getDocs(q);
+    const transactionList = transactionSnapshot.docs.map(doc => {
+        const data = doc.data();
+         return { 
+            id: doc.id, 
+            ...data,
+            transactionDate: new Date(data.transactionDate).toISOString(),
+        } as Transaction;
+    });
+    return transactionList;
+}

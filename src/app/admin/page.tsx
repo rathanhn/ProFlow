@@ -67,7 +67,7 @@ export default async function AdminDashboardPage() {
   }));
   
   const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
-  const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + task.total, 0);
+  const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + (task.total - task.amountPaid), 0);
   const completedProjects = tasks.filter(t => t.workStatus === 'Completed').length;
   const totalClients = clients.length;
 
@@ -123,12 +123,12 @@ export default async function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₹{totalEarnings.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+              <p className="text-xs text-muted-foreground">Based on fully paid projects</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+              <CardTitle className="text-sm font-medium">Outstanding Amount</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -199,10 +199,10 @@ export default async function AdminDashboardPage() {
                 <TableRow>
                   <TableHead>Client</TableHead>
                   <TableHead className="hidden md:table-cell">Project Name</TableHead>
-                  <TableHead className="hidden md:table-cell">Assigned To</TableHead>
+                  <TableHead>Amount</TableHead>
                   <TableHead>Work Status</TableHead>
                   <TableHead>Payment Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Total</TableHead>
+                  <TableHead className="hidden md:table-cell">Assigned To</TableHead>
                   <TableHead className="hidden md:table-cell">Submission Date</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
@@ -223,14 +223,19 @@ export default async function AdminDashboardPage() {
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{task.projectName}</TableCell>
-                    <TableCell className="hidden md:table-cell">{task.assignedTo || 'N/A'}</TableCell>
+                    <TableCell>
+                        <div className="font-medium">₹{task.total.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">
+                            Paid: ₹{task.amountPaid.toLocaleString()}
+                        </div>
+                    </TableCell>
                     <TableCell>
                       <StatusUpdater task={task} field="workStatus" />
                     </TableCell>
                     <TableCell>
                       <StatusUpdater task={task} field="paymentStatus" />
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">₹{task.total.toLocaleString()}</TableCell>
+                    <TableCell className="hidden md:table-cell">{task.assignedTo || 'N/A'}</TableCell>
                     <TableCell className="hidden md:table-cell">{new Date(task.submissionDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <DropdownMenu>

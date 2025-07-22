@@ -1,6 +1,7 @@
 
 export type WorkStatus = "Pending" | "In Progress" | "Completed";
 export type PaymentStatus = "Unpaid" | "Partial" | "Paid";
+export type PaymentMethod = "Cash" | "Bank Transfer" | "UPI" | "Other";
 
 export interface Task {
   id: string;
@@ -16,6 +17,7 @@ export interface Task {
   submissionDate: string;
   notes?: string;
   total: number;
+  amountPaid: number;
   assignedTo?: string;
 }
 
@@ -41,4 +43,16 @@ export interface Notification {
     link: string;
     isRead: boolean;
     createdAt: string;
+}
+
+export interface Transaction {
+  id: string;
+  taskId: string;
+  clientId: string;
+  projectName: string;
+  clientName: string;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  transactionDate: string;
+  notes?: string;
 }
