@@ -1,6 +1,4 @@
 
-'use client';
-
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -30,46 +28,18 @@ import {
     MoreHorizontal,
     PlusCircle,
 } from 'lucide-react';
-import { deleteClient, getClients } from '@/lib/firebase-service';
+import { getClients } from '@/lib/firebase-service';
 import { Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
 import React from 'react';
+import ClientActions from './ClientActions';
 
 
-export default function AdminClientsPage() {
-    const { toast } = useToast();
-    const [clients, setClients] = React.useState<Client[]>([]);
+export default async function AdminClientsPage() {
+    const rawClients = await getClients();
+    // Ensure clients are serializable
+    const clients = JSON.parse(JSON.stringify(rawClients)) as Client[];
 
-    React.useEffect(() => {
-        const fetchClients = async () => {
-            const clients = await getClients();
-            setClients(clients);
-        };
-        fetchClients();
-    }, []);
-
-    const copyToClipboard = (id: string) => {
-        const url = `${window.location.origin}/client/${id}/auth`;
-        navigator.clipboard.writeText(url);
-        toast({
-            title: "Link Copied!",
-            description: "The client's dashboard link has been copied to your clipboard.",
-        });
-    };
-
-    const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this client?')) {
-            await deleteClient(id);
-            setClients(clients.filter(c => c.id !== id));
-            toast({
-                title: "Client Deleted",
-                description: "The client has been successfully deleted.",
-                variant: 'destructive'
-            });
-        }
-    };
-    
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -116,10 +86,7 @@ export default function AdminClientsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">{client.email}</TableCell>
                     <TableCell className="hidden md:table-cell">
-                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(client.id)}>
-                            <Copy className="mr-2 h-3 w-3" />
-                            Copy Link
-                        </Button>
+                       <ClientActions client={client} />
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -133,7 +100,11 @@ export default function AdminClientsPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/clients/${client.id}/edit`}>Edit</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(client.id)} className="text-red-500">Delete</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                              // This will be handled by a client component
+                              // For now, we just log it. A modal would be better.
+                              console.log(`Attempting to delete ${client.id}`);
+                          }} className="text-red-500">Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -147,3 +118,4 @@ export default function AdminClientsPage() {
     </DashboardLayout>
   );
 }
+

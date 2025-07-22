@@ -9,11 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { getClientByEmail } from '@/lib/firebase-service';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, User, updatePassword } from 'firebase/auth';
+import { getClient, getClientByEmail } from '@/lib/firebase-service';
 import { app } from '@/lib/firebase';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Eye, EyeOff } from 'lucide-react';
+import { Client } from '@/lib/types';
 
 const auth = getAuth(app);
 
@@ -21,7 +22,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [client, setClient] = useState<any>(null);
+    const [client, setClient] = useState<Client | null>(null);
     const router = useRouter();
     const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false);
 
@@ -33,108 +34,69 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
 
 
     useEffect(() => {
-        const fetchClientEmail = async () => {
-            // In a real application, you might fetch the client's email based on the ID
-            // For this example, I'll assume the ID is the email for simplicity.
-            // You should replace this with your actual logic to get the client email.
-            setEmail(`${params.id}@example.com`); // Replace with actual email fetching logic
+        const fetchClientData = async () => {
+            const clientData = await getClient(params.id);
+            if (clientData) {
+                const serializableClient = JSON.parse(JSON.stringify(clientData)) as Client;
+                setClient(serializableClient);
+                setEmail(serializableClient.email);
+            }
         };
 
-        fetchClientEmail();
+        fetchClientData();
     }, [params.id]);
 
     const handleSignIn = async () => {
-                setIsLoading(true);
-                try {
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
+        setIsLoading(true);
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
 
-                    // Fetch client data after successful sign-in
-                    const client = await getClientByEmail(user.email);
+            const clientData = await getClient(user.uid);
+            if (!clientData) {
+                toast({ title: 'Login Failed', description: 'Client data not found.', variant: 'destructive' });
+                setIsLoading(false);
+                return;
+            }
 
-                    if (!client) {
-                        toast({
-                            title: 'Login Failed',
-                            description: 'Client data not found.',
-                            variant: 'destructive',
-                        });
-                        setIsLoading(false);
-                        return;
-                    }
+            const plainClient = JSON.parse(JSON.stringify(clientData));
+            setClient(plainClient);
 
-                    // Create a plain object from the user data
-                    const plainUser = {
-                      uid: user.uid,
-                      email: user.email,
-                      // Add any other necessary user properties here
-                    };
+            const lastSignInTime = new Date(user.metadata.lastSignInTime || 0).getTime();
+            const creationTime = new Date(user.metadata.creationTime || 0).getTime();
 
-                    // You might also need to ensure the client object is plain
-                    const plainClient = {
-                        id: client.id,
-                        name: client.name,
-                        avatar: client.avatar,
-                        dataAiHint: client.dataAiHint,
-                        // Add any other necessary client properties here
-                    };
-
-
-                    setClient(plainClient); // Assuming setClient is used to store client data
-
-                    // Check if lastSignInTime is within 5 seconds of creationTime (adjust time accordingly)
-                    const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).getTime() : 0;
-                    const creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime).getTime() : 0;
-
-
-                    if (Math.abs(lastSignInTime - creationTime) < 5000) { // e.g., within 5 seconds
-                        setShowPasswordResetDialog(true);
-                    } else {
-                        toast({
-                            title: 'Access Granted!',
-                            description: 'Redirecting to your dashboard...',
-                        });
-                        router.push(`/client/${client.id}`);
-                    }
-                } catch (error) {
-                    toast({
-                        title: 'Access Denied',
-                        description: 'Incorrect password. Please try again.',
-                        variant: 'destructive',
-                    });
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-
-
+            if (Math.abs(lastSignInTime - creationTime) < 5000) {
+                setShowPasswordResetDialog(true);
+            } else {
+                toast({ title: 'Access Granted!', description: 'Redirecting to your dashboard...' });
+                router.push(`/client/${clientData.id}`);
+            }
+        } catch (error) {
+            toast({ title: 'Access Denied', description: 'Incorrect password. Please try again.', variant: 'destructive' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handlePasswordReset = async () => {
         if (newPassword !== confirmNewPassword) {
-            toast({
-                title: 'Password Reset Failed',
-                description: 'New passwords do not match.',
-                variant: 'destructive',
-            });
+            toast({ title: 'Password Reset Failed', description: 'New passwords do not match.', variant: 'destructive' });
             return;
         }
 
-        // In a real application, you would implement the password reset logic here.
-        // This might involve updating the password in Firebase Authentication
-        // and potentially updating your database if you store password-related info.
-        console.log('Password reset logic goes here');
-
-        toast({
-            title: 'Password Reset Successful',
-            description: 'Your password has been updated.',
-        });
-
-        setShowPasswordResetDialog(false);
-        // Redirect the user to their dashboard after password reset
-        if (client) {
-             router.push(`/client/${client.id}`);
+        const user = auth.currentUser;
+        if (user) {
+            try {
+                await updatePassword(user, newPassword);
+                toast({ title: 'Password Reset Successful', description: 'Your password has been updated.' });
+                setShowPasswordResetDialog(false);
+                if (client) {
+                    router.push(`/client/${client.id}`);
+                }
+            } catch (error) {
+                toast({ title: 'Password Reset Failed', description: 'Could not update password.', variant: 'destructive' });
+            }
         }
-
     };
 
     return (
@@ -153,18 +115,18 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                         <div className="flex flex-col space-y-1.5">
                             <Label htmlFor="password">Password</Label>
                             <div className="relative flex items-center">
-                                <Input 
-                                id="password" 
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Enter your password" 
-                                value={password} 
-                                onChange={e => setPassword(e.target.value)} 
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleSignIn();
-                                    }
-                                }}
-                                className="pr-10"
+                                <Input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleSignIn();
+                                        }
+                                    }}
+                                    className="pr-10"
                                 />
                                 <Button
                                     type="button"
@@ -235,3 +197,4 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
+

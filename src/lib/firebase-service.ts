@@ -29,18 +29,10 @@ export async function addClient(client: Omit<Client, 'id'>) {
     if (!client.password) {
         throw new Error("Password is required to create a client.");
     }
-    // This part runs with admin privileges on the server, so we don't sign in the admin
-    // We just create a new user. This requires a separate admin-initialized app in a real scenario.
-    // For this environment, we assume the currently configured auth can create users.
     const userCredential = await createUserWithEmailAndPassword(auth, client.email, client.password);
     const uid = userCredential.user.uid;
 
-    const clientData = {
-        name: client.name,
-        email: client.email,
-        avatar: client.avatar,
-        dataAiHint: client.dataAiHint,
-    };
+    const { password, ...clientData } = client;
 
     await setDoc(doc(db, "clients", uid), clientData);
     revalidatePath('/admin/clients');
@@ -150,3 +142,4 @@ export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'sl
     revalidatePath(`/admin/tasks/${id}`);
     revalidatePath(`/admin/tasks/${id}/edit`);
 }
+
