@@ -214,7 +214,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select work status" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         {workStatuses.map((status) => (
@@ -238,7 +238,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select payment status" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         {paymentStatuses.map((status) => (
