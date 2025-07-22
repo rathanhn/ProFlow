@@ -5,6 +5,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Slot } from "@radix-ui/react-slot"
+
 
 interface SidebarContextProps {
   isOpen: boolean
@@ -101,21 +103,22 @@ SidebarMenuItem.displayName = "SidebarMenuItem"
 
 export const SidebarMenuButton = React.forwardRef<
   HTMLAnchorElement,
-  React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean }
->(({ className, isActive, ...props }, ref) => {
-  return (
-    <a
-      ref={ref}
-      className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-        isActive
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-        className
-      )}
-      {...props}
-    />
-  )
+  React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean, asChild?: boolean }
+>(({ className, isActive, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "a"
+    return (
+        <Comp
+        ref={ref}
+        className={cn(
+            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            isActive
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            className
+        )}
+        {...props}
+        />
+    )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
 

@@ -73,7 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </SidebarFooter>
         </Sidebar>
-        <div className="lg:pl-64 flex flex-col flex-1">
+        <SidebarInset>
           <header className="flex items-center justify-between p-4 border-b h-16">
             <SidebarTrigger />
             <ThemeToggle />
@@ -81,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
             {children}
           </main>
-        </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
