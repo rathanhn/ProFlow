@@ -1,5 +1,4 @@
 
-/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, User, updatePassword } from 'firebase/auth';
 import { getClient, getClientByEmail } from '@/lib/firebase-service';
 import { app } from '@/lib/firebase';
@@ -24,6 +23,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
     const [isLoading, setIsLoading] = useState(false);
     const [client, setClient] = useState<Client | null>(null);
     const router = useRouter();
+    const { toast } = useToast();
     const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false);
 
     const [newPassword, setNewPassword] = useState('');
@@ -114,7 +114,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                         </div>
                         <div className="flex flex-col space-y-1.5">
                             <Label htmlFor="password">Password</Label>
-                            <div className="relative flex items-center">
+                             <div className="relative flex items-center">
                                 <Input
                                     id="password"
                                     type={showPassword ? 'text' : 'password'}
@@ -159,7 +159,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                  <div className="space-y-4 py-4">
                      <div className="space-y-2">
                          <Label htmlFor="new-password">New Password</Label>
-                         <div className="relative flex items-center">
+                          <div className="relative flex items-center">
                              <Input id="new-password" type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" className="pr-10" />
                              <Button
                                  type="button"
@@ -174,7 +174,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                      </div>
                      <div className="space-y-2">
                          <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                         <div className="relative flex items-center">
+                          <div className="relative flex items-center">
                              <Input id="confirm-new-password" type={showConfirmNewPassword ? 'text' : 'password'} value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" className="pr-10" />
                              <Button
                                  type="button"
@@ -197,4 +197,3 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
         </div>
     );
 }
-
