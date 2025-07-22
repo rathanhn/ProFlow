@@ -1,3 +1,6 @@
+
+'use client';
+
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -8,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { tasks, clients } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -31,8 +34,9 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
     </div>
 );
 
-export default function ProjectDetailsPage({ params }: { params: { id: string; taskId: string } }) {
-  const { id, taskId } = params;
+export default function ProjectDetailsPage() {
+  const params = useParams();
+  const { id, taskId } = params as { id: string; taskId: string };
   const client = clients.find(c => c.id === id);
   const task = tasks.find(t => t.id === taskId && t.clientId === id);
 

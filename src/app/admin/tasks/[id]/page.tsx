@@ -1,3 +1,6 @@
+
+'use client';
+
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -8,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { tasks, clients } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Edit, User } from 'lucide-react';
@@ -33,8 +36,9 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 );
 
 
-export default function TaskDetailsPage({ params }: { params: { id: string } }) {
-  const id = params.id;
+export default function TaskDetailsPage() {
+  const params = useParams();
+  const id = params.id as string;
   const task = tasks.find(t => t.id === id);
 
   if (!task) {

@@ -1,7 +1,8 @@
+
 'use client'
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams, notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -26,7 +27,6 @@ import {
 import { clients, tasks } from '@/lib/data';
 import { Task, Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { notFound } from 'next/navigation';
 import React from 'react';
 
 const statusColors = {
@@ -39,9 +39,10 @@ const statusColors = {
 };
 
 
-export default function ClientDashboardPage({ params }: { params: { id: string } }) {
+export default function ClientDashboardPage() {
   const router = useRouter();
-  const id = params.id;
+  const params = useParams();
+  const id = params.id as string;
   const client: Client | undefined = clients.find(c => c.id === id);
   if (!client) {
     notFound();

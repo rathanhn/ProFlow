@@ -1,11 +1,15 @@
+
+'use client';
+
 import DashboardLayout from "@/components/DashboardLayout";
 import ClientForm from "@/components/ClientForm";
 import { clients } from "@/lib/data";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import React from "react";
 
-export default function EditClientPage({ params }: { params: { id: string } }) {
-    const id = params.id;
+export default function EditClientPage() {
+    const params = useParams();
+    const id = params.id as string;
     const client = clients.find(c => c.id === id);
 
     if (!client) {
