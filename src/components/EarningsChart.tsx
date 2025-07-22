@@ -31,7 +31,7 @@ export default function EarningsChart() {
                 <ChartContainer config={chartConfig} className="h-[250px] w-full">
                     <BarChart data={chartData} accessibilityLayer>
                         <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-                        <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={12} tickFormatter={(value) => `$${Number(value)/1000}k`} />
+                        <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={12} tickFormatter={(value) => `₹${Number(value)/1000}k`} />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="earnings" fill="var(--color-earnings)" radius={4} />
                     </BarChart>

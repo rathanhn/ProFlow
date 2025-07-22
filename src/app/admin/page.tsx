@@ -83,7 +83,7 @@ export default function AdminDashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalEarnings.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{totalEarnings.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">+20.1% from last month</p>
             </CardContent>
           </Card>
@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${pendingPayments.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{pendingPayments.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Across all unpaid/partial projects</p>
             </CardContent>
           </Card>
@@ -193,7 +193,7 @@ export default function AdminDashboardPage() {
                         {task.paymentStatus}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">${task.total.toLocaleString()}</TableCell>
+                    <TableCell className="hidden md:table-cell">₹{task.total.toLocaleString()}</TableCell>
                     <TableCell className="hidden md:table-cell">{new Date(task.submissionDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <DropdownMenu>

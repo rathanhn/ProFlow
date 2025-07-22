@@ -76,7 +76,7 @@ export default function ClientDashboardPage({ params }: { params: { id: string }
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalSpent.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{totalSpent.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Total amount paid for all projects</p>
             </CardContent>
           </Card>
@@ -86,7 +86,7 @@ export default function ClientDashboardPage({ params }: { params: { id: string }
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${outstandingBalance.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{outstandingBalance.toLocaleString()}</div>
                <p className="text-xs text-muted-foreground">Across all unpaid/partial projects</p>
             </CardContent>
           </Card>
@@ -131,7 +131,7 @@ export default function ClientDashboardPage({ params }: { params: { id: string }
                         {task.paymentStatus}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">${task.total.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">₹{task.total.toLocaleString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

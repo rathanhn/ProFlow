@@ -138,7 +138,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                 name="rate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Rate per Page ($)</FormLabel>
+                    <FormLabel>Rate per Page (₹)</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>

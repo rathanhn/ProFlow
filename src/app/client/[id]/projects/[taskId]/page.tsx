@@ -65,7 +65,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string; t
                 <DetailItem label="Project Start Date" value={new Date(task.acceptedDate).toLocaleDateString()} />
                 <DetailItem label="Estimated Completion" value={new Date(task.submissionDate).toLocaleDateString()} />
                 <Separator />
-                <DetailItem label="Total Cost" value={<span className="text-lg font-bold text-primary">${task.total.toLocaleString()}</span>} />
+                <DetailItem label="Total Cost" value={<span className="text-lg font-bold text-primary">₹{task.total.toLocaleString()}</span>} />
             </dl>
           </CardContent>
         </Card>

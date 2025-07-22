@@ -85,8 +85,8 @@ export default function TaskDetailsPage({ params }: { params: { id: string } }) 
                 <DetailItem label="Submission Date" value={new Date(task.submissionDate).toLocaleDateString()} />
                  <Separator />
                 <DetailItem label="Number of Pages" value={task.pages} />
-                <DetailItem label="Rate per Page" value={`$${task.rate.toLocaleString()}`} />
-                <DetailItem label="Total Amount" value={<span className="text-lg font-bold text-primary">${task.total.toLocaleString()}</span>} />
+                <DetailItem label="Rate per Page" value={`₹${task.rate.toLocaleString()}`} />
+                <DetailItem label="Total Amount" value={<span className="text-lg font-bold text-primary">₹{task.total.toLocaleString()}</span>} />
             </dl>
             {task.notes && (
                 <div className="mt-6">
