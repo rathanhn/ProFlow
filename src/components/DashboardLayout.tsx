@@ -19,22 +19,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Home, LogOut, Rocket, Users } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { getClients } from '@/lib/firebase-service';
-import { Client } from '@/lib/types';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [firstClientId, setFirstClientId] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    const fetchFirstClient = async () => {
-      const clients = await getClients();
-      if (clients.length > 0) {
-        setFirstClientId(clients[0].id);
-      }
-    };
-    fetchFirstClient();
-  }, []);
 
   return (
     <SidebarProvider>
@@ -68,7 +55,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/client')}>
-                  <Link href={firstClientId ? `/client/${firstClientId}/auth` : '/client/1/auth'}>
+                  {/* The specific client link is removed to avoid fetching all clients in the layout */}
+                  <Link href="/client/1/auth">
                     <Briefcase />
                     Client Dashboard
                   </Link>
