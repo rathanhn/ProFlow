@@ -18,7 +18,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Bell } from 'lucide-react';
-import { ThemeToggle } from './ThemeToggle';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
@@ -128,6 +127,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
+                    <Link href="/admin/settings">
+                        <Settings />
+                        Settings
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
                 </>
              )}
              {isClientSection && user && clientId && (
@@ -186,7 +193,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Icons are now outside the header for fixed positioning */}
           </header>
           <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-            <ThemeToggle />
             <Popover>
                 <PopoverTrigger asChild>
                     <Button variant="ghost" size="icon">

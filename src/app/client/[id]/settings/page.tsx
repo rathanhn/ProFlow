@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { updateClientPassword } from '@/lib/firebase-client-service';
 import { KeyRound, Eye, EyeOff } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 
 const formSchema = z.object({
@@ -68,6 +69,20 @@ export default function ClientSettingsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
                     <p className="text-muted-foreground">Manage your account settings.</p>
                 </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Appearance</CardTitle>
+                        <CardDescription>
+                            Customize the look and feel of your dashboard.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between">
+                       <p className="text-sm font-medium">Toggle dark or light mode</p>
+                       <ThemeToggle />
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Change Password</CardTitle>
