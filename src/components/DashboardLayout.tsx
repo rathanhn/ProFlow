@@ -29,7 +29,6 @@ import {
 import { getNotifications, markNotificationAsRead, deleteNotification, clearNotifications } from '@/lib/firebase-service';
 import { Notification } from '@/lib/types';
 import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
 import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
