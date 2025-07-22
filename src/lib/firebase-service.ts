@@ -1,10 +1,11 @@
 
 'use server';
 
-import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { auth, db } from './firebase';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc } from 'firebase/firestore';
 import { Client, Task } from './types';
 import { revalidatePath } from 'next/cache';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 // Client Functions
 export async function getClients(): Promise<Client[]> {
@@ -25,13 +26,25 @@ export async function getClient(id: string): Promise<Client | null> {
 }
 
 export async function addClient(client: Omit<Client, 'id'>) {
-    const clientsCol = collection(db, 'clients');
-    const docRef = await addDoc(clientsCol, client);
+    if (!client.password) {
+        throw new Error("Password is required to create a client.");
+    }
+    const userCredential = await createUserWithEmailAndPassword(auth, client.email, client.password);
+    const uid = userCredential.user.uid;
+
+    const clientData = {
+        name: client.name,
+        email: client.email,
+        avatar: client.avatar,
+        dataAiHint: client.dataAiHint,
+    };
+
+    await setDoc(doc(db, "clients", uid), clientData);
     revalidatePath('/admin/clients');
-    return docRef.id;
+    return uid;
 }
 
-export async function updateClient(id: string, client: Partial<Client>) {
+export async function updateClient(id: string, client: Partial<Omit<Client, 'id' | 'password'>>) {
     const clientDocRef = doc(db, 'clients', id);
     await updateDoc(clientDocRef, client);
     revalidatePath('/admin/clients');
@@ -41,6 +54,8 @@ export async function updateClient(id: string, client: Partial<Client>) {
 export async function deleteClient(id: string) {
     const clientDocRef = doc(db, 'clients', id);
     await deleteDoc(clientDocRef);
+    // Note: This does not delete the user from Firebase Auth.
+    // That would require a separate admin SDK setup.
     revalidatePath('/admin/clients');
 }
 
@@ -52,6 +67,11 @@ export async function getClientByEmail(email: string): Promise<Client | null> {
         return { id: doc.id, ...doc.data() } as Client;
     }
     return null;
+}
+
+export async function signInClient(email:string, password: string): Promise<any> {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
 }
 
 
@@ -81,12 +101,14 @@ export async function getTask(id: string): Promise<Task | null> {
 }
 
 export async function addTask(task: Omit<Task, 'id' | 'slNo' | 'total'>) {
-    const clients = await getClients();
-    const client = clients.find(c => c.name === task.clientName);
-
-    if (!client) {
+    const q = query(collection(db, "clients"), where("name", "==", task.clientName));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
         throw new Error("Client not found");
     }
+    const clientDoc = querySnapshot.docs[0];
+    const client = { id: clientDoc.id, ...clientDoc.data() } as Client;
 
     const tasks = await getTasks();
 

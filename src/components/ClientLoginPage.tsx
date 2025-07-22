@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Rocket, User } from 'lucide-react';
-import { getClientByEmail } from '@/lib/firebase-service';
+import { getClientByEmail, signInClient } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ClientLoginPage() {
@@ -29,15 +29,16 @@ export default function ClientLoginPage() {
         }
         
         try {
+            const user = await signInClient(email, password);
             const client = await getClientByEmail(email);
-            if (client && client.password === password) {
+            if (user && client) {
                 toast({
                     title: 'Login Successful!',
                     description: `Welcome back, ${client.name}.`,
                 });
                 router.push(`/client/${client.id}`);
             } else {
-                toast({
+                 toast({
                     title: 'Login Failed',
                     description: 'Invalid email or password. Please try again.',
                     variant: 'destructive',
@@ -46,8 +47,8 @@ export default function ClientLoginPage() {
         } catch (error) {
             console.error("Login error:", error);
             toast({
-                title: 'Login Error',
-                description: 'An error occurred during login. Please try again.',
+                title: 'Login Failed',
+                description: 'Invalid email or password. Please try again.',
                 variant: 'destructive',
             });
         }

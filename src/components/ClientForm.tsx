@@ -24,9 +24,11 @@ const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
   dataAiHint: z.string().min(2, 'AI hint must be at least 2 characters'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters.'),
   avatar: z.string().url().optional(),
 });
+
+const editFormSchema = formSchema.omit({ password: true });
 
 interface ClientFormProps {
   client?: Client;
@@ -37,12 +39,12 @@ export default function ClientForm({ client }: ClientFormProps) {
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(client ? editFormSchema : formSchema),
     defaultValues: {
       name: client?.name || '',
       email: client?.email || '',
       dataAiHint: client?.dataAiHint || '',
-      password: client?.password || '',
+      password: '',
       avatar: client?.avatar || `https://placehold.co/32x32.png`,
     },
   });
@@ -105,7 +107,7 @@ export default function ClientForm({ client }: ClientFormProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="client@example.com" {...field} />
+                    <Input type="email" placeholder="client@example.com" {...field} disabled={!!client} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,19 +126,21 @@ export default function ClientForm({ client }: ClientFormProps) {
                   </FormItem>
                 )}
               />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="Enter a password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!client && (
+                 <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" placeholder="Enter a password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+            )}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel

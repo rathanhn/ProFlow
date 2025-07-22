@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { KeyRound } from 'lucide-react';
-import { getClient } from '@/lib/firebase-service';
+import { getClient, signInClient } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Client } from '@/lib/types';
@@ -36,20 +36,22 @@ export default function ClientAuthPage() {
     }, [id]);
 
 
-    const handleVerification = () => {
-        if (client && client.password === password) {
-            toast({
-                title: 'Access Granted!',
-                description: 'Redirecting to your dashboard...',
-            });
-            // In a real app, you'd set a session cookie or token here
-            router.push(`/client/${client.id}`);
-        } else {
-            toast({
-                title: 'Access Denied',
-                description: 'Incorrect password. Please try again.',
-                variant: 'destructive',
-            });
+    const handleVerification = async () => {
+        if (client) {
+            try {
+                await signInClient(client.email, password);
+                toast({
+                    title: 'Access Granted!',
+                    description: 'Redirecting to your dashboard...',
+                });
+                router.push(`/client/${client.id}`);
+            } catch (error) {
+                toast({
+                    title: 'Access Denied',
+                    description: 'Incorrect password. Please try again.',
+                    variant: 'destructive',
+                });
+            }
         }
     };
   
