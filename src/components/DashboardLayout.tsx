@@ -106,7 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold text-sm truncate">{user.displayName || 'User'}</p>
+                    <p className="font-semibold text-sm truncate">{pathname.startsWith('/admin') ? 'Admin' : (user.displayName || 'User')}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
                 <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
