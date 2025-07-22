@@ -34,7 +34,8 @@ import {
     Search,
     DollarSign,
     ListChecks,
-    Users
+    Users,
+    BellRing
 } from 'lucide-react';
 import { getTasks, getClients } from '@/lib/firebase-service';
 import { Task } from '@/lib/types';
@@ -42,6 +43,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import EarningsChart from '@/components/EarningsChart';
 import StatusUpdater from './StatusUpdater';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const statusColors: Record<string, string> = {
@@ -69,6 +71,10 @@ export default async function AdminDashboardPage() {
   const completedProjects = tasks.filter(t => t.workStatus === 'Completed').length;
   const totalClients = clients.length;
 
+  const paidButNotCompletedTasks = tasks.filter(
+    (task) => task.paymentStatus === 'Paid' && task.workStatus !== 'Completed'
+  );
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -88,6 +94,26 @@ export default async function AdminDashboardPage() {
                 </Button>
             </div>
         </div>
+
+        {paidButNotCompletedTasks.length > 0 && (
+          <Alert>
+            <BellRing className="h-4 w-4" />
+            <AlertTitle>Action Required!</AlertTitle>
+            <AlertDescription>
+              The following projects have been paid for but their work status is not yet 'Completed'. Please review and update their status.
+              <ul className="mt-2 list-disc list-inside">
+                {paidButNotCompletedTasks.map(task => (
+                  <li key={task.id}>
+                    <Link href={`/admin/tasks/${task.id}`} className="font-semibold underline">
+                      {task.projectName}
+                    </Link>
+                    {' '}for {task.clientName} (Work Status: {task.workStatus})
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
