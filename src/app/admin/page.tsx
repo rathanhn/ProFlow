@@ -66,8 +66,8 @@ export default async function AdminDashboardPage() {
     submissionDate: new Date(task.submissionDate).toISOString(),
   }));
   
-  const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + task.total, 0);
-  const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + (task.total - task.amountPaid), 0);
+  const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + (task.total || 0), 0);
+  const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + ((task.total || 0) - (task.amountPaid || 0)), 0);
   const completedProjects = tasks.filter(t => t.workStatus === 'Completed').length;
   const totalClients = clients.length;
 
@@ -224,9 +224,9 @@ export default async function AdminDashboardPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{task.projectName}</TableCell>
                     <TableCell>
-                        <div className="font-medium">₹{task.total.toLocaleString()}</div>
+                        <div className="font-medium">₹{(task.total || 0).toLocaleString()}</div>
                         <div className="text-xs text-muted-foreground">
-                            Paid: ₹{task.amountPaid.toLocaleString()}
+                            Paid: ₹{(task.amountPaid || 0).toLocaleString()}
                         </div>
                     </TableCell>
                     <TableCell>
