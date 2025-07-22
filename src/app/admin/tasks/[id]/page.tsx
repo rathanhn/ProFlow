@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { ArrowLeft, Edit } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import React from 'react';
 
 const statusColors = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',

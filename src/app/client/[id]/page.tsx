@@ -27,6 +27,7 @@ import { clients, tasks } from '@/lib/data';
 import { Task, Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { notFound } from 'next/navigation';
+import React from 'react';
 
 const statusColors = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',

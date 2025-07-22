@@ -2,6 +2,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import TaskForm from "@/components/TaskForm";
 import { tasks } from "@/lib/data";
 import { notFound } from "next/navigation";
+import React from "react";
 
 export default function EditTaskPage({ params }: { params: { id: string } }) {
     const task = tasks.find(t => t.id === params.id);
