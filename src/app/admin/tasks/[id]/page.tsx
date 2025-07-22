@@ -16,6 +16,7 @@ import { ArrowLeft, Edit, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
+import { Task, Client } from '@/lib/types';
 
 const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
@@ -36,13 +37,17 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 
 export default async function TaskDetailsPage({ params }: { params: { id: string } }) {
   const id = params.id as string;
-  const task = await getTask(id);
+  const rawTask = await getTask(id);
 
-  if (!task) {
+  if (!rawTask) {
     notFound();
   }
+
+  const task = JSON.parse(JSON.stringify(rawTask)) as Task;
   
-  const client = await getClient(task.clientId);
+  const rawClient = await getClient(task.clientId);
+  const client = rawClient ? JSON.parse(JSON.stringify(rawClient)) as Client : null;
+
 
   return (
     <DashboardLayout>
