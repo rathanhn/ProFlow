@@ -234,11 +234,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarInset>
           <header className="flex items-center justify-between p-4 border-b h-16">
             <SidebarTrigger />
-             {/* This space is intentionally left blank to push other items to the right */}
+             {user && <NotificationBell />}
           </header>
           
-           <NotificationBell />
-
           <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
             {renderContent()}
           </main>

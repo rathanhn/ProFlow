@@ -169,19 +169,6 @@ export async function createNotification(notification: Omit<Notification, 'id'>)
     // We don't need to revalidate paths for notifications as they are fetched client-side.
 }
 
-export async function getNotifications(userId: string): Promise<Notification[]> {
-    const q = query(
-        collection(db, "notifications"), 
-        where("userId", "==", userId),
-        limit(50)
-    );
-    const snapshot = await getDocs(q);
-    const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
-    
-    // Sort by date descending in code to avoid needing a composite index
-    return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
 export async function markNotificationAsRead(id: string) {
     const notificationDocRef = doc(db, 'notifications', id);
     await updateDoc(notificationDocRef, { isRead: true });

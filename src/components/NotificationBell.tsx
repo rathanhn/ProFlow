@@ -8,10 +8,34 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { getNotifications, markNotificationAsRead, deleteNotification, clearNotifications } from '@/lib/firebase-service';
+import { markNotificationAsRead, deleteNotification, clearNotifications } from '@/lib/firebase-service';
 import { Notification } from '@/lib/types';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+
+
+// This function was moved here from firebase-service.ts because it sets up a client-side listener
+// and is not a Server Action.
+function getNotifications(userId: string, callback: (notifications: Notification[]) => void): () => void {
+    const q = query(
+        collection(db, "notifications"), 
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc"),
+        limit(50)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+        callback(notifications);
+    }, (error) => {
+        console.error("Error fetching notifications:", error);
+        callback([]);
+    });
+
+    return unsubscribe; // Return the unsubscribe function to be called on cleanup
+}
+
 
 export default function NotificationBell() {
     const router = useRouter();
@@ -21,31 +45,48 @@ export default function NotificationBell() {
     const [unreadCount, setUnreadCount] = React.useState(0);
     const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
     const [deletingNotificationId, setDeletingNotificationId] = React.useState<string | null>(null);
+    const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+
 
     React.useEffect(() => {
+        const determineUserId = (currentUser: import('firebase/auth').User | null) => {
+            if (!currentUser) return null;
+            const isAdmin = pathname.startsWith('/admin');
+            return isAdmin ? 'admin' : currentUser.uid;
+        };
+        
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            if (currentUser) {
-                const isAdmin = pathname.startsWith('/admin');
-                const userId = isAdmin ? 'admin' : currentUser.uid;
+            const userId = determineUserId(currentUser);
+            if (userId && userId !== currentUserId) {
                 setCurrentUserId(userId);
-                fetchNotifications(userId);
+            } else if (!currentUser) {
+                setCurrentUserId(null);
+                setNotifications([]);
+                setUnreadCount(0);
             }
         });
-        return () => unsubscribe();
-    }, [pathname]);
 
-    const fetchNotifications = async (userId: string) => {
-        const notifs = await getNotifications(userId);
-        setNotifications(notifs);
-        setUnreadCount(notifs.filter(n => !n.isRead).length);
-    };
+        return () => unsubscribe();
+    }, [pathname, currentUserId]);
+
+
+    React.useEffect(() => {
+        if (currentUserId) {
+            const unsubscribe = getNotifications(currentUserId, (notifs) => {
+                setNotifications(notifs);
+                setUnreadCount(notifs.filter(n => !n.isRead).length);
+            });
+            return () => unsubscribe();
+        }
+    }, [currentUserId]);
+
 
     const handleNotificationClick = async (notification: Notification) => {
         if (!notification.isRead && currentUserId) {
             await markNotificationAsRead(notification.id);
-            fetchNotifications(currentUserId);
         }
         router.push(notification.link);
+        setIsPopoverOpen(false);
     };
 
     const handleDeleteNotification = (e: React.MouseEvent, notificationId: string) => {
@@ -57,21 +98,19 @@ export default function NotificationBell() {
                 if (currentUserId) {
                     await deleteNotification(notificationId);
                     toast({ title: "Notification deleted." });
-                    fetchNotifications(currentUserId);
                 }
             } catch {
                 toast({ title: "Error", description: "Could not delete notification.", variant: 'destructive' });
             } finally {
                 setDeletingNotificationId(null);
             }
-        }, 500); // Wait for animation to complete
+        }, 300); 
     };
 
     const handleClearAllNotifications = async () => {
         try {
             if (currentUserId) {
                 await clearNotifications(currentUserId);
-                fetchNotifications(currentUserId);
                 toast({ title: "All notifications cleared." });
             }
         } catch {
@@ -82,63 +121,59 @@ export default function NotificationBell() {
     if (!currentUserId) return null;
 
     return (
-        <div className="fixed top-4 right-4 z-50">
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="relative rounded-full h-10 w-10 bg-background border">
-                        <Bell className="h-5 w-5" />
-                        {unreadCount > 0 && (
-                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 justify-center rounded-full p-0">{unreadCount}</Badge>
-                        )}
-                        <span className="sr-only">Toggle notifications</span>
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-80 p-0">
-                    <div className="p-2 border-b">
-                        <h4 className="font-semibold">Notifications</h4>
-                    </div>
-                    <div className="max-h-80 overflow-y-auto">
-                        {notifications.length > 0 ? (
-                            <div className="divide-y">
-                                {notifications.map(n => (
-                                    <div
-                                        key={n.id}
-                                        className={`
-                                            flex items-start gap-2 p-3 transition-all duration-500 ease-in-out
-                                            ${deletingNotificationId === n.id ? 'animate-slide-out-to-right' : ''}
-                                            ${!n.isRead ? 'bg-primary/10' : ''}
-                                            cursor-pointer hover:bg-muted
-                                        `}
-                                        onClick={() => handleNotificationClick(n)}
-                                    >
-                                        <div className="flex-1">
-                                            <p className="text-sm">{n.message}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {new Date(n.createdAt).toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => handleDeleteNotification(e, n.id)}>
-                                            <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                                            <span className="sr-only">Delete notification</span>
-                                        </Button>
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative rounded-full h-10 w-10 bg-background border">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 text-xs justify-center rounded-full p-0">{unreadCount}</Badge>
+                    )}
+                    <span className="sr-only">Toggle notifications</span>
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+                <div className="flex justify-between items-center p-2 border-b">
+                    <h4 className="font-semibold px-2">Notifications</h4>
+                     {notifications.length > 0 && (
+                        <Button variant="link" size="sm" className="text-xs" onClick={handleClearAllNotifications}>
+                            Clear All
+                        </Button>
+                    )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                        <div className="divide-y">
+                            {notifications.map(n => (
+                                <div
+                                    key={n.id}
+                                    className={`
+                                        flex items-start gap-2 p-3 transition-all duration-300 ease-in-out
+                                        ${deletingNotificationId === n.id ? 'translate-x-full opacity-0' : ''}
+                                        ${!n.isRead ? 'bg-primary/10' : ''}
+                                        cursor-pointer hover:bg-muted
+                                    `}
+                                    onClick={() => handleNotificationClick(n)}
+                                >
+                                    <div className="flex-1">
+                                        <p className="text-sm">{n.message}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {new Date(n.createdAt).toLocaleString()}
+                                        </p>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center text-sm text-muted-foreground py-8">
-                                <p>You have no new notifications.</p>
-                            </div>
-                        )}
-                    </div>
-                    {notifications.length > 0 && (
-                        <div className="p-2 border-t">
-                            <Button variant="outline" size="sm" className="w-full" onClick={handleClearAllNotifications}>
-                                Clear All Notifications
-                            </Button>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={(e) => handleDeleteNotification(e, n.id)}>
+                                        <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                                        <span className="sr-only">Delete notification</span>
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-sm text-muted-foreground py-8 px-4">
+                            <p>You have no new notifications.</p>
                         </div>
                     )}
-                </PopoverContent>
-            </Popover>
-        </div>
+                </div>
+            </PopoverContent>
+        </Popover>
     );
 }
