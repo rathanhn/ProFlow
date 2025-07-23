@@ -121,11 +121,10 @@ SidebarMenuItem.displayName = "SidebarMenuItem"
 
 export const SidebarMenuButton = React.forwardRef<
   HTMLAnchorElement,
-  React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean, asChild?: boolean, children: React.ReactNode }
->(({ className, isActive, asChild = false, children, ...props }, ref) => {
+  React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean, asChild?: boolean }
+>(({ className, isActive, asChild = false, ...props }, ref) => {
     const { isCollapsed } = useSidebar();
     const Comp = asChild ? Slot : "a"
-    const [icon, ...rest] = React.Children.toArray(children);
     
     return (
         <Comp
@@ -139,10 +138,7 @@ export const SidebarMenuButton = React.forwardRef<
             className
         )}
         {...props}
-        >
-          <div className={cn(isCollapsed && "h-6 w-6")}>{icon}</div>
-          {!isCollapsed && <span className="flex-1">{rest}</span>}
-        </Comp>
+        />
     )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
@@ -158,9 +154,13 @@ export const SidebarFooter = React.forwardRef<
             className={cn("p-4 border-t", isCollapsed && "p-2", className)}
             {...props}
         >
-            {isCollapsed ? React.Children.map(children, child => 
-              React.isValidElement(child) ? React.cloneElement(child as React.ReactElement<any>, { isCollapsed: true }) : child
-            ) : children}
+            {isCollapsed ? 
+              <div className="flex justify-center items-center">
+                 {React.Children.map(children, child => 
+                  React.isValidElement(child) ? React.cloneElement(child as React.ReactElement<any>, { isCollapsed: true }) : child
+                 )}
+              </div>
+            : children}
         </div>
     )
 })
@@ -192,7 +192,8 @@ export const SidebarCollapseButton = () => {
     )
 }
 
-// Update the user section in the footer to handle collapsed state
+// This helper component is not used in the final version of the code
+// It's kept here just in case, but it's not part of the active implementation.
 export const SidebarUser = ({ user, handleLogout, isCollapsed, getAvatarFallback}: any) => {
   if (isCollapsed) {
     return (

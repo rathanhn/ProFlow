@@ -8,7 +8,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarInset,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -101,58 +100,58 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === '/admin'}>
-                    <Link href="/admin">
+                      <Link href="/admin">
                         <Home />
-                        Admin Dashboard
-                    </Link>
+                        <span>Admin Dashboard</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')}>
-                    <Link href="/admin/tasks">
+                      <Link href="/admin/tasks">
                         <ListChecks />
-                        All Tasks
-                    </Link>
+                        <span>All Tasks</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
-                    <Link href="/admin/clients">
+                      <Link href="/admin/clients">
                         <Users />
-                        Manage Clients
-                    </Link>
+                        <span>Manage Clients</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
-                    <Link href="/admin/team">
+                      <Link href="/admin/team">
                         <UserPlus />
-                        Team Members
-                    </Link>
+                        <span>Team Members</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/transactions')}>
-                    <Link href="/admin/transactions">
+                      <Link href="/admin/transactions">
                         <Banknote />
-                        Transactions
-                    </Link>
+                        <span>Transactions</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/export')}>
-                    <Link href="/admin/export">
+                      <Link href="/admin/export">
                         <FileDown />
-                        Export
-                    </Link>
+                        <span>Export</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
-                    <Link href="/admin/settings">
+                      <Link href="/admin/settings">
                         <Settings />
-                        Settings
-                    </Link>
+                        <span>Settings</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 </>
@@ -161,42 +160,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === `/client/${clientId}`}>
-                    <Link href={`/client/${clientId}`}>
+                      <Link href={`/client/${clientId}`}>
                         <Briefcase />
-                        Dashboard
-                    </Link>
+                        <span>Dashboard</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
-                    <Link href={`/client/${clientId}/projects`}>
+                      <Link href={`/client/${clientId}/projects`}>
                         <ListChecks />
-                        My Projects
-                    </Link>
+                        <span>My Projects</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/transactions`)}>
-                    <Link href={`/client/${clientId}/transactions`}>
+                      <Link href={`/client/${clientId}/transactions`}>
                         <Banknote />
-                        Transactions
-                    </Link>
+                        <span>Transactions</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/export`)}>
-                    <Link href={`/client/${clientId}/export`}>
+                      <Link href={`/client/${clientId}/export`}>
                         <FileDown />
-                        Export
-                    </Link>
+                        <span>Export</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/settings`)}>
-                    <Link href={`/client/${clientId}/settings`}>
+                      <Link href={`/client/${clientId}/settings`}>
                         <Settings />
-                        Settings
-                    </Link>
+                        <span>Settings</span>
+                      </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 </>
@@ -231,7 +230,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </SidebarFooter>
         </Sidebar>
-        <div className="flex-1 lg:pl-64">
+        <div className="flex-1 lg:pl-64 transition-all duration-300 ease-in-out data-[collapsed=true]:lg:pl-16">
           <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
             <SidebarTrigger />
             <div className="flex items-center gap-4">
