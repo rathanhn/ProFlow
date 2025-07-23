@@ -11,49 +11,19 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
     BarChart as BarChartIcon,
     File,
-    Filter,
-    MoreHorizontal,
     PlusCircle,
-    Search,
     DollarSign,
     ListChecks,
     Users,
     BellRing
 } from 'lucide-react';
 import { getTasks, getClients } from '@/lib/firebase-service';
-import { Task } from '@/lib/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
 import EarningsChart from '@/components/EarningsChart';
-import StatusUpdater from './StatusUpdater';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import TasksTable from './TasksTable';
 
-
-const statusColors: Record<string, string> = {
-  Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
-  Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
-  Unpaid: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30',
-  Completed: 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30',
-  'In Progress': 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30',
-  Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
-};
 
 export default async function AdminDashboardPage() {
   const rawTasks = await getTasks();
@@ -178,90 +148,7 @@ export default async function AdminDashboardPage() {
                 </CardContent>
             </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>All Tasks</CardTitle>
-            <CardDescription>Manage all your client projects.</CardDescription>
-            <div className="flex items-center gap-2 pt-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search tasks..." className="pl-8" />
-                </div>
-                <Button variant="outline" className="shrink-0">
-                    <Filter className="mr-2 h-4 w-4" /> Filter
-                </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead className="hidden md:table-cell">Project Name</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Work Status</TableHead>
-                  <TableHead>Payment Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Assigned To</TableHead>
-                  <TableHead className="hidden md:table-cell">Submission Date</TableHead>
-                  <TableHead><span className="sr-only">Actions</span></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tasks.map((task: Task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="hidden h-9 w-9 sm:flex">
-                           <AvatarImage src={`https://placehold.co/32x32.png`} data-ai-hint={clients.find(c => c.id === task.clientId)?.dataAiHint} alt="Avatar" />
-                           <AvatarFallback>{task.clientName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="grid gap-1">
-                          <p className="font-medium">{task.clientName}</p>
-                          <p className="text-sm text-muted-foreground md:hidden">{task.projectName}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{task.projectName}</TableCell>
-                    <TableCell>
-                        <div className="font-medium">₹{(task.total || 0).toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">
-                            Paid: ₹{(task.amountPaid || 0).toLocaleString()}
-                        </div>
-                    </TableCell>
-                    <TableCell>
-                      <StatusUpdater task={task} field="workStatus" />
-                    </TableCell>
-                    <TableCell>
-                      <StatusUpdater task={task} field="paymentStatus" />
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{task.assignedTo || 'N/A'}</TableCell>
-                    <TableCell className="hidden md:table-cell">{new Date(task.submissionDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/admin/tasks/${task.id}/edit`}>Edit</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/admin/tasks/${task.id}`}>View Details</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <TasksTable tasks={tasks} clients={clients} />
       </div>
     </DashboardLayout>
   );
