@@ -22,9 +22,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
-    Copy,
     MoreHorizontal,
     PlusCircle,
 } from 'lucide-react';
@@ -86,7 +86,7 @@ export default async function AdminClientsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">{client.email}</TableCell>
                     <TableCell className="hidden md:table-cell">
-                       <ClientActions client={client} />
+                       <ClientActions client={client} action="copy" />
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -98,13 +98,10 @@ export default async function AdminClientsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/admin/clients/${client.id}/edit`}>Edit</Link>
+                            <Link href={`/admin/clients/${client.id}/edit`}>Edit Client</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
-                              // This will be handled by a client component
-                              // For now, we just log it. A modal would be better.
-                              console.log(`Attempting to delete ${client.id}`);
-                          }} className="text-red-500">Delete</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <ClientActions client={client} action="delete" />
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
