@@ -12,7 +12,7 @@ import { markNotificationAsRead, deleteNotification, clearNotifications } from '
 import { Notification } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 
 // This function was moved here from firebase-service.ts because it sets up a client-side listener
@@ -20,14 +20,14 @@ import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/f
 function getNotifications(userId: string, callback: (notifications: Notification[]) => void): () => void {
     const q = query(
         collection(db, "notifications"), 
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc"),
-        limit(50)
+        where("userId", "==", userId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
-        callback(notifications);
+        // Sort notifications on the client-side
+        notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        callback(notifications.slice(0, 50)); // Limit to 50 after sorting
     }, (error) => {
         console.error("Error fetching notifications:", error);
         callback([]);
