@@ -12,7 +12,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
-  SidebarTrigger
+  SidebarTrigger,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,6 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
 import NotificationBell from './NotificationBell';
-import { useSidebar } from '@/components/ui/sidebar';
 
 
 const UserProfile = () => {
@@ -142,137 +142,168 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar>
-          <SidebarHeader>
-             <Rocket className="w-6 h-6 text-primary" />
-             <h1 className="text-xl font-semibold">ProFlow</h1>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-             {isAdminSection && (
-                <>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/admin'}>
-                      <Link href="/admin">
-                        <Home />
-                        <span>Admin Dashboard</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')}>
-                      <Link href="/admin/tasks">
-                        <ListChecks />
-                        <span>All Tasks</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
-                      <Link href="/admin/clients">
-                        <Users />
-                        <span>Manage Clients</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
-                      <Link href="/admin/team">
-                        <UserPlus />
-                        <span>Team Members</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/transactions')}>
-                      <Link href="/admin/transactions">
-                        <Banknote />
-                        <span>Transactions</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/export')}>
-                      <Link href="/admin/export">
-                        <FileDown />
-                        <span>Export</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
-                      <Link href="/admin/settings">
-                        <Settings />
-                        <span>Settings</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                </>
-             )}
-             {isClientSection && user && clientId && (
-                <>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === `/client/${clientId}`}>
-                      <Link href={`/client/${clientId}`}>
-                        <Briefcase />
-                        <span>Dashboard</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
-                      <Link href={`/client/${clientId}/projects`}>
-                        <ListChecks />
-                        <span>My Projects</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/transactions`)}>
-                      <Link href={`/client/${clientId}/transactions`}>
-                        <Banknote />
-                        <span>Transactions</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/export`)}>
-                      <Link href={`/client/${clientId}/export`}>
-                        <FileDown />
-                        <span>Export</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/settings`)}>
-                      <Link href={`/client/${clientId}/settings`}>
-                        <Settings />
-                        <span>Settings</span>
-                      </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                </>
-             )}
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-             <UserProfile />
-          </SidebarFooter>
-        </Sidebar>
-        <div className="flex-1 lg:pl-64 transition-all duration-300 ease-in-out data-[collapsed=true]:lg:pl-16" data-collapsed-container>
-          <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
-            <SidebarTrigger />
-            <div className="flex items-center gap-4">
-              {user && <NotificationBell />}
-            </div>
-          </header>
-          
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
-            {renderContent()}
-          </main>
-        </div>
-      </div>
+      <DashboardContent
+        isAdminSection={isAdminSection}
+        isClientSection={isClientSection}
+        user={user}
+        clientId={clientId}
+        pathname={pathname}
+      >
+        {renderContent()}
+      </DashboardContent>
     </SidebarProvider>
   );
 }
+
+// Create a new component to consume the sidebar context
+const DashboardContent = ({
+  children,
+  isAdminSection,
+  isClientSection,
+  user,
+  clientId,
+  pathname,
+}: {
+  children: React.ReactNode;
+  isAdminSection: boolean;
+  isClientSection: boolean;
+  user: User | null;
+  clientId: string | null;
+  pathname: string;
+}) => {
+  const { isCollapsed } = useSidebar();
+
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar>
+        <SidebarHeader>
+          <Rocket className="w-6 h-6 text-primary" />
+          <h1 className="text-xl font-semibold">ProFlow</h1>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {isAdminSection && (
+              <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === '/admin'}>
+                    <Link href="/admin">
+                      <Home />
+                      <span className={isCollapsed ? 'hidden' : ''}>Admin Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')}>
+                    <Link href="/admin/tasks">
+                      <ListChecks />
+                      <span className={isCollapsed ? 'hidden' : ''}>All Tasks</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
+                    <Link href="/admin/clients">
+                      <Users />
+                      <span className={isCollapsed ? 'hidden' : ''}>Manage Clients</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
+                    <Link href="/admin/team">
+                      <UserPlus />
+                      <span className={isCollapsed ? 'hidden' : ''}>Team Members</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/transactions')}>
+                    <Link href="/admin/transactions">
+                      <Banknote />
+                      <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/export')}>
+                    <Link href="/admin/export">
+                      <FileDown />
+                      <span className={isCollapsed ? 'hidden' : ''}>Export</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
+                    <Link href="/admin/settings">
+                      <Settings />
+                      <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
+            )}
+            {isClientSection && user && clientId && (
+              <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === `/client/${clientId}`}>
+                    <Link href={`/client/${clientId}`}>
+                      <Briefcase />
+                      <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
+                    <Link href={`/client/${clientId}/projects`}>
+                      <ListChecks />
+                      <span className={isCollapsed ? 'hidden' : ''}>My Projects</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/transactions`)}>
+                    <Link href={`/client/${clientId}/transactions`}>
+                      <Banknote />
+                      <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/export`)}>
+                    <Link href={`/client/${clientId}/export`}>
+                      <FileDown />
+                      <span className={isCollapsed ? 'hidden' : ''}>Export</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/settings`)}>
+                    <Link href={`/client/${clientId}/settings`}>
+                      <Settings />
+                      <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
+            )}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <UserProfile />
+        </SidebarFooter>
+      </Sidebar>
+      <div
+        className="flex-1 transition-all duration-300 ease-in-out lg:pl-64 data-[collapsed=true]:lg:pl-16"
+        data-collapsed={isCollapsed}
+      >
+        <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
+          <SidebarTrigger />
+          <div className="flex items-center gap-4">
+            {user && <NotificationBell />}
+          </div>
+        </header>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">{children}</main>
+      </div>
+    </div>
+  );
+};
