@@ -48,8 +48,8 @@ export default async function AdminClientsPage() {
                 <h1 className="text-3xl font-bold tracking-tight">Client Management</h1>
                 <p className="text-muted-foreground">Add, edit, or remove clients.</p>
             </div>
-            <div className="flex items-center gap-2">
-                <Button asChild>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button asChild className="w-full sm:w-auto">
                     <Link href="/admin/clients/new">
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Client
                     </Link>
@@ -63,12 +63,13 @@ export default async function AdminClientsPage() {
             <CardDescription>Manage your clients and their dashboard access.</CardDescription>
           </CardHeader>
           <CardContent>
+           <div className="w-full overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Client</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead className="hidden md:table-cell">Sharable Link</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Sharable Link</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
@@ -81,11 +82,11 @@ export default async function AdminClientsPage() {
                            <AvatarImage src={client.avatar} data-ai-hint={client.dataAiHint} alt="Avatar" />
                            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <p className="font-medium">{client.name}</p>
+                        <p className="font-medium whitespace-nowrap">{client.name}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground">{client.email}</TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="whitespace-nowrap text-muted-foreground">{client.email}</TableCell>
+                    <TableCell>
                        <ClientActions client={client} action="copy" />
                     </TableCell>
                     <TableCell>
@@ -109,6 +110,7 @@ export default async function AdminClientsPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

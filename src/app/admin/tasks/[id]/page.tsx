@@ -36,7 +36,7 @@ export default async function TaskDetailsPage({ params }: { params: { id: string
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <Button variant="outline" asChild>
                 <Link href="/admin/tasks">
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -50,8 +50,8 @@ export default async function TaskDetailsPage({ params }: { params: { id: string
                 </Link>
             </Button>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2">
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+          <div className="lg:col-span-2">
             <Card>
               <CardHeader>
                 <div className="flex items-start gap-4">

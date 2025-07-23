@@ -43,7 +43,9 @@ export default async function AdminTeamPage() {
                 <h1 className="text-3xl font-bold tracking-tight">Team Management</h1>
                 <p className="text-muted-foreground">Add, edit, or remove team members.</p>
             </div>
-            <AddTeamMemberForm />
+            <div className="w-full sm:w-auto">
+              <AddTeamMemberForm />
+            </div>
         </div>
        
         <Card>
@@ -52,34 +54,36 @@ export default async function AdminTeamPage() {
             <CardDescription>Manage your team members and their assignments.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead><span className="sr-only">Actions</span></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {serializableAssignees.map((assignee: Assignee) => (
-                  <TableRow key={assignee.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                           <AvatarImage src={`https://placehold.co/32x32.png`} data-ai-hint="user avatar" alt="Avatar" />
-                           <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <p className="font-medium">{assignee.name}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground">{assignee.email || "N/A"}</TableCell>
-                    <TableCell>
-                        <TeamActions assignee={assignee} />
-                    </TableCell>
+            <div className="w-full overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead><span className="sr-only">Actions</span></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {serializableAssignees.map((assignee: Assignee) => (
+                    <TableRow key={assignee.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarImage src={`https://placehold.co/32x32.png`} data-ai-hint="user avatar" alt="Avatar" />
+                            <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <p className="font-medium whitespace-nowrap">{assignee.name}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.email || "N/A"}</TableCell>
+                      <TableCell>
+                          <TeamActions assignee={assignee} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

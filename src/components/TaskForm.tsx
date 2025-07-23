@@ -191,13 +191,13 @@ export default function TaskForm({ task }: TaskFormProps) {
     <>
       <Card>
         <CardHeader>
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                     <CardTitle>{task ? 'Edit Task' : 'Create a New Task'}</CardTitle>
                     <CardDescription>{task ? 'Update task details and payment status.' : 'Fill in the form to create a new task.'}</CardDescription>
                 </div>
                  {task && (
-                    <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)}>
+                    <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)} className="w-full sm:w-auto">
                         <DollarSign className="mr-2 h-4 w-4" />
                         Update Payment
                     </Button>

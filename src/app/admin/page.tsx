@@ -53,13 +53,13 @@ export default async function AdminDashboardPage() {
                 <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
                 <p className="text-muted-foreground">An overview of all client projects and finances.</p>
             </div>
-            <div className="flex items-center gap-2">
-                <Button variant="outline" asChild>
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                <Button variant="outline" asChild className="w-full sm:w-auto">
                     <Link href="/admin/export">
                         <File className="mr-2 h-4 w-4" /> Export
                     </Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                     <Link href="/admin/tasks/new">
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Task
                     </Link>
@@ -130,7 +130,7 @@ export default async function AdminDashboardPage() {
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-7">
             <EarningsChart />
             <Card className="lg:col-span-3">
                 <CardHeader>

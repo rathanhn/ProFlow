@@ -44,36 +44,38 @@ export default async function ClientTransactionsPage({ params }: { params: { id:
             <CardDescription>Browse through all your recorded transactions.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Payment Method</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((transaction: Transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell>
-                      {new Date(transaction.transactionDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                         <Link href={`/client/${clientId}/projects/${transaction.taskId}`} className="font-medium hover:underline">
-                            {transaction.projectName}
-                        </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{transaction.paymentMethod}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      ₹{transaction.amount.toLocaleString()}
-                    </TableCell>
+            <div className="w-full overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Payment Method</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((transaction: Transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="whitespace-nowrap">
+                        {new Date(transaction.transactionDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                          <Link href={`/client/${clientId}/projects/${transaction.taskId}`} className="font-medium hover:underline whitespace-nowrap">
+                              {transaction.projectName}
+                          </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{transaction.paymentMethod}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-medium whitespace-nowrap">
+                        ₹{transaction.amount.toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
             {transactions.length === 0 && (
                 <div className="text-center text-muted-foreground p-8">
                     You have not made any transactions yet.

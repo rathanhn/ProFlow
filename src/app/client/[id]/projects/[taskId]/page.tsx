@@ -32,7 +32,7 @@ const statusColors: Record<string, string> = {
 const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="flex justify-between items-center py-3">
         <dt className="text-muted-foreground">{label}</dt>
-        <dd className="font-medium text-right">{value}</dd>
+        <dd className="font-medium text-right text-balance">{value}</dd>
     </div>
 );
 
@@ -78,8 +78,8 @@ export default function ProjectDetailsPage() {
                 </Link>
             </Button>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2">
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+          <div className="lg:col-span-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">{task.projectName}</CardTitle>
@@ -109,7 +109,7 @@ export default function ProjectDetailsPage() {
                  {(task.projectFileLink || task.outputFileLink) && (
                     <div className="mt-6">
                         <h3 className="font-semibold mb-2">Downloads</h3>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                             {task.projectFileLink && (
                                 <Button asChild>
                                     <a href={task.projectFileLink} target="_blank" rel="noopener noreferrer">
