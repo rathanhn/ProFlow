@@ -297,10 +297,12 @@ const DashboardContent = ({
         data-collapsed={isCollapsed}
       >
         <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
-          <SidebarTrigger />
-          <div className="flex items-center gap-4">
-            {user && <NotificationBell />}
-          </div>
+            <div className="flex items-center">
+              <SidebarTrigger />
+            </div>
+            <div className="flex items-center gap-4">
+              {user && <NotificationBell />}
+            </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">{children}</main>
       </div>
