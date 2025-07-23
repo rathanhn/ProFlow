@@ -1,5 +1,4 @@
 
-
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -55,8 +54,10 @@ export default async function AdminDashboardPage() {
                 <p className="text-muted-foreground">An overview of all client projects and finances.</p>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="outline">
-                    <File className="mr-2 h-4 w-4" /> Export
+                <Button variant="outline" asChild>
+                    <Link href="/admin/export">
+                        <File className="mr-2 h-4 w-4" /> Export
+                    </Link>
                 </Button>
                 <Button asChild>
                     <Link href="/admin/tasks/new">

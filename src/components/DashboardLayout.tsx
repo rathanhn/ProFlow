@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
@@ -140,6 +140,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/export')}>
+                    <Link href="/admin/export">
+                        <FileDown />
+                        Export
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
                     <Link href="/admin/settings">
                         <Settings />
@@ -172,6 +180,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link href={`/client/${clientId}/transactions`}>
                         <Banknote />
                         Transactions
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/export`)}>
+                    <Link href={`/client/${clientId}/export`}>
+                        <FileDown />
+                        Export
                     </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
