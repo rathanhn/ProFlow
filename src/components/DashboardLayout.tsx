@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
@@ -107,6 +107,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')}>
+                    <Link href="/admin/tasks">
+                        <ListChecks />
+                        All Tasks
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
                     <Link href="/admin/clients">
@@ -148,6 +156,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Link href={`/client/${clientId}`}>
                         <Briefcase />
                         Dashboard
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
+                    <Link href={`/client/${clientId}/projects`}>
+                        <ListChecks />
+                        My Projects
                     </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

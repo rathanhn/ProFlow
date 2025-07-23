@@ -72,7 +72,7 @@ export default function ProjectDetailsPage() {
       <div className="space-y-6">
          <div className="flex items-center justify-between">
             <Button variant="outline" asChild>
-                <Link href={`/client/${client.id}`}>
+                <Link href={`/client/${client.id}/projects`}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Your Projects
                 </Link>

@@ -17,12 +17,12 @@ import {
     DollarSign,
     ListChecks,
     Users,
-    BellRing
+    BellRing,
+    ArrowRight
 } from 'lucide-react';
 import { getTasks, getClients } from '@/lib/firebase-service';
 import EarningsChart from '@/components/EarningsChart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import TasksTable from './TasksTable';
 import { Input } from '@/components/ui/input';
 
 
@@ -149,7 +149,36 @@ export default async function AdminDashboardPage() {
                 </CardContent>
             </Card>
         </div>
-        <TasksTable tasks={tasks} clients={clients} />
+
+         <Card>
+            <CardHeader>
+                <CardTitle>Recent Tasks</CardTitle>
+                <CardDescription>A brief look at the most recent projects.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {tasks.slice(0, 5).map(task => (
+                        <div key={task.id} className="flex justify-between items-center">
+                            <div>
+                                <p className="font-medium">{task.projectName}</p>
+                                <p className="text-sm text-muted-foreground">{task.clientName}</p>
+                            </div>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href={`/admin/tasks/${task.id}`}>
+                                    View
+                                </Link>
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+                 <div className="mt-4 pt-4 border-t">
+                    <Button variant="secondary" className="w-full" asChild>
+                       <Link href="/admin/tasks">View All Tasks <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+
       </div>
     </DashboardLayout>
   );

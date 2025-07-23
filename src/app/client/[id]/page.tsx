@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -13,20 +14,12 @@ import {
 import {
     DollarSign,
     ListChecks,
+    ArrowRight
 } from 'lucide-react';
 import { getClient, getTasksByClientId } from '@/lib/firebase-service';
 import { Task, Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ClientProjectsTable from './ClientProjectsTable';
-
-const statusColors: Record<string, string> = {
-  Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
-  Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
-  Unpaid: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30',
-  Completed: 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30',
-  'In Progress': 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30',
-  Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
-};
+import { Button } from '@/components/ui/button';
 
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
@@ -103,11 +96,30 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
         
         <Card>
           <CardHeader>
-            <CardTitle>Your Projects</CardTitle>
-            <CardDescription>An overview of all your projects and their current status.</CardDescription>
+            <CardTitle>Recent Projects</CardTitle>
+            <CardDescription>A brief look at your most recent projects.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ClientProjectsTable tasks={clientTasks} statusColors={statusColors} clientId={client.id} />
+             <div className="space-y-4">
+                {clientTasks.slice(0, 5).map(task => (
+                    <div key={task.id} className="flex justify-between items-center">
+                        <div>
+                            <p className="font-medium">{task.projectName}</p>
+                            <p className="text-sm text-muted-foreground">{task.workStatus}</p>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={`/client/${client.id}/projects/${task.id}`}>
+                                View
+                            </Link>
+                        </Button>
+                    </div>
+                ))}
+            </div>
+             <div className="mt-4 pt-4 border-t">
+                <Button variant="secondary" className="w-full" asChild>
+                   <Link href={`/client/${client.id}/projects`}>View All Projects <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
