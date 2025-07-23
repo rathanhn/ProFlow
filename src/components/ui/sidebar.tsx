@@ -1,9 +1,10 @@
+
 "use client"
 
 import * as React from "react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Slot } from "@radix-ui/react-slot"
 
@@ -11,14 +12,18 @@ import { Slot } from "@radix-ui/react-slot"
 interface SidebarContextProps {
   isOpen: boolean
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+  isCollapsed: boolean;
+  setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | undefined>(undefined)
 
 export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
+
   return (
-    <SidebarContext.Provider value={{ isOpen, setIsOpen }}>
+    <SidebarContext.Provider value={{ isOpen, setIsOpen, isCollapsed, setIsCollapsed }}>
       {children}
     </SidebarContext.Provider>
   )
@@ -32,22 +37,23 @@ const useSidebar = () => {
   return context
 }
 
-export const Sidebar = ({ children }: { children: React.ReactNode }) => {
-  const { isOpen, setIsOpen } = useSidebar()
+export const Sidebar = ({ children, className }: { children: React.ReactNode, className?: string }) => {
+  const { isOpen, setIsOpen, isCollapsed } = useSidebar()
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col fixed inset-y-0 z-50 w-64 border-r bg-background transition-transform duration-300 ease-in-out">
+      <aside className={cn(
+          "hidden lg:flex lg:flex-col fixed inset-y-0 z-50 border-r bg-background transition-all duration-300 ease-in-out",
+          isCollapsed ? "w-16" : "w-64",
+          className
+        )}>
         {children}
       </aside>
 
       {/* Mobile Sidebar */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="left" className="w-64 p-0">
-          <SheetHeader>
-            <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
-          </SheetHeader>
+        <SheetContent side="left" className={cn("w-64 p-0", className)}>
           {children}
         </SheetContent>
       </Sheet>
@@ -58,13 +64,19 @@ export const Sidebar = ({ children }: { children: React.ReactNode }) => {
 export const SidebarHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("p-4 border-b", className)}
-    {...props}
-  />
-))
+>(({ className, children, ...props }, ref) => {
+    const { isCollapsed } = useSidebar();
+    return (
+        <div
+            ref={ref}
+            className={cn("p-4 border-b flex items-center", isCollapsed ? 'justify-center' : 'justify-between', className)}
+            {...props}
+        >
+            {!isCollapsed && children}
+            <SidebarCollapseButton />
+        </div>
+    )
+})
 SidebarHeader.displayName = "SidebarHeader"
 
 export const SidebarContent = React.forwardRef<
@@ -82,13 +94,16 @@ SidebarContent.displayName = "SidebarContent"
 export const SidebarMenu = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <nav
-    ref={ref}
-    className={cn("flex-1 px-2 py-4 space-y-1", className)}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+    const { isCollapsed } = useSidebar();
+    return (
+        <nav
+            ref={ref}
+            className={cn("flex-1 px-2 py-4 space-y-1", isCollapsed && "px-1", className)}
+            {...props}
+        />
+    )
+})
 SidebarMenu.displayName = "SidebarMenu"
 
 export const SidebarMenuItem = React.forwardRef<
@@ -106,21 +121,28 @@ SidebarMenuItem.displayName = "SidebarMenuItem"
 
 export const SidebarMenuButton = React.forwardRef<
   HTMLAnchorElement,
-  React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean, asChild?: boolean }
->(({ className, isActive, asChild = false, ...props }, ref) => {
+  React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean, asChild?: boolean, children: React.ReactNode }
+>(({ className, isActive, asChild = false, children, ...props }, ref) => {
+    const { isCollapsed } = useSidebar();
     const Comp = asChild ? Slot : "a"
+    const [icon, ...rest] = React.Children.toArray(children);
+    
     return (
         <Comp
         ref={ref}
         className={cn(
             "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            isCollapsed && "justify-center",
             isActive
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:bg-muted hover:text-foreground",
             className
         )}
         {...props}
-        />
+        >
+          <div className={cn(isCollapsed && "h-6 w-6")}>{icon}</div>
+          {!isCollapsed && <span className="flex-1">{rest}</span>}
+        </Comp>
     )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
@@ -128,22 +150,21 @@ SidebarMenuButton.displayName = "SidebarMenuButton"
 export const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("p-4 border-t", className)}
-    {...props}
-  />
-))
+>(({ className, children, ...props }, ref) => {
+    const { isCollapsed } = useSidebar();
+    return (
+        <div
+            ref={ref}
+            className={cn("p-4 border-t", isCollapsed && "p-2", className)}
+            {...props}
+        >
+            {isCollapsed ? React.Children.map(children, child => 
+              React.isValidElement(child) ? React.cloneElement(child as React.ReactElement<any>, { isCollapsed: true }) : child
+            ) : children}
+        </div>
+    )
+})
 SidebarFooter.displayName = "SidebarFooter"
-
-export const SidebarInset = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="lg:pl-64 flex flex-col flex-1">
-      {children}
-    </div>
-  )
-}
 
 export const SidebarTrigger = () => {
     const { setIsOpen } = useSidebar()
@@ -153,4 +174,48 @@ export const SidebarTrigger = () => {
             <span className="sr-only">Open sidebar</span>
         </Button>
     )
+}
+
+export const SidebarCollapseButton = () => {
+    const { isCollapsed, setIsCollapsed } = useSidebar();
+
+    return (
+        <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hidden lg:inline-flex"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+            {isCollapsed ? <Menu className="h-6 w-6" /> : <X className="h-6 w-6" />}
+            <span className="sr-only">Toggle sidebar</span>
+        </Button>
+    )
+}
+
+// Update the user section in the footer to handle collapsed state
+export const SidebarUser = ({ user, handleLogout, isCollapsed, getAvatarFallback}: any) => {
+  if (isCollapsed) {
+    return (
+       <Avatar>
+          <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="User avatar" />
+          <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
+        </Avatar>
+    )
+  }
+
+  return (
+     <div className="flex items-center gap-3">
+        <Avatar>
+            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="User avatar" />
+            <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1 overflow-hidden">
+            <p className="font-semibold text-sm truncate">{user.displayName || 'User'}</p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+        </div>
+        <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
+            <LogOut className="h-4 w-4" />
+        </Button>
+    </div>
+  )
 }
