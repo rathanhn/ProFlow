@@ -249,7 +249,7 @@ export async function addTransactionAndUpdateTask(
         // Revalidate paths after the transaction is successful
         revalidatePath('/admin/tasks');
         revalidatePath(`/admin/tasks/${taskId}`);
-        revalidatePath(`/admin/tasks/${taskId}/edit`);
+        revalidatePath(`/admin/tasks/${id}/edit`);
         revalidatePath('/admin/transactions');
         if(taskData){
            revalidatePath(`/client/${taskData.clientId}`);
@@ -283,8 +283,7 @@ export async function getTransactions(): Promise<Transaction[]> {
 export async function getTransactionsByClientId(clientId: string): Promise<Transaction[]> {
     const q = query(
         collection(db, "transactions"), 
-        where("clientId", "==", clientId),
-        orderBy('transactionDate', 'desc')
+        where("clientId", "==", clientId)
     );
     const transactionSnapshot = await getDocs(q);
     const transactionList = transactionSnapshot.docs.map(doc => {
@@ -295,5 +294,9 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
     });
+
+    // Sort transactions by date in descending order on the server
+    transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
+    
     return transactionList;
 }
