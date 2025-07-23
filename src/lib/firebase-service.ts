@@ -70,7 +70,7 @@ export async function getClientByEmail(email: string): Promise<Client | null> {
 // Task Functions
 export async function getTasks(): Promise<Task[]> {
     const tasksCol = collection(db, 'tasks');
-    const taskSnapshot = await getDocs(tasksCol);
+    const taskSnapshot = await getDocs(query(tasksCol, orderBy('slNo', 'desc')));
     const taskList = taskSnapshot.docs.map(doc => {
         const data = doc.data();
         // Ensure dates are strings
@@ -114,20 +114,22 @@ export async function getTask(id: string): Promise<Task | null> {
 export async function addTask(task: Omit<Task, 'id'>) {
     const tasksCol = collection(db, 'tasks');
     await addDoc(tasksCol, task);
-    revalidatePath('/admin');
+    revalidatePath('/admin/tasks');
 }
 
-export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'total' | 'amountPaid'>>) {
+export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'clientId'>>) {
     const taskDocRef = doc(db, 'tasks', id);
     const existingTask = await getTask(id);
     if (!existingTask) throw new Error("Task not found");
     
-    const total = (task.pages || existingTask.pages) * (task.rate || existingTask.rate);
+    const total = (task.pages ?? existingTask.pages) * (task.rate ?? existingTask.rate);
 
     await updateDoc(taskDocRef, { ...task, total });
-    revalidatePath('/admin');
+    revalidatePath('/admin/tasks');
     revalidatePath(`/admin/tasks/${id}`);
     revalidatePath(`/admin/tasks/${id}/edit`);
+    revalidatePath(`/client/${existingTask.clientId}/projects`);
+    revalidatePath(`/client/${existingTask.clientId}/projects/${id}`);
 }
 
 // Assignee Functions
@@ -145,6 +147,14 @@ export async function addAssignee(assignee: Omit<Assignee, 'id'>): Promise<Assig
     revalidatePath('/admin/tasks/*');
     return { id: docRef.id, ...assignee };
 }
+
+export async function deleteTask(id: string) {
+    const taskDocRef = doc(db, 'tasks', id);
+    // You might want to delete related transactions as well, or handle them appropriately.
+    await deleteDoc(taskDocRef);
+    revalidatePath('/admin/tasks');
+}
+
 
 export async function deleteAssignee(id: string) {
     const assigneeDocRef = doc(db, 'assignees', id);
@@ -209,17 +219,17 @@ export async function addTransactionAndUpdateTask(
     const transactionCol = collection(db, 'transactions');
 
     try {
-        await runTransaction(db, async (transaction) => {
+        const taskData = await runTransaction(db, async (transaction) => {
             const taskDoc = await transaction.get(taskDocRef);
             if (!taskDoc.exists()) {
                 throw "Task document does not exist!";
             }
 
-            const taskData = taskDoc.data() as Task;
-            const newAmountPaid = (taskData.amountPaid || 0) + amountPaid;
-            const remainingAmount = taskData.total - newAmountPaid;
+            const currentTaskData = taskDoc.data() as Task;
+            const newAmountPaid = (currentTaskData.amountPaid || 0) + amountPaid;
+            const remainingAmount = currentTaskData.total - newAmountPaid;
             
-            let newPaymentStatus = taskData.paymentStatus;
+            let newPaymentStatus = currentTaskData.paymentStatus;
             if (remainingAmount <= 0) {
                 newPaymentStatus = 'Paid';
             } else if (newAmountPaid > 0) {
@@ -237,20 +247,30 @@ export async function addTransactionAndUpdateTask(
             // Create a new transaction document
             const newTransaction: Omit<Transaction, 'id'> = {
                 taskId: taskId,
-                clientId: taskData.clientId,
-                projectName: taskData.projectName,
-                clientName: taskData.clientName,
+                clientId: currentTaskData.clientId,
+                projectName: currentTaskData.projectName,
+                clientName: currentTaskData.clientName,
                 amount: amountPaid,
                 paymentMethod: paymentMethod,
                 transactionDate: new Date().toISOString(),
                 notes: notes,
             };
             transaction.set(doc(transactionCol), newTransaction);
+            return currentTaskData;
         });
 
-        revalidatePath('/admin');
+        // Revalidate paths after the transaction is successful
+        revalidatePath('/admin/tasks');
+        revalidatePath(`/admin/tasks/${taskId}`);
+        revalidatePath(`/admin/tasks/${taskId}/edit`);
         revalidatePath('/admin/transactions');
-        revalidatePath(`/client/${(await getDoc(taskDocRef)).data()?.clientId}/transactions`);
+        if(taskData){
+           revalidatePath(`/client/${taskData.clientId}`);
+           revalidatePath(`/client/${taskData.clientId}/projects`);
+           revalidatePath(`/client/${taskData.clientId}/projects/${taskId}`);
+           revalidatePath(`/client/${taskData.clientId}/transactions`);
+        }
+
 
     } catch (e) {
         console.error("Transaction failed: ", e);
@@ -261,7 +281,7 @@ export async function addTransactionAndUpdateTask(
 
 export async function getTransactions(): Promise<Transaction[]> {
     const transactionsCol = collection(db, 'transactions');
-    const transactionSnapshot = await getDocs(query(transactionsCol));
+    const transactionSnapshot = await getDocs(query(transactionsCol, orderBy('transactionDate', 'desc')));
     const transactionList = transactionSnapshot.docs.map(doc => {
         const data = doc.data();
         return { 
@@ -270,14 +290,14 @@ export async function getTransactions(): Promise<Transaction[]> {
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
     });
-     // Sort by date descending in code
-    return transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
+    return transactionList;
 }
 
 export async function getTransactionsByClientId(clientId: string): Promise<Transaction[]> {
     const q = query(
         collection(db, "transactions"), 
-        where("clientId", "==", clientId)
+        where("clientId", "==", clientId),
+        orderBy('transactionDate', 'desc')
     );
     const transactionSnapshot = await getDocs(q);
     const transactionList = transactionSnapshot.docs.map(doc => {
@@ -288,6 +308,5 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
     });
-    // Sort by date descending in code to avoid needing a composite index
-    return transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
+    return transactionList;
 }

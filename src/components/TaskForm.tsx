@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Task, Client, WorkStatus, PaymentStatus, Assignee } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { addTask, updateTask, getClients, getTasks, getAssignees, addAssignee } from '@/lib/firebase-service';
@@ -38,12 +38,12 @@ import {
     DialogTrigger,
     DialogClose,
 } from '@/components/ui/dialog';
-import { PlusCircle } from 'lucide-react';
+import { DollarSign, PlusCircle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import PaymentDialog from './PaymentDialog';
 
 
 const workStatuses = ['Pending', 'In Progress', 'Completed'] as const;
-const paymentStatuses = ['Unpaid', 'Partial', 'Paid'] as const;
 
 const formSchema = z.object({
   clientName: z.string().min(1, 'Client name is required'),
@@ -51,8 +51,6 @@ const formSchema = z.object({
   pages: z.coerce.number().min(1, 'Pages must be at least 1'),
   rate: z.coerce.number().min(1, 'Rate must be at least 1'),
   workStatus: z.enum(workStatuses),
-  // paymentStatus is handled by transactions now, so we remove it from the form
-  // paymentStatus: z.enum(paymentStatuses), 
   assignedTo: z.string().optional(),
   notes: z.string().optional(),
   projectFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
@@ -76,6 +74,7 @@ export default function TaskForm({ task }: TaskFormProps) {
   const [isAddAssigneeDialogOpen, setAddAssigneeDialogOpen] = useState(false);
   const [newAssigneeName, setNewAssigneeName] = useState("");
   const [newAssigneeEmail, setNewAssigneeEmail] = useState("");
+  const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   const fetchClients = React.useCallback(async () => {
       const clientData = await getClients();
@@ -176,7 +175,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                 description: `Project "${values.projectName}" has been added.`,
             });
         }
-        router.push('/admin');
+        router.push('/admin/tasks');
         router.refresh();
     } catch (error) {
         console.error("Failed to save task:", error);
@@ -192,7 +191,18 @@ export default function TaskForm({ task }: TaskFormProps) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>{task ? 'Edit Task' : 'Create a New Task'}</CardTitle>
+            <div className="flex justify-between items-start">
+                <div>
+                    <CardTitle>{task ? 'Edit Task' : 'Create a New Task'}</CardTitle>
+                    <CardDescription>{task ? 'Update task details and payment status.' : 'Fill in the form to create a new task.'}</CardDescription>
+                </div>
+                 {task && (
+                    <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)}>
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        Update Payment
+                    </Button>
+                )}
+            </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -204,7 +214,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Client Name</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!task}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a client" />
@@ -406,6 +416,16 @@ export default function TaskForm({ task }: TaskFormProps) {
           </Form>
         </CardContent>
       </Card>
+      {task && (
+        <PaymentDialog 
+            task={task} 
+            isOpen={isPaymentDialogOpen} 
+            onClose={() => {
+                setPaymentDialogOpen(false);
+                router.refresh(); // Refresh data on the edit page
+            }}
+        />
+      )}
     </>
   );
 }

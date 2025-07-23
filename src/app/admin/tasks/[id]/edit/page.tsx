@@ -17,6 +17,7 @@ export default function EditTaskPage() {
 
     React.useEffect(() => {
         const fetchTask = async () => {
+            if (!id) return;
             const taskData = await getTask(id);
             if (!taskData) {
                 notFound();
