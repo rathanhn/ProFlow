@@ -69,10 +69,12 @@ export const SidebarHeader = React.forwardRef<
     return (
         <div
             ref={ref}
-            className={cn("p-4 border-b flex items-center", isCollapsed ? 'justify-center' : 'justify-between', className)}
+            className={cn("p-4 border-b flex items-center h-16", isCollapsed ? 'justify-center' : 'justify-between', className)}
             {...props}
         >
-            {!isCollapsed && children}
+            <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
+                {children}
+            </div>
             <SidebarCollapseButton />
         </div>
     )
@@ -122,7 +124,7 @@ SidebarMenuItem.displayName = "SidebarMenuItem"
 export const SidebarMenuButton = React.forwardRef<
   HTMLAnchorElement,
   React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean, asChild?: boolean }
->(({ className, isActive, asChild = false, ...props }, ref) => {
+>(({ className, isActive, asChild = false, children, ...props }, ref) => {
     const { isCollapsed } = useSidebar();
     const Comp = asChild ? Slot : "a"
     
@@ -138,7 +140,9 @@ export const SidebarMenuButton = React.forwardRef<
             className
         )}
         {...props}
-        />
+        >
+          {children}
+        </Comp>
     )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
@@ -146,22 +150,14 @@ SidebarMenuButton.displayName = "SidebarMenuButton"
 export const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => {
+>(({ className, ...props }, ref) => {
     const { isCollapsed } = useSidebar();
     return (
         <div
             ref={ref}
             className={cn("p-4 border-t", isCollapsed && "p-2", className)}
             {...props}
-        >
-            {isCollapsed ? 
-              <div className="flex justify-center items-center">
-                 {React.Children.map(children, child => 
-                  React.isValidElement(child) ? React.cloneElement(child as React.ReactElement<any>, { isCollapsed: true }) : child
-                 )}
-              </div>
-            : children}
-        </div>
+        />
     )
 })
 SidebarFooter.displayName = "SidebarFooter"
@@ -186,37 +182,8 @@ export const SidebarCollapseButton = () => {
             className="hidden lg:inline-flex"
             onClick={() => setIsCollapsed(!isCollapsed)}
         >
-            {isCollapsed ? <Menu className="h-6 w-6" /> : <X className="h-6 w-6" />}
+            <Menu className="h-6 w-6" />
             <span className="sr-only">Toggle sidebar</span>
         </Button>
     )
-}
-
-// This helper component is not used in the final version of the code
-// It's kept here just in case, but it's not part of the active implementation.
-export const SidebarUser = ({ user, handleLogout, isCollapsed, getAvatarFallback}: any) => {
-  if (isCollapsed) {
-    return (
-       <Avatar>
-          <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="User avatar" />
-          <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
-        </Avatar>
-    )
-  }
-
-  return (
-     <div className="flex items-center gap-3">
-        <Avatar>
-            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="User avatar" />
-            <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 overflow-hidden">
-            <p className="font-semibold text-sm truncate">{user.displayName || 'User'}</p>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-        </div>
-        <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
-            <LogOut className="h-4 w-4" />
-        </Button>
-    </div>
-  )
 }

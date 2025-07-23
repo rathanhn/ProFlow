@@ -21,6 +21,80 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
 import NotificationBell from './NotificationBell';
+import { useSidebar } from '@/components/ui/sidebar';
+
+
+const UserProfile = () => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { isCollapsed } = useSidebar();
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    if(pathname.startsWith('/admin')) {
+      router.push('/admin/login');
+    } else {
+      router.push('/');
+    }
+  };
+
+  const getAvatarFallback = () => {
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        {!isCollapsed && (
+          <div className='flex-1 space-y-1'>
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div className="flex items-center gap-3">
+        <Avatar>
+          <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="User avatar" />
+          <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
+        </Avatar>
+        {!isCollapsed && (
+          <>
+            <div className="flex-1 overflow-hidden">
+              <p className="font-semibold text-sm truncate">{pathname.startsWith('/admin') ? 'Admin' : (user.displayName || 'User')}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    !isCollapsed && <p className="text-sm text-muted-foreground">Not logged in</p>
+  );
+};
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -48,22 +122,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
     return () => unsubscribe();
   }, [pathname, router]);
-  
-  const handleLogout = async () => {
-    await signOut(auth);
-    if(pathname.startsWith('/admin')) {
-      router.push('/admin/login');
-    } else {
-      router.push('/');
-    }
-  };
-
-  const getAvatarFallback = () => {
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    return 'U';
-  }
 
   const renderContent = () => {
     if (loading) {
@@ -87,12 +145,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex min-h-screen">
         <Sidebar>
           <SidebarHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-primary rounded-lg">
-                <Rocket className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h1 className="text-xl font-semibold">ProFlow</h1>
-            </div>
+             <Rocket className="w-6 h-6 text-primary" />
+             <h1 className="text-xl font-semibold">ProFlow</h1>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
@@ -203,34 +257,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-             {loading ? (
-                <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className='flex-1 space-y-1'>
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-32" />
-                    </div>
-                </div>
-             ) : user ? (
-                <div className="flex items-center gap-3">
-                <Avatar>
-                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="User avatar" />
-                    <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold text-sm truncate">{pathname.startsWith('/admin') ? 'Admin' : (user.displayName || 'User')}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
-                    <LogOut className="h-4 w-4" />
-                </Button>
-                </div>
-            ) : (
-                 <p className="text-sm text-muted-foreground">Not logged in</p>
-            )}
+             <UserProfile />
           </SidebarFooter>
         </Sidebar>
-        <div className="flex-1 lg:pl-64 transition-all duration-300 ease-in-out data-[collapsed=true]:lg:pl-16">
+        <div className="flex-1 lg:pl-64 transition-all duration-300 ease-in-out data-[collapsed=true]:lg:pl-16" data-collapsed-container>
           <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
             <SidebarTrigger />
             <div className="flex items-center gap-4">
