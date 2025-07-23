@@ -14,7 +14,7 @@ import { getTask, getClient } from '@/lib/firebase-service';
 import { notFound, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft, User, Download } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import React, { useEffect, useState } from 'react';
 import { Task, Client } from '@/lib/types';
@@ -105,6 +105,28 @@ export default function ProjectDetailsPage() {
                     <DetailItem label="Amount Paid" value={<span className="font-bold text-green-600">₹{amountPaid.toLocaleString()}</span>} />
                     <DetailItem label="Remaining Amount" value={<span className="font-bold text-red-600">₹{remainingAmount.toLocaleString()}</span>} />
                 </dl>
+                
+                 {(task.projectFileLink || task.outputFileLink) && (
+                    <div className="mt-6">
+                        <h3 className="font-semibold mb-2">Downloads</h3>
+                        <div className="flex gap-2">
+                            {task.projectFileLink && (
+                                <Button asChild>
+                                    <a href={task.projectFileLink} target="_blank" rel="noopener noreferrer">
+                                        <Download className="mr-2 h-4 w-4" /> Download Project File
+                                    </a>
+                                </Button>
+                            )}
+                            {task.outputFileLink && (
+                                <Button asChild>
+                                    <a href={task.outputFileLink} target="_blank" rel="noopener noreferrer">
+                                        <Download className="mr-2 h-4 w-4" /> Download Output File
+                                    </a>
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -19,6 +19,8 @@ export interface Task {
   total: number;
   amountPaid: number;
   assignedTo?: string;
+  projectFileLink?: string;
+  outputFileLink?: string;
 }
 
 export interface Client {

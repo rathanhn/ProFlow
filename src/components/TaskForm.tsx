@@ -55,6 +55,8 @@ const formSchema = z.object({
   // paymentStatus: z.enum(paymentStatuses), 
   assignedTo: z.string().optional(),
   notes: z.string().optional(),
+  projectFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  outputFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
 });
 
 const newAssigneeSchema = z.object({
@@ -101,6 +103,8 @@ export default function TaskForm({ task }: TaskFormProps) {
       workStatus: task?.workStatus || 'Pending',
       assignedTo: task?.assignedTo || '',
       notes: task?.notes || '',
+      projectFileLink: task?.projectFileLink || '',
+      outputFileLink: task?.outputFileLink || '',
     },
   });
 
@@ -357,6 +361,36 @@ export default function TaskForm({ task }: TaskFormProps) {
                   </FormItem>
                 )}
               />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <FormField
+                        control={form.control}
+                        name="projectFileLink"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Project File Link</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://example.com/project-file" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                     <FormField
+                        control={form.control}
+                        name="outputFileLink"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Output File Link</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://example.com/output-file" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                </div>
+
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => router.back()}>
                   Cancel
