@@ -101,7 +101,7 @@ export default function TaskForm({ task }: TaskFormProps) {
       pages: task?.pages || 1,
       rate: task?.rate || 100,
       workStatus: task?.workStatus || 'Pending',
-      assignedTo: task?.assignedTo || '',
+      assignedTo: task?.assignedTo || 'unassigned',
       notes: task?.notes || '',
       projectFileLink: task?.projectFileLink || '',
       outputFileLink: task?.outputFileLink || '',
@@ -141,9 +141,14 @@ export default function TaskForm({ task }: TaskFormProps) {
             return;
         }
 
+        const finalValues = {
+            ...values,
+            assignedTo: values.assignedTo === 'unassigned' ? '' : values.assignedTo,
+        };
+
         if (task) {
              const taskData = {
-                ...values,
+                ...finalValues,
                 clientId: client.id,
                 total: values.pages * values.rate,
                 workStatus: values.workStatus as WorkStatus,
@@ -155,7 +160,7 @@ export default function TaskForm({ task }: TaskFormProps) {
             });
         } else {
             const newTaskData = {
-                ...values,
+                ...finalValues,
                 clientId: client.id,
                 total: values.pages * values.rate,
                 workStatus: values.workStatus as WorkStatus,
@@ -246,7 +251,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">N/A</SelectItem>
+                            <SelectItem value="unassigned">N/A</SelectItem>
                             {assignees.map((assignee: Assignee) => (
                               <SelectItem key={assignee.id} value={assignee.name}>
                                 {assignee.name}
