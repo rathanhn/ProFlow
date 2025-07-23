@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-    BarChart as BarChartIcon,
     File,
     PlusCircle,
     DollarSign,
@@ -22,7 +21,7 @@ import {
 import { getTasks, getClients } from '@/lib/firebase-service';
 import EarningsChart from '@/components/EarningsChart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
+import AIInsights from './AIInsights';
 
 
 export default async function AdminDashboardPage() {
@@ -132,23 +131,7 @@ export default async function AdminDashboardPage() {
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-7">
             <EarningsChart />
-            <Card className="lg:col-span-3">
-                <CardHeader>
-                    <CardTitle>AI-Powered Insights</CardTitle>
-                    <CardDescription>Ask about your data to get visualizations.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                   <div className="space-y-4">
-                        <Input placeholder="e.g., 'Show top clients by earnings'" />
-                        <Button className="w-full">
-                            <BarChartIcon className="mr-2 h-4 w-4" /> Generate Visualization
-                        </Button>
-                        <div className="mt-4 p-4 border rounded-lg bg-muted/50 text-center text-sm text-muted-foreground">
-                            Your generated chart will appear here.
-                        </div>
-                   </div>
-                </CardContent>
-            </Card>
+            <AIInsights tasks={tasks} clients={clients} />
         </div>
 
          <Card>
