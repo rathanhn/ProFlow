@@ -23,6 +23,7 @@ import { getTasks, getClients } from '@/lib/firebase-service';
 import EarningsChart from '@/components/EarningsChart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import TasksTable from './TasksTable';
+import { Input } from '@/components/ui/input';
 
 
 export default async function AdminDashboardPage() {
@@ -92,7 +93,7 @@ export default async function AdminDashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{totalEarnings.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{(totalEarnings || 0).toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Based on fully paid projects</p>
             </CardContent>
           </Card>
@@ -102,7 +103,7 @@ export default async function AdminDashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{pendingPayments.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{(pendingPayments || 0).toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Across all unpaid/partial projects</p>
             </CardContent>
           </Card>
