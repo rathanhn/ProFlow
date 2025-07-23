@@ -25,17 +25,17 @@ interface TaskSheetProps {
 export default function TaskSheet({ task, isOpen, onClose }: TaskSheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-full max-w-none sm:max-w-[540px] p-0">
-        <SheetHeader className="p-6">
+      <SheetContent className="w-full max-w-none sm:max-w-[540px] p-0 flex flex-col">
+        <SheetHeader className="p-6 pb-4">
           <SheetTitle>{task.projectName}</SheetTitle>
           <SheetDescription>
             Detailed view of the task. Click edit to make changes.
           </SheetDescription>
         </SheetHeader>
-        <div className="overflow-y-auto px-6">
+        <div className="flex-1 overflow-y-auto px-6">
           <TaskDetails task={task} />
         </div>
-        <SheetFooter className="p-6 bg-muted/50 mt-auto">
+        <SheetFooter className="p-6 mt-auto bg-background border-t">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
