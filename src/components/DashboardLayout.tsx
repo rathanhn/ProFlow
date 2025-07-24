@@ -73,7 +73,7 @@ const UserProfile = () => {
     return (
       <div className="flex items-center gap-3">
         <Avatar>
-          <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="user avatar" alt="User avatar" />
+          <AvatarImage src="https://placehold.co/40x40.png" alt="User avatar" />
           <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
         </Avatar>
         {!isCollapsed && (

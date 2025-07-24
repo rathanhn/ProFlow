@@ -94,7 +94,7 @@ export default function TasksTable({ tasks, clients }: TasksTableProps) {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="hidden h-9 w-9 sm:flex">
-                          <AvatarImage src={`https://placehold.co/32x32.png`} data-ai-hint={clients.find(c => c.id === task.clientId)?.dataAiHint} alt="Avatar" />
+                          <AvatarImage src={clients.find(c => c.id === task.clientId)?.avatar || `https://placehold.co/32x32.png`} alt="Avatar" />
                           <AvatarFallback>{task.clientName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="grid gap-1">
