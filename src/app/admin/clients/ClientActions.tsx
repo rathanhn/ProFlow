@@ -56,6 +56,7 @@ export default function ClientActions({ client, action }: { client: Client, acti
     if (action === 'delete') {
         return (
             <DropdownMenuItem
+                onSelect={(e) => e.preventDefault()}
                 onClick={() => handleDelete(client.id)}
                 className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
             >

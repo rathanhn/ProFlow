@@ -29,7 +29,7 @@ const baseSchema = z.object({
   avatar: z.string().url('Avatar must be a valid URL.'),
 });
 
-const formSchema = baseSchema.extend({
+const createFormSchema = baseSchema.extend({
   password: z.string().min(6, 'Password must be at least 6 characters.'),
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters.'),
 }).refine(data => data.password === data.confirmPassword, {
@@ -49,7 +49,7 @@ export default function ClientForm({ client }: ClientFormProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
-  const currentSchema = client ? editFormSchema : formSchema;
+  const currentSchema = client ? editFormSchema : createFormSchema;
 
   const form = useForm<z.infer<typeof currentSchema>>({
     resolver: zodResolver(currentSchema),
