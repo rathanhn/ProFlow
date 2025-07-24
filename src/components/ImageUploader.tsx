@@ -39,11 +39,11 @@ export default function ImageUploader({
       const { signature, timestamp } = await getUploadSignature();
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
+      formData.append('api_key', process.env.CLOUDINARY_API_KEY!);
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
 
-      const endpoint = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`;
+      const endpoint = `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME!}/image/upload`;
       const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
@@ -112,4 +112,3 @@ export default function ImageUploader({
     </div>
   );
 }
-
