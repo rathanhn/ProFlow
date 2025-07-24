@@ -34,7 +34,7 @@ export default async function ClientProjectsPage({ params }: { params: { id: str
   }
   
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-  const rawClientTasks = await getTasksByClientId(client.id);
+  const rawClientTasks = await getTasksByClientId(id);
 
   const clientTasks = rawClientTasks.map(task => ({
     ...JSON.parse(JSON.stringify(task)),
