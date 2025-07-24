@@ -61,7 +61,7 @@ export default async function AdminClientsPage() {
           <CardHeader>
             <CardTitle>All Clients</CardTitle>
             <CardDescription>Manage your clients and their dashboard access.</CardDescription>
-          </Header>
+          </CardHeader>
           <CardContent>
            <div className="w-full overflow-x-auto">
             <Table>
