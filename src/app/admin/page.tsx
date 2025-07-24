@@ -16,9 +16,10 @@ import {
     ListChecks,
     Users,
     BellRing,
-    ArrowRight
+    ArrowRight,
+    MessageSquareWarning
 } from 'lucide-react';
-import { getTasks, getClients } from '@/lib/firebase-service';
+import { getTasks, getClients, getAdminNotifications } from '@/lib/firebase-service';
 import EarningsChart from '@/components/EarningsChart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AIInsights from './AIInsights';
@@ -27,6 +28,7 @@ import AIInsights from './AIInsights';
 export default async function AdminDashboardPage() {
   const rawTasks = await getTasks();
   const clients = await getClients();
+  const unreadNotifications = await getAdminNotifications();
 
   // Serialize task dates
   const tasks = rawTasks.map(task => ({
@@ -65,6 +67,25 @@ export default async function AdminDashboardPage() {
                 </Button>
             </div>
         </div>
+
+        {unreadNotifications.length > 0 && (
+          <Alert variant="destructive">
+            <MessageSquareWarning className="h-4 w-4" />
+            <AlertTitle>Important Alerts!</AlertTitle>
+            <AlertDescription>
+              You have unread messages from clients. Please check your notifications.
+              <ul className="mt-2 list-disc list-inside">
+                {unreadNotifications.map(notification => (
+                  <li key={notification.id}>
+                    <Link href={notification.link} className="font-semibold underline">
+                      {notification.message}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {paidButNotCompletedTasks.length > 0 && (
           <Alert>

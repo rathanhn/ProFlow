@@ -168,7 +168,7 @@ export default function ProjectDetailsPage() {
                     </CardContent>
                 </Card>
             )}
-            <ClientActions task={task} client={client} />
+            <ClientActions task={task} client={client} assignee={assignee} />
           </div>
         </div>
       </div>

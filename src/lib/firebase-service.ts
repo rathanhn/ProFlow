@@ -181,7 +181,19 @@ export async function deleteAssignee(id: string) {
 export async function createNotification(notification: Omit<Notification, 'id'>) {
     const notificationsCol = collection(db, 'notifications');
     await addDoc(notificationsCol, notification);
-    // We don't need to revalidate paths for notifications as they are fetched client-side.
+    revalidatePath('/admin');
+    // We don't need to revalidate other paths for notifications as they are fetched client-side.
+}
+
+export async function getAdminNotifications(): Promise<Notification[]> {
+    const q = query(
+        collection(db, "notifications"), 
+        where("userId", "==", "admin"),
+        where("isRead", "==", false),
+        orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
 }
 
 export async function markNotificationAsRead(id: string) {
