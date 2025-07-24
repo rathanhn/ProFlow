@@ -204,12 +204,15 @@ export async function createNotification(notification: Omit<Notification, 'id'>)
 export async function getAdminNotifications(): Promise<Notification[]> {
     const q = query(
         collection(db, "notifications"), 
-        where("userId", "==", "admin"),
-        where("isRead", "==", false),
-        orderBy('createdAt', 'desc')
+        where("userId", "==", "admin")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+    const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
+    
+    // Filter and sort in code to avoid composite index
+    return notifications
+        .filter(n => !n.isRead)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function markNotificationAsRead(id: string) {
