@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { User, Eye, EyeOff } from 'lucide-react';
 import { getClientByEmail } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { clientAuth } from '@/lib/firebase';
 
 export default function ClientLoginPage() {
@@ -36,6 +36,7 @@ export default function ClientLoginPage() {
         
         try {
             // Use client-specific auth instance with session persistence
+            await setPersistence(clientAuth, browserSessionPersistence);
             await signInWithEmailAndPassword(clientAuth, email, password);
             
             // On success, get client data and redirect

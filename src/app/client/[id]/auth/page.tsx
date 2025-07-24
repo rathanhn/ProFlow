@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, updatePassword, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { getClient } from '@/lib/firebase-service';
 import { clientAuth } from '@/lib/firebase';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
@@ -47,6 +47,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
     const handleSignIn = async () => {
         setIsLoading(true);
         try {
+            await setPersistence(clientAuth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             const user = userCredential.user;
 

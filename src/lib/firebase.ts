@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, browserSessionPersistence, initializeAuth, Auth, browserLocalPersistence } from "firebase/auth";
+import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBqhCw9LHugRvO9_qSXgn3B7_nwS6K-s-Q",
@@ -22,11 +22,9 @@ if (!getApps().length) {
 
 const db = getFirestore(app);
 
-// Create two separate auth instances from the same app.
-// This is the correct way to handle different persistence settings without re-initializing.
-const auth: Auth = getAuth(app); // For admin, uses default (local) persistence
-const clientAuth: Auth = initializeAuth(app, {
-  persistence: browserSessionPersistence
-});
+// Use getAuth to get the default auth instance.
+// Persistence is now handled at the time of login.
+const auth: Auth = getAuth(app); 
+const clientAuth: Auth = getAuth(app); // Also get the default instance; we will set its persistence dynamically.
 
 export { app, db, auth, clientAuth };
