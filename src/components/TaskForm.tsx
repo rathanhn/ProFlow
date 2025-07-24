@@ -41,6 +41,7 @@ import {
 import { DollarSign, PlusCircle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import PaymentDialog from './PaymentDialog';
+import FileUpload from './FileUpload';
 
 
 const workStatuses = ['Pending', 'In Progress', 'Completed'] as const;
@@ -383,9 +384,13 @@ export default function TaskForm({ task }: TaskFormProps) {
                         name="projectFileLink"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Project File Link</FormLabel>
+                            <FormLabel>Project File</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://example.com/project-file" {...field} />
+                                <FileUpload 
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    folder="project_files"
+                                />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -396,9 +401,13 @@ export default function TaskForm({ task }: TaskFormProps) {
                         name="outputFileLink"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Output File Link</FormLabel>
+                            <FormLabel>Output File</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://example.com/output-file" {...field} />
+                                <FileUpload 
+                                     value={field.value}
+                                     onChange={field.onChange}
+                                     folder="output_files"
+                                />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
