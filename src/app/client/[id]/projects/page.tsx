@@ -26,24 +26,18 @@ const statusColors: Record<string, string> = {
 
 export default async function ClientProjectsPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  console.log(`[ClientProjectsPage] Rendering for client ID: ${id}`);
   
   const rawClient = await getClient(id);
 
   if (!rawClient) {
-    console.error(`[ClientProjectsPage] Client not found for ID: ${id}`);
     notFound();
   }
   
-  // Properly serialize the client object to pass to client components
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-
   const rawClientTasks = await getTasksByClientId(client.id);
 
-  // Properly serialize the tasks array, ensuring all dates are strings
   const clientTasks = rawClientTasks.map(task => ({
     ...JSON.parse(JSON.stringify(task)),
-     // Ensure dates are strings, even if they come from Firestore as Timestamps
     acceptedDate: new Date(task.acceptedDate).toISOString(),
     submissionDate: new Date(task.submissionDate).toISOString(),
   })) as Task[];

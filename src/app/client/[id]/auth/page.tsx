@@ -8,12 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, User, updatePassword } from 'firebase/auth';
-import { getClient, getClientByEmail } from '@/lib/firebase-service';
+import { getAuth, signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
+import { getClient } from '@/lib/firebase-service';
 import { app } from '@/lib/firebase';
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Eye, EyeOff } from 'lucide-react';
-import { Client } from '@/lib/types';
+import type { Client } from '@/lib/types';
 
 const auth = getAuth(app);
 
@@ -52,20 +52,11 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            const clientData = await getClient(user.uid);
-            if (!clientData) {
-                toast({ title: 'Login Failed', description: 'Client data not found.', variant: 'destructive' });
-                setIsLoading(false);
-                return;
-            }
-
-            const plainClient = JSON.parse(JSON.stringify(clientData));
-            setClient(plainClient);
-
+            // Check if this is the first sign-in
             const lastSignInTime = new Date(user.metadata.lastSignInTime || 0).getTime();
             const creationTime = new Date(user.metadata.creationTime || 0).getTime();
 
-            if (Math.abs(lastSignInTime - creationTime) < 5000) {
+            if (Math.abs(lastSignInTime - creationTime) < 5000) { // First login is usually within a few seconds of creation
                 setShowPasswordResetDialog(true);
             } else {
                 toast({ title: 'Access Granted!', description: 'Redirecting to your dashboard...' });
@@ -83,68 +74,62 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
             toast({ title: 'Password Reset Failed', description: 'New passwords do not match.', variant: 'destructive' });
             return;
         }
+        if (newPassword.length < 6) {
+            toast({ title: 'Password Too Short', description: 'Password must be at least 6 characters.', variant: 'destructive' });
+            return;
+        }
 
         const user = auth.currentUser;
         if (user) {
             try {
                 await updatePassword(user, newPassword);
-                toast({ title: 'Password Reset Successful', description: 'Your password has been updated.' });
+                toast({ title: 'Password Reset Successful', description: 'Your password has been updated. Redirecting...' });
                 setShowPasswordResetDialog(false);
-                if (client) {
-                    router.push(`/client/${user.uid}`);
-                }
+                router.push(`/client/${user.uid}`);
             } catch (error) {
-                toast({ title: 'Password Reset Failed', description: 'Could not update password.', variant: 'destructive' });
+                toast({ title: 'Password Reset Failed', description: 'Could not update password. Please try again.', variant: 'destructive' });
             }
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <Card className="w-[350px]">
-                <CardHeader>
-                    <CardTitle>Client Login</CardTitle>
-                    <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+            <Card className="w-full max-w-sm mx-auto">
+                <CardHeader className="text-center">
+                    <CardTitle className="text-2xl font-bold">Client Portal Login</CardTitle>
+                    <CardDescription>Enter your password to access your dashboard.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="grid w-full items-center gap-4">
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} disabled />
-                        </div>
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="password">Password</Label>
-                             <div className="relative flex items-center">
-                                <Input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="Enter your password"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleSignIn();
-                                        }
-                                    }}
-                                    className="pr-10"
-                                />
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                            </div>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" value={email} disabled />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                         <div className="relative flex items-center">
+                            <Input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Enter your password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSignIn()}
+                                className="pr-10"
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
                         </div>
                     </div>
-                    <div className="flex justify-center mt-6">
-                        <Button className="w-full" onClick={handleSignIn} disabled={isLoading}>
-                            {isLoading ? 'Signing In...' : 'Sign In'}
-                        </Button>
-                    </div>
+                    <Button onClick={handleSignIn} disabled={isLoading || !email} className="w-full">
+                        {isLoading ? 'Signing In...' : 'Sign In'}
+                    </Button>
                 </CardContent>
             </Card>
 
@@ -153,7 +138,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                  <AlertDialogHeader>
                  <AlertDialogTitle>Welcome! Let's secure your account.</AlertDialogTitle>
                  <AlertDialogDescription>
-                     This is your first time logging in. For your security, we recommend setting a new password.
+                     This is your first time logging in. For your security, please set a new, permanent password.
                  </AlertDialogDescription>
                  </AlertDialogHeader>
                  <div className="space-y-4 py-4">
@@ -189,11 +174,10 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                      </div>
                  </div>
                  <AlertDialogFooter>
-                 <Button onClick={handlePasswordReset}>Set New Password</Button>
+                    <Button onClick={handlePasswordReset}>Set New Password</Button>
                  </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-
         </div>
     );
 }
