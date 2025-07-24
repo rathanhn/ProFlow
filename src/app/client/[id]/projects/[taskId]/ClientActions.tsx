@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { createNotification } from '@/lib/firebase-service';
 import { Task, Client } from '@/lib/types';
-import { Bell, Zap } from 'lucide-react';
+import { Bell, Zap, MessageSquare } from 'lucide-react';
 
 export default function ClientActions({ task, client }: { task: Task, client: Client }) {
     const { toast } = useToast();
@@ -55,6 +55,28 @@ export default function ClientActions({ task, client }: { task: Task, client: Cl
         }
     };
 
+    const handleContactCreator = async () => {
+        try {
+            await createNotification({
+                userId: 'admin',
+                message: `${client.name} sent a message regarding project '${task.projectName}'.`,
+                link: `/admin/tasks/${task.id}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            });
+            toast({
+                title: "Message Sent!",
+                description: "Your message has been sent to the admin.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Could not send your message.",
+                variant: 'destructive',
+            });
+        }
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -62,6 +84,10 @@ export default function ClientActions({ task, client }: { task: Task, client: Cl
                 <CardDescription>Need something for this project?</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+                 <Button onClick={handleContactCreator} variant="outline" className="w-full">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Send a Message
+                </Button>
                 <Button onClick={handleNotify} variant="outline" className="w-full">
                     <Bell className="mr-2 h-4 w-4" />
                     Notify Admin of Payment

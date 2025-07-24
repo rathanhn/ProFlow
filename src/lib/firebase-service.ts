@@ -157,6 +157,12 @@ export async function addAssignee(assignee: Omit<Assignee, 'id'>): Promise<Assig
     return { id: docRef.id, ...assignee };
 }
 
+export async function updateAssignee(id: string, assignee: Partial<Omit<Assignee, 'id'>>) {
+    const assigneeDocRef = doc(db, 'assignees', id);
+    await updateDoc(assigneeDocRef, assignee);
+    revalidatePath('/admin/team');
+}
+
 export async function deleteTask(id: string) {
     const taskDocRef = doc(db, 'tasks', id);
     // You might want to delete related transactions as well, or handle them appropriately.
@@ -292,7 +298,8 @@ export async function getTransactions(): Promise<Transaction[]> {
 export async function getTransactionsByClientId(clientId: string): Promise<Transaction[]> {
     const q = query(
         collection(db, "transactions"), 
-        where("clientId", "==", clientId)
+        where("clientId", "==", clientId),
+        orderBy('transactionDate', 'desc')
     );
     const transactionSnapshot = await getDocs(q);
     const transactionList = transactionSnapshot.docs.map(doc => {
@@ -303,9 +310,6 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
     });
-
-    // Sort transactions by date in descending order on the server
-    transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
     
     return transactionList;
 }
