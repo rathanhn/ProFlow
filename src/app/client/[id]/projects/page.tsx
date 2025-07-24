@@ -25,10 +25,13 @@ const statusColors: Record<string, string> = {
 
 
 export default async function ClientProjectsPage({ params }: { params: { id: string } }) {
-  const id = params.id;
+  const { id } = params;
+  console.log(`[ClientProjectsPage] Rendering for client ID: ${id}`);
+  
   const rawClient = await getClient(id);
 
   if (!rawClient) {
+    console.error(`[ClientProjectsPage] Client not found for ID: ${id}`);
     notFound();
   }
   
