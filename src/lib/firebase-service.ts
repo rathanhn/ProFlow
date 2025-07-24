@@ -2,10 +2,10 @@
 'use server';
 
 import { auth, db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, limit, writeBatch, runTransaction } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction } from 'firebase/firestore';
 import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from './types';
 import { revalidatePath } from 'next/cache';
-import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 // Client Functions
 export async function getClients(): Promise<Client[]> {
@@ -249,7 +249,7 @@ export async function addTransactionAndUpdateTask(
         // Revalidate paths after the transaction is successful
         revalidatePath('/admin/tasks');
         revalidatePath(`/admin/tasks/${taskId}`);
-        revalidatePath(`/admin/tasks/${id}/edit`);
+        revalidatePath('/admin/tasks/*');
         revalidatePath('/admin/transactions');
         if(taskData){
            revalidatePath(`/client/${taskData.clientId}`);

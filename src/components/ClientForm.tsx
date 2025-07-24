@@ -21,12 +21,12 @@ import { useToast } from '@/hooks/use-toast';
 import { addClient, updateClient } from '@/lib/firebase-service';
 import React from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import ImageUploader from './ImageUploader';
 
 const baseSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
-  dataAiHint: z.string().min(2, 'AI hint must be at least 2 characters'),
-  avatar: z.string().url().optional(),
+  avatar: z.string().url('Avatar must be a valid URL.'),
 });
 
 const formSchema = baseSchema.extend({
@@ -56,10 +56,9 @@ export default function ClientForm({ client }: ClientFormProps) {
     defaultValues: {
       name: client?.name || '',
       email: client?.email || '',
-      dataAiHint: client?.dataAiHint || '',
       password: '',
       confirmPassword: '',
-      avatar: client?.avatar || `https://placehold.co/32x32.png`,
+      avatar: client?.avatar || `https://placehold.co/128x128.png`,
     },
   });
 
@@ -101,6 +100,23 @@ export default function ClientForm({ client }: ClientFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+             <FormField
+              control={form.control}
+              name="avatar"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                  <FormLabel>Profile Picture</FormLabel>
+                  <FormControl>
+                    <ImageUploader 
+                      value={field.value} 
+                      onChange={field.onChange} 
+                      fallbackText={form.getValues('name')?.charAt(0) || 'C'}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="name"
@@ -127,19 +143,6 @@ export default function ClientForm({ client }: ClientFormProps) {
                 </FormItem>
               )}
             />
-             <FormField
-                control={form.control}
-                name="dataAiHint"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Avatar AI Hint</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. 'abstract logo' or 'tech company'" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             {!client && (
                 <>
                  <FormField

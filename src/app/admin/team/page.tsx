@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -16,11 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-    PlusCircle,
-    Trash2,
-    User
-} from 'lucide-react';
 import { getAssignees } from '@/lib/firebase-service';
 import { Assignee } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -69,7 +63,7 @@ export default async function AdminTeamPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
-                            <AvatarImage src={`https://placehold.co/32x32.png`} data-ai-hint="user avatar" alt="Avatar" />
+                            <AvatarImage src={assignee.avatar} alt="Avatar" />
                             <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <p className="font-medium whitespace-nowrap">{assignee.name}</p>

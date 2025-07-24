@@ -61,7 +61,7 @@ export default async function AdminClientsPage() {
           <CardHeader>
             <CardTitle>All Clients</CardTitle>
             <CardDescription>Manage your clients and their dashboard access.</CardDescription>
-          </CardHeader>
+          </Header>
           <CardContent>
            <div className="w-full overflow-x-auto">
             <Table>
@@ -79,7 +79,7 @@ export default async function AdminClientsPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                           <AvatarImage src={client.avatar} data-ai-hint={client.dataAiHint} alt="Avatar" />
+                           <AvatarImage src={client.avatar} alt="Avatar" />
                            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <p className="font-medium whitespace-nowrap">{client.name}</p>

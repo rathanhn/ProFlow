@@ -1,5 +1,4 @@
 
-
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -57,7 +56,7 @@ export default async function TaskDetailsPage({ params }: { params: { id: string
                 <div className="flex items-start gap-4">
                     {client && (
                         <Avatar className="h-12 w-12 border">
-                            <AvatarImage src={client.avatar} data-ai-hint={client.dataAiHint} />
+                            <AvatarImage src={client.avatar} />
                             <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                     )}

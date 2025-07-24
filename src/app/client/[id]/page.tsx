@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -52,7 +51,7 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
       <div className="space-y-6">
         <div className="flex items-start gap-4">
             <Avatar className="h-16 w-16 border-2 border-primary">
-                <AvatarImage src={client.avatar} data-ai-hint={client.dataAiHint} />
+                <AvatarImage src={client.avatar} />
                 <AvatarFallback className="text-2xl">{client.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>

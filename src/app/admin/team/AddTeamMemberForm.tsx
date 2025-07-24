@@ -20,31 +20,35 @@ import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { addAssignee } from '@/lib/firebase-service';
 import { useRouter } from 'next/navigation';
+import ImageUploader from '@/components/ImageUploader';
 
 const newAssigneeSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters."),
     email: z.string().email("Please enter a valid email.").optional().or(z.literal('')),
+    avatar: z.string().url().optional(),
 });
 
 export default function AddTeamMemberForm() {
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [avatar, setAvatar] = useState('https://placehold.co/128x128.png');
     const { toast } = useToast();
     const router = useRouter();
 
     const handleAddMember = async () => {
         try {
-            const validation = newAssigneeSchema.safeParse({ name, email });
+            const validation = newAssigneeSchema.safeParse({ name, email, avatar });
             if (!validation.success) {
                 toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
                 return;
             }
 
-            await addAssignee({ name, email });
+            await addAssignee({ name, email, avatar });
             toast({ title: "Team Member Added", description: `${name} has been added.` });
             setName('');
             setEmail('');
+            setAvatar('https://placehold.co/128x128.png');
             setIsOpen(false);
             router.refresh();
         } catch (error) {
@@ -68,6 +72,14 @@ export default function AddTeamMemberForm() {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
+                     <div className="flex flex-col items-center">
+                        <Label>Profile Picture</Label>
+                        <ImageUploader 
+                            value={avatar}
+                            onChange={setAvatar}
+                            fallbackText={name?.charAt(0) || 'T'}
+                        />
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="new-member-name">Name</Label>
                         <Input id="new-member-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jordan" />

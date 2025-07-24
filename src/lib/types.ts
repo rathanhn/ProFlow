@@ -28,7 +28,6 @@ export interface Client {
   name: string;
   email: string;
   avatar: string;
-  dataAiHint: string;
   password?: string; // Keep for form data, but won't be stored in Firestore
 }
 
@@ -36,6 +35,7 @@ export interface Assignee {
     id: string;
     name: string;
     email?: string;
+    avatar?: string;
 }
 
 export interface Notification {
