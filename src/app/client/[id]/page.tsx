@@ -22,8 +22,7 @@ import { Button } from '@/components/ui/button';
 
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
-  const id = params.id;
-  const rawClient = await getClient(id);
+  const rawClient = await getClient(params.id);
 
   if (!rawClient) {
     notFound();
