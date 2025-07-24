@@ -41,14 +41,14 @@ export default function FileUpload({
       const { signature, timestamp, folder: signedFolder } = await getUploadSignature({ folder });
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', process.env.CLOUDINARY_API_KEY!);
+      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
       if (signedFolder) {
         formData.append('folder', signedFolder);
       }
       
-      const endpoint = `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME!}/auto/upload`;
+      const endpoint = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/auto/upload`;
       
       const xhr = new XMLHttpRequest();
       xhr.open('POST', endpoint, true);
@@ -129,4 +129,3 @@ export default function FileUpload({
     </div>
   );
 }
-
