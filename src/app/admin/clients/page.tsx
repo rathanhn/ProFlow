@@ -38,7 +38,7 @@ import ClientActions from './ClientActions';
 export default async function AdminClientsPage() {
     const rawClients = await getClients();
     // Ensure clients are serializable
-    const clients = JSON.parse(JSON.stringify(rawClients)) as Client[];
+    const clients = JSON.parse(JSON.stringify(rawClients));
 
   return (
     <DashboardLayout>
