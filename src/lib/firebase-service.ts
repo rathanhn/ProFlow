@@ -310,8 +310,7 @@ export async function getTransactions(): Promise<Transaction[]> {
 export async function getTransactionsByClientId(clientId: string): Promise<Transaction[]> {
     const q = query(
         collection(db, "transactions"), 
-        where("clientId", "==", clientId),
-        orderBy('transactionDate', 'desc')
+        where("clientId", "==", clientId)
     );
     const transactionSnapshot = await getDocs(q);
     const transactionList = transactionSnapshot.docs.map(doc => {
@@ -323,5 +322,8 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
         } as Transaction;
     });
     
+    // Sort manually on the server
+    transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
+
     return transactionList;
 }
