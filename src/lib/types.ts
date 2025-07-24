@@ -18,7 +18,8 @@ export interface Task {
   notes?: string;
   total: number;
   amountPaid: number;
-  assignedTo?: string;
+  assigneeId?: string;
+  assigneeName?: string;
   projectFileLink?: string;
   outputFileLink?: string;
 }
@@ -36,6 +37,7 @@ export interface Assignee {
     name: string;
     email?: string;
     avatar?: string;
+    mobile?: string;
 }
 
 export interface Notification {

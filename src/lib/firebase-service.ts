@@ -139,6 +139,15 @@ export async function getAssignees(): Promise<Assignee[]> {
     return assigneeSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Assignee));
 }
 
+export async function getAssignee(id: string): Promise<Assignee | null> {
+    const assigneeDocRef = doc(db, 'assignees', id);
+    const assigneeSnap = await getDoc(assigneeDocRef);
+    if (assigneeSnap.exists()) {
+        return { id: assigneeSnap.id, ...assigneeSnap.data() } as Assignee;
+    }
+    return null;
+}
+
 export async function addAssignee(assignee: Omit<Assignee, 'id'>): Promise<Assignee> {
     const assigneesCol = collection(db, 'assignees');
     const docRef = await addDoc(assigneesCol, assignee);

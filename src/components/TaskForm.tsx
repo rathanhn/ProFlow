@@ -52,7 +52,7 @@ const formSchema = z.object({
   pages: z.coerce.number().min(1, 'Pages must be at least 1'),
   rate: z.coerce.number().min(1, 'Rate must be at least 1'),
   workStatus: z.enum(workStatuses),
-  assignedTo: z.string().optional(),
+  assigneeId: z.string().optional(),
   notes: z.string().optional(),
   projectFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   outputFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
@@ -101,7 +101,7 @@ export default function TaskForm({ task }: TaskFormProps) {
       pages: task?.pages || 1,
       rate: task?.rate || 100,
       workStatus: task?.workStatus || 'Pending',
-      assignedTo: task?.assignedTo || 'unassigned',
+      assigneeId: task?.assigneeId || 'unassigned',
       notes: task?.notes || '',
       projectFileLink: task?.projectFileLink || '',
       outputFileLink: task?.outputFileLink || '',
@@ -118,7 +118,7 @@ export default function TaskForm({ task }: TaskFormProps) {
 
         const newAssignee = await addAssignee({ name: newAssigneeName, email: newAssigneeEmail });
         await fetchAssignees(); // Re-fetch the list
-        form.setValue('assignedTo', newAssignee.name); // Set the newly added assignee as selected
+        form.setValue('assigneeId', newAssignee.id); // Set the newly added assignee as selected
         toast({ title: "Team Member Added", description: `${newAssignee.name} has been added to the team.` });
         setNewAssigneeName("");
         setNewAssigneeEmail("");
@@ -141,9 +141,12 @@ export default function TaskForm({ task }: TaskFormProps) {
             return;
         }
 
+        const assignee = assignees.find(a => a.id === values.assigneeId);
+
         const finalValues = {
             ...values,
-            assignedTo: values.assignedTo === 'unassigned' ? '' : values.assignedTo,
+            assigneeId: assignee && assignee.id !== 'unassigned' ? assignee.id : '',
+            assigneeName: assignee && assignee.id !== 'unassigned' ? assignee.name : '',
         };
 
         if (task) {
@@ -250,7 +253,7 @@ export default function TaskForm({ task }: TaskFormProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
-                  name="assignedTo"
+                  name="assigneeId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Assigned To</FormLabel>
@@ -264,7 +267,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                           <SelectContent>
                             <SelectItem value="unassigned">N/A</SelectItem>
                             {assignees.map((assignee: Assignee) => (
-                              <SelectItem key={assignee.id} value={assignee.name}>
+                              <SelectItem key={assignee.id} value={assignee.id}>
                                 {assignee.name}
                               </SelectItem>
                             ))}

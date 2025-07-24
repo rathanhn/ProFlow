@@ -10,15 +10,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getTask, getClient } from '@/lib/firebase-service';
+import { getTask, getClient, getAssignee } from '@/lib/firebase-service';
 import { notFound, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, User, Download } from 'lucide-react';
+import { ArrowLeft, User, Download, Mail, Phone } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import React, { useEffect, useState } from 'react';
-import { Task, Client } from '@/lib/types';
+import { Task, Client, Assignee } from '@/lib/types';
 import ClientActions from './ClientActions';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
@@ -41,6 +42,7 @@ export default function ProjectDetailsPage() {
   const { id, taskId } = params as { id: string; taskId: string };
   const [task, setTask] = useState<Task | null>(null);
   const [client, setClient] = useState<Client | null>(null);
+  const [assignee, setAssignee] = useState<Assignee | null>(null);
 
   useEffect(() => {
     if (id && taskId) {
@@ -54,6 +56,13 @@ export default function ProjectDetailsPage() {
         
         setTask(JSON.parse(JSON.stringify(taskData)));
         setClient(JSON.parse(JSON.stringify(clientData)));
+
+        if (taskData.assigneeId) {
+            const assigneeData = await getAssignee(taskData.assigneeId);
+            if (assigneeData) {
+                setAssignee(JSON.parse(JSON.stringify(assigneeData)));
+            }
+        }
       };
       fetchDetails();
     }
@@ -91,12 +100,6 @@ export default function ProjectDetailsPage() {
                 <dl className="divide-y divide-border">
                     <DetailItem label="Work Status" value={<Badge variant="outline" className={statusColors[task.workStatus]}>{task.workStatus}</Badge>} />
                     <DetailItem label="Payment Status" value={<Badge variant="outline" className={statusColors[task.paymentStatus]}>{task.paymentStatus}</Badge>} />
-                    {task.assignedTo && <DetailItem label="Assigned To" value={
-                        <div className='flex items-center gap-2'>
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            {task.assignedTo}
-                        </div>
-                    } />}
                     <Separator />
                     <DetailItem label="Project Start Date" value={new Date(task.acceptedDate).toLocaleDateString()} />
                     <DetailItem label="Estimated Completion" value={new Date(task.submissionDate).toLocaleDateString()} />
@@ -131,6 +134,40 @@ export default function ProjectDetailsPage() {
             </Card>
           </div>
           <div className="space-y-6">
+            {assignee && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Assigned To</CardTitle>
+                        <CardDescription>Your point of contact for this project.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={assignee.avatar} />
+                                <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-semibold">{assignee.name}</p>
+                                <p className="text-sm text-muted-foreground">Team Member</p>
+                            </div>
+                        </div>
+                         <dl className="mt-4 space-y-2">
+                            {assignee.email && (
+                                <div className='flex items-center gap-2 text-sm'>
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
+                                    <a href={`mailto:${assignee.email}`} className="hover:underline">{assignee.email}</a>
+                                </div>
+                            )}
+                             {assignee.mobile && (
+                                <div className='flex items-center gap-2 text-sm'>
+                                    <Phone className="h-4 w-4 text-muted-foreground" />
+                                    <a href={`tel:${assignee.mobile}`} className="hover:underline">{assignee.mobile}</a>
+                                </div>
+                            )}
+                        </dl>
+                    </CardContent>
+                </Card>
+            )}
             <ClientActions task={task} client={client} />
           </div>
         </div>

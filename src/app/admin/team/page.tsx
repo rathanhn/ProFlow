@@ -54,6 +54,7 @@ export default async function AdminTeamPage() {
                   <TableRow>
                     <TableHead>Member</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Mobile</TableHead>
                     <TableHead><span className="sr-only">Actions</span></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -70,6 +71,7 @@ export default async function AdminTeamPage() {
                         </div>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.email || "N/A"}</TableCell>
+                      <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.mobile || "N/A"}</TableCell>
                       <TableCell>
                           <TeamActions assignee={assignee} />
                       </TableCell>

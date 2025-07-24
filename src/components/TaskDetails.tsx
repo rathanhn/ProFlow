@@ -37,10 +37,10 @@ export default function TaskDetails({ task }: { task: Task }) {
         <DetailItem label="Client Name" value={task.clientName} />
         <DetailItem label="Work Status" value={<Badge variant="outline" className={statusColors[task.workStatus]}>{task.workStatus}</Badge>} />
         <DetailItem label="Payment Status" value={<Badge variant="outline" className={statusColors[task.paymentStatus]}>{task.paymentStatus}</Badge>} />
-        {task.assignedTo && <DetailItem label="Assigned To" value={
+        {task.assigneeName && <DetailItem label="Assigned To" value={
             <div className='flex items-center gap-2'>
                 <User className="h-4 w-4 text-muted-foreground" />
-                {task.assignedTo}
+                {task.assigneeName}
             </div>
         } />}
         <Separator />

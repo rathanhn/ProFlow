@@ -25,6 +25,7 @@ import ImageUploader from '@/components/ImageUploader';
 const newAssigneeSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters."),
     email: z.string().email("Please enter a valid email.").optional().or(z.literal('')),
+    mobile: z.string().optional(),
     avatar: z.string().url().optional(),
 });
 
@@ -32,22 +33,24 @@ export default function AddTeamMemberForm() {
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [mobile, setMobile] = useState('');
     const [avatar, setAvatar] = useState('https://placehold.co/128x128.png');
     const { toast } = useToast();
     const router = useRouter();
 
     const handleAddMember = async () => {
         try {
-            const validation = newAssigneeSchema.safeParse({ name, email, avatar });
+            const validation = newAssigneeSchema.safeParse({ name, email, mobile, avatar });
             if (!validation.success) {
                 toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
                 return;
             }
 
-            await addAssignee({ name, email, avatar });
+            await addAssignee({ name, email, mobile, avatar });
             toast({ title: "Team Member Added", description: `${name} has been added.` });
             setName('');
             setEmail('');
+            setMobile('');
             setAvatar('https://placehold.co/128x128.png');
             setIsOpen(false);
             router.refresh();
@@ -87,6 +90,10 @@ export default function AddTeamMemberForm() {
                     <div className="space-y-2">
                         <Label htmlFor="new-member-email">Email (Optional)</Label>
                         <Input id="new-member-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@example.com" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="new-member-mobile">Mobile (Optional)</Label>
+                        <Input id="new-member-mobile" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="+1234567890" />
                     </div>
                 </div>
                 <DialogFooter>

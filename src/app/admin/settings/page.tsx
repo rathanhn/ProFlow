@@ -19,11 +19,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { updateClientPassword } from '@/lib/firebase-client-service';
-import { KeyRound, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import ImageUploader from '@/components/ImageUploader';
 
 
-const formSchema = z.object({
+const passwordFormSchema = z.object({
     newPassword: z.string().min(6, 'Password must be at least 6 characters.'),
     confirmPassword: z.string().min(6, 'Password must be at least 6 characters.'),
 }).refine(data => data.newPassword === data.confirmPassword, {
@@ -31,27 +32,41 @@ const formSchema = z.object({
     path: ['confirmPassword'],
 });
 
+const profileFormSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters.'),
+  avatar: z.string().url('Avatar must be a valid URL.'),
+});
+
+
 export default function AdminSettingsPage() {
     const { toast } = useToast();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+        resolver: zodResolver(passwordFormSchema),
         defaultValues: {
             newPassword: '',
             confirmPassword: '',
         },
     });
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    const profileForm = useForm<z.infer<typeof profileFormSchema>>({
+        resolver: zodResolver(profileFormSchema),
+        defaultValues: {
+            name: 'Admin', // Default admin name
+            avatar: 'https://placehold.co/128x128.png', // Default admin avatar
+        },
+    });
+
+    async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         try {
             await updateClientPassword(values.newPassword);
             toast({
                 title: 'Password Updated!',
                 description: 'Your password has been successfully changed.',
             });
-            form.reset();
+            passwordForm.reset();
         } catch (error) {
             console.error("Failed to update password:", error);
             toast({
@@ -62,6 +77,15 @@ export default function AdminSettingsPage() {
         }
     }
 
+    async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
+        // Here you would typically save the admin's profile data.
+        // For this example, we'll just show a success toast.
+        toast({
+            title: 'Profile Updated!',
+            description: 'Your profile information has been saved.',
+        });
+    }
+
     return (
         <DashboardLayout>
             <div className="space-y-6">
@@ -69,6 +93,56 @@ export default function AdminSettingsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
                     <p className="text-muted-foreground">Manage your admin dashboard settings.</p>
                 </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Admin Profile</CardTitle>
+                        <CardDescription>Update your administrator name and avatar.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Form {...profileForm}>
+                            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6 max-w-md">
+                               <FormField
+                                  control={profileForm.control}
+                                  name="avatar"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-col items-center">
+                                      <FormControl>
+                                        <ImageUploader 
+                                          value={field.value} 
+                                          onChange={field.onChange} 
+                                          fallbackText={profileForm.getValues('name')?.charAt(0) || 'A'}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                    control={profileForm.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Admin Name</FormLabel>
+                                            <FormControl>
+                                                <div className="relative flex items-center">
+                                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                    <Input placeholder="Enter your full name" {...field} className="pl-10"/>
+                                                </div>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <div className="flex justify-end">
+                                    <Button type="submit" disabled={profileForm.formState.isSubmitting}>
+                                        {profileForm.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                                    </Button>
+                                </div>
+                            </form>
+                        </Form>
+                    </CardContent>
+                </Card>
 
                 <Card>
                     <CardHeader>
@@ -91,10 +165,10 @@ export default function AdminSettingsPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-md">
+                        <Form {...passwordForm}>
+                            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6 max-w-md">
                                 <FormField
-                                    control={form.control}
+                                    control={passwordForm.control}
                                     name="newPassword"
                                     render={({ field }) => (
                                         <FormItem>
@@ -119,7 +193,7 @@ export default function AdminSettingsPage() {
                                     )}
                                 />
                                 <FormField
-                                    control={form.control}
+                                    control={passwordForm.control}
                                     name="confirmPassword"
                                     render={({ field }) => (
                                         <FormItem>
@@ -144,8 +218,8 @@ export default function AdminSettingsPage() {
                                     )}
                                 />
                                 <div className="flex justify-end">
-                                    <Button type="submit" disabled={form.formState.isSubmitting}>
-                                        {form.formState.isSubmitting ? "Updating..." : "Update Password"}
+                                    <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
+                                        {passwordForm.formState.isSubmitting ? "Updating..." : "Update Password"}
                                     </Button>
                                 </div>
                             </form>
