@@ -1,3 +1,4 @@
+require('dotenv').config();
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -24,6 +25,9 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  experimental: {
+    instrumentationHook: false,
+  }
 };
 
 export default nextConfig;

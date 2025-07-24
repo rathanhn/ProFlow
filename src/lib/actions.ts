@@ -7,8 +7,8 @@ import { v2 as cloudinary } from 'cloudinary';
 // These should not have the NEXT_PUBLIC_ prefix.
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, // Cloud name can be public
-  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,       // API key for client-side uploads is public
-  api_secret: process.env.CLOUDINARY_API_SECRET,         // API secret is private and must not be exposed
+  api_key: process.env.CLOUDINARY_API_KEY,       // API key for server-side is private
+  api_secret: process.env.CLOUDINARY_API_SECRET, // API secret is private and must not be exposed
   secure: true,
 });
 
