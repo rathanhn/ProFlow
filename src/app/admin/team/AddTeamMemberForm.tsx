@@ -21,11 +21,13 @@ import { useToast } from '@/hooks/use-toast';
 import { addAssignee } from '@/lib/firebase-service';
 import { useRouter } from 'next/navigation';
 import ImageUploader from '@/components/ImageUploader';
+import { Textarea } from '@/components/ui/textarea';
 
 const newAssigneeSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters."),
     email: z.string().email("Please enter a valid email.").optional().or(z.literal('')),
     mobile: z.string().optional(),
+    description: z.string().optional(),
     avatar: z.string().url().optional(),
 });
 
@@ -34,23 +36,25 @@ export default function AddTeamMemberForm() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
+    const [description, setDescription] = useState('');
     const [avatar, setAvatar] = useState('https://placehold.co/128x128.png');
     const { toast } = useToast();
     const router = useRouter();
 
     const handleAddMember = async () => {
         try {
-            const validation = newAssigneeSchema.safeParse({ name, email, mobile, avatar });
+            const validation = newAssigneeSchema.safeParse({ name, email, mobile, avatar, description });
             if (!validation.success) {
                 toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
                 return;
             }
 
-            await addAssignee({ name, email, mobile, avatar });
+            await addAssignee({ name, email, mobile, avatar, description });
             toast({ title: "Team Member Added", description: `${name} has been added.` });
             setName('');
             setEmail('');
             setMobile('');
+            setDescription('');
             setAvatar('https://placehold.co/128x128.png');
             setIsOpen(false);
             router.refresh();
@@ -67,14 +71,14 @@ export default function AddTeamMemberForm() {
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Member
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Add New Team Member</DialogTitle>
                     <DialogDescription>
                         Enter the details for the new team member.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <div className="grid gap-4 py-4">
                      <div className="flex flex-col items-center">
                         <Label>Profile Picture</Label>
                         <ImageUploader 
@@ -83,17 +87,21 @@ export default function AddTeamMemberForm() {
                             fallbackText={name?.charAt(0) || 'T'}
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-member-name">Name</Label>
-                        <Input id="new-member-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jordan" />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-member-name" className="text-right">Name</Label>
+                        <Input id="new-member-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jordan" className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-member-email">Email (Optional)</Label>
-                        <Input id="new-member-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@example.com" />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-member-email" className="text-right">Email</Label>
+                        <Input id="new-member-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@example.com" className="col-span-3" />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="new-member-mobile">Mobile (Optional)</Label>
-                        <Input id="new-member-mobile" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="+1234567890" />
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-member-mobile" className="text-right">Mobile</Label>
+                        <Input id="new-member-mobile" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="+1234567890" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="new-member-desc" className="text-right pt-2">Description</Label>
+                        <Textarea id="new-member-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Team member's role or bio..." className="col-span-3" />
                     </div>
                 </div>
                 <DialogFooter>

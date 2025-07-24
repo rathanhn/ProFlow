@@ -8,14 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getAuth, signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
 import { getClient } from '@/lib/firebase-service';
-import { app } from '@/lib/firebase';
+import { clientAuth } from '@/lib/firebase';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Eye, EyeOff } from 'lucide-react';
 import type { Client } from '@/lib/types';
-
-const auth = getAuth(app);
 
 export default function ClientAuthPage({ params }: { params: { id: string } }) {
     const [email, setEmail] = useState('');
@@ -49,7 +47,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
     const handleSignIn = async () => {
         setIsLoading(true);
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             const user = userCredential.user;
 
             // Check if this is the first sign-in
@@ -79,7 +77,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
             return;
         }
 
-        const user = auth.currentUser;
+        const user = clientAuth.currentUser;
         if (user) {
             try {
                 await updatePassword(user, newPassword);

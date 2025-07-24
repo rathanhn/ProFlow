@@ -99,6 +99,22 @@ export async function getTasksByClientId(clientId: string): Promise<Task[]> {
     return taskList;
 }
 
+export async function getTasksByAssigneeId(assigneeId: string): Promise<Task[]> {
+    const q = query(collection(db, "tasks"), where("assigneeId", "==", assigneeId));
+    const taskSnapshot = await getDocs(q);
+    const taskList = taskSnapshot.docs.map(doc => {
+        const data = doc.data();
+         return { 
+            id: doc.id, 
+            ...data,
+            acceptedDate: new Date(data.acceptedDate).toISOString(),
+            submissionDate: new Date(data.submissionDate).toISOString(),
+        } as Task;
+    });
+    return taskList;
+}
+
+
 export async function getTask(id: string): Promise<Task | null> {
     const taskDocRef = doc(db, 'tasks', id);
     const taskSnap = await getDoc(taskDocRef);

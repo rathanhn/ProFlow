@@ -12,7 +12,7 @@ import { User, Eye, EyeOff } from 'lucide-react';
 import { getClientByEmail } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { clientAuth } from '@/lib/firebase';
 
 export default function ClientLoginPage() {
     const [email, setEmail] = useState('');
@@ -35,8 +35,8 @@ export default function ClientLoginPage() {
         }
         
         try {
-            // Use client-side auth directly
-            await signInWithEmailAndPassword(auth, email, password);
+            // Use client-specific auth instance with session persistence
+            await signInWithEmailAndPassword(clientAuth, email, password);
             
             // On success, get client data and redirect
             const client = await getClientByEmail(email);

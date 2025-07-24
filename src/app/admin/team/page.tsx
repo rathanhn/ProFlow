@@ -21,6 +21,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import React from 'react';
 import TeamActions from './TeamActions';
 import AddTeamMemberForm from './AddTeamMemberForm';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Eye } from 'lucide-react';
 
 
 export default async function AdminTeamPage() {
@@ -55,7 +58,8 @@ export default async function AdminTeamPage() {
                     <TableHead>Member</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Mobile</TableHead>
-                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                    <TableHead>Profile</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -73,6 +77,14 @@ export default async function AdminTeamPage() {
                       <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.email || "N/A"}</TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.mobile || "N/A"}</TableCell>
                       <TableCell>
+                         <Button asChild variant="outline" size="sm">
+                            <Link href={`/profile/${assignee.id}`}>
+                               <Eye className="mr-2 h-4 w-4" />
+                               View Profile
+                            </Link>
+                         </Button>
+                      </TableCell>
+                      <TableCell className="text-right">
                           <TeamActions assignee={assignee} />
                       </TableCell>
                     </TableRow>

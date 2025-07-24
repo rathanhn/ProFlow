@@ -38,6 +38,7 @@ export interface Assignee {
     email?: string;
     avatar?: string;
     mobile?: string;
+    description?: string;
 }
 
 export interface Notification {

@@ -20,11 +20,13 @@ import { updateAssignee } from '@/lib/firebase-service';
 import { useRouter } from 'next/navigation';
 import ImageUploader from '@/components/ImageUploader';
 import { Assignee } from '@/lib/types';
+import { Textarea } from '@/components/ui/textarea';
 
 const editAssigneeSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters."),
     email: z.string().email("Please enter a valid email.").optional().or(z.literal('')),
     mobile: z.string().optional(),
+    description: z.string().optional(),
     avatar: z.string().url().optional(),
 });
 
@@ -38,6 +40,7 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
+    const [description, setDescription] = useState('');
     const [avatar, setAvatar] = useState('https://placehold.co/128x128.png');
     const { toast } = useToast();
     const router = useRouter();
@@ -47,19 +50,20 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
             setName(assignee.name || '');
             setEmail(assignee.email || '');
             setMobile(assignee.mobile || '');
+            setDescription(assignee.description || '');
             setAvatar(assignee.avatar || 'https://placehold.co/128x128.png');
         }
     }, [assignee]);
 
     const handleUpdateMember = async () => {
         try {
-            const validation = editAssigneeSchema.safeParse({ name, email, mobile, avatar });
+            const validation = editAssigneeSchema.safeParse({ name, email, mobile, avatar, description });
             if (!validation.success) {
                 toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
                 return;
             }
 
-            await updateAssignee(assignee.id, { name, email, mobile, avatar });
+            await updateAssignee(assignee.id, { name, email, mobile, avatar, description });
             toast({ title: "Team Member Updated", description: `${name}'s details have been updated.` });
             onClose();
             router.refresh();
@@ -71,14 +75,14 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Edit Team Member</DialogTitle>
                     <DialogDescription>
                         Update the details for this team member.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                 <div className="grid gap-4 py-4">
                      <div className="flex flex-col items-center">
                         <Label>Profile Picture</Label>
                         <ImageUploader 
@@ -87,17 +91,21 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
                             fallbackText={name?.charAt(0) || 'T'}
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-member-name">Name</Label>
-                        <Input id="edit-member-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jordan" />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-member-name" className="text-right">Name</Label>
+                        <Input id="edit-member-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jordan" className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-member-email">Email (Optional)</Label>
-                        <Input id="edit-member-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@example.com" />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-member-email" className="text-right">Email</Label>
+                        <Input id="edit-member-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jordan@example.com" className="col-span-3" />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="edit-member-mobile">Mobile (Optional)</Label>
-                        <Input id="edit-member-mobile" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="+1234567890" />
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-member-mobile" className="text-right">Mobile</Label>
+                        <Input id="edit-member-mobile" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="+1234567890" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="edit-member-desc" className="text-right pt-2">Description</Label>
+                        <Textarea id="edit-member-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Team member's role or bio..." className="col-span-3" />
                     </div>
                 </div>
                 <DialogFooter>

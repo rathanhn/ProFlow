@@ -14,7 +14,7 @@ import { getTask, getClient, getAssignee } from '@/lib/firebase-service';
 import { notFound, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, User, Download, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, User, Download, Mail, Phone, Eye } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import React, { useEffect, useState } from 'react';
 import { Task, Client, Assignee } from '@/lib/types';
@@ -141,6 +141,7 @@ export default function ProjectDetailsPage() {
                         <CardDescription>Your point of contact for this project.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                       <Link href={`/profile/${assignee.id}`} className="block hover:bg-muted p-2 rounded-md -m-2">
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16">
                                 <AvatarImage src={assignee.avatar} />
@@ -151,6 +152,7 @@ export default function ProjectDetailsPage() {
                                 <p className="text-sm text-muted-foreground">Team Member</p>
                             </div>
                         </div>
+                       </Link>
                          <dl className="mt-4 space-y-2">
                             {assignee.email && (
                                 <div className='flex items-center gap-2 text-sm'>
@@ -165,6 +167,12 @@ export default function ProjectDetailsPage() {
                                 </div>
                             )}
                         </dl>
+                         <Button asChild variant="outline" size="sm" className="mt-4 w-full">
+                            <Link href={`/profile/${assignee.id}`}>
+                               <Eye className="mr-2 h-4 w-4" />
+                               View Full Profile
+                            </Link>
+                         </Button>
                     </CardContent>
                 </Card>
             )}
