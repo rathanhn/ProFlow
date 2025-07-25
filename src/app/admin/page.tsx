@@ -150,7 +150,7 @@ export default async function AdminDashboardPage() {
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-7">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
             <EarningsChart />
             <AIInsights tasks={tasks} clients={clients} />
         </div>
