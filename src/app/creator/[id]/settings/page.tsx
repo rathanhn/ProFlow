@@ -52,7 +52,7 @@ export default function CreatorSettingsPage() {
     const [creator, setCreator] = useState<Assignee | null>(null);
     const [loading, setLoading] = useState(true);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
@@ -111,7 +111,15 @@ export default function CreatorSettingsPage() {
                 <div className="space-y-6">
                     <Skeleton className="h-8 w-1/3" />
                     <Skeleton className="h-6 w-1/2" />
-                    <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent><Skeleton className="h-10 w-full" /></CardContent></Card>
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-6 w-1/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
                 </div>
             </DashboardLayout>
         );
@@ -162,7 +170,7 @@ export default function CreatorSettingsPage() {
                                     )}
                                 />
                                 <FormField control={profileForm.control} name="mobile" render={({ field }) => (
-                                    <FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input placeholder="+1234567890" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input placeholder="+1234567890" {...field} /></FormControl><FormMessage /></Item>
                                 )}/>
                                  <FormField control={profileForm.control} name="description" render={({ field }) => (
                                     <FormItem><FormLabel>Bio / Description</FormLabel><FormControl><Textarea placeholder="Tell us a bit about yourself" {...field} /></FormControl><FormMessage /></Item>
