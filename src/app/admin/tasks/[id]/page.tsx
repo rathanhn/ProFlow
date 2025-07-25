@@ -17,13 +17,8 @@ import { Task, Client } from '@/lib/types';
 import AdminActions from './AdminActions';
 import TaskDetails from '@/components/TaskDetails';
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
 
-export default async function TaskDetailsPage({ params }: PageProps) {
+export default async function TaskDetailsPage({ params }: { params: { id: string } }) {
   const id = params.id;
   const rawTask = await getTask(id);
 
