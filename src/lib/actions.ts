@@ -37,13 +37,16 @@ export async function getUploadSignature({ folder, use_filename = true, unique_f
 function getPublicIdFromUrl(url: string): string | null {
     try {
         const urlParts = url.split('/');
-        const cloudNameIndex = urlParts.indexOf(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!);
-        if (cloudNameIndex === -1 || cloudNameIndex + 3 >= urlParts.length) {
-            return null; // Not a valid Cloudinary URL structure
+        const uploadIndex = urlParts.indexOf('upload');
+
+        if (uploadIndex === -1 || uploadIndex + 2 >= urlParts.length) {
+            return null; // Invalid Cloudinary URL structure
         }
-        // The public_id is everything after "upload", "v<version>"
-        const publicIdWithFormat = urlParts.slice(cloudNameIndex + 4).join('/');
+
+        // The public_id is the part of the URL after the version number and before the file extension
+        const publicIdWithFormat = urlParts.slice(uploadIndex + 2).join('/');
         const publicId = publicIdWithFormat.substring(0, publicIdWithFormat.lastIndexOf('.'));
+        
         return publicId;
     } catch (e) {
         console.error("Failed to parse public ID from URL", e);
@@ -67,7 +70,8 @@ export async function deleteFileByUrl(url: string) {
             resource_type: resourceType,
         });
         
-        if (result.result !== 'ok') {
+        if (result.result !== 'ok' && result.result !== 'not found') {
+            console.error("Cloudinary deletion error:", result);
             throw new Error(result.result);
         }
 
