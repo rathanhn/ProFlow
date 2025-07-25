@@ -10,7 +10,7 @@ import { Progress } from './ui/progress';
 
 interface FileUploadProps {
   value: string | undefined;
-  onChange: (value: string) => void;
+  onChange: (value: string, previousUrl?: string) => void;
   folder?: string;
 }
 
@@ -39,7 +39,7 @@ export default function FileUpload({
     setIsLoading(true);
     try {
         await deleteFileByUrl(value);
-        onChange('');
+        onChange('', value);
         toast({ title: 'File Deleted!', description: 'The file has been successfully removed.' });
     } catch (error) {
         console.error(error);
@@ -57,6 +57,8 @@ export default function FileUpload({
 
     setIsLoading(true);
     setUploadProgress(0);
+
+    const previousUrl = value;
 
     // Delete the old file if it exists before uploading a new one
     if (value) {
@@ -97,11 +99,7 @@ export default function FileUpload({
       xhr.onload = () => {
         if (xhr.status === 200) {
           const data = JSON.parse(xhr.responseText);
-          onChange(data.secure_url);
-          toast({
-            title: 'File Uploaded!',
-            description: 'The file has been successfully uploaded.',
-          });
+          onChange(data.secure_url, previousUrl);
         } else {
           throw new Error('Upload failed with status: ' + xhr.status);
         }

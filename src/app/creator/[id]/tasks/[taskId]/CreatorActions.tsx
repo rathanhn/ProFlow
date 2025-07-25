@@ -62,16 +62,16 @@ export default function CreatorActions({ task }: { task: Task }) {
     }
 
 
-  const handleOutputFileUpload = async (url: string) => {
+  const handleOutputFileUpload = async (url: string, previousUrl?: string) => {
      try {
       await updateTask(task.id, { outputFileLink: url });
-      if (url) {
+      if (url && url !== previousUrl) {
         toast({
             title: 'File Uploaded!',
             description: 'The output file has been linked to the task.',
         });
         await notifyClientOfUpload('new output file');
-      } else {
+      } else if (!url && previousUrl) {
         toast({
             title: 'File Removed',
             description: 'The output file has been removed from the task.',
@@ -87,16 +87,16 @@ export default function CreatorActions({ task }: { task: Task }) {
     }
   }
   
-  const handleProjectFileUpload = async (url: string) => {
+  const handleProjectFileUpload = async (url: string, previousUrl?: string) => {
      try {
       await updateTask(task.id, { projectFileLink: url });
-       if (url) {
+       if (url && url !== previousUrl) {
             toast({
                 title: 'File Uploaded!',
                 description: 'The project file has been linked to the task.',
             });
             await notifyClientOfUpload('new project file');
-       } else {
+       } else if (!url && previousUrl) {
             toast({
                 title: 'File Removed',
                 description: 'The project file has been removed from the task.',
@@ -138,7 +138,7 @@ export default function CreatorActions({ task }: { task: Task }) {
           <Label>Project File</Label>
           <FileUpload 
             value={task.projectFileLink}
-            onChange={handleProjectFileUpload}
+            onChange={(newUrl) => handleProjectFileUpload(newUrl, task.projectFileLink)}
             folder="project_files"
           />
         </div>
@@ -146,7 +146,7 @@ export default function CreatorActions({ task }: { task: Task }) {
           <Label>Output File</Label>
           <FileUpload 
             value={task.outputFileLink}
-            onChange={handleOutputFileUpload}
+            onChange={(newUrl) => handleOutputFileUpload(newUrl, task.outputFileLink)}
             folder="output_files"
           />
         </div>
