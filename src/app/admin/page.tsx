@@ -54,7 +54,7 @@ export default async function AdminDashboardPage() {
                 <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
                 <p className="text-muted-foreground">An overview of all client projects and finances.</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button variant="outline" asChild className="w-full sm:w-auto">
                     <Link href="/admin/export">
                         <File className="mr-2 h-4 w-4" /> Export
