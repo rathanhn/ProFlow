@@ -34,18 +34,24 @@ export default function ClientProjectsTable({ tasks, statusColors, clientId }: C
       <div className="grid gap-4 md:hidden">
         {tasks.map((task: Task) => (
           <Card key={task.id} onClick={() => handleRowClick(task.id)} className="cursor-pointer">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-4">
               <div className="flex justify-between items-start">
                 <p className="font-semibold text-base flex-1 pr-4">{task.projectName}</p>
                 <p className="font-bold text-lg">₹{task.total.toLocaleString()}</p>
               </div>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                  <Badge variant="outline" className={statusColors[task.workStatus]}>
-                    {task.workStatus}
-                  </Badge>
-                  <Badge variant="outline" className={statusColors[task.paymentStatus]}>
-                    {task.paymentStatus}
-                  </Badge>
+              <div className="space-y-2 pt-4 border-t text-sm">
+                <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Work Status</span>
+                    <Badge variant="outline" className={statusColors[task.workStatus]}>
+                        {task.workStatus}
+                    </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Payment Status</span>
+                    <Badge variant="outline" className={statusColors[task.paymentStatus]}>
+                        {task.paymentStatus}
+                    </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
