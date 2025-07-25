@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import CreatorTasksTable from './CreatorTasksTable';
+import { Assignee, Task } from '@/lib/types';
 
 
 const statusColors: Record<string, string> = {
@@ -18,13 +19,15 @@ const statusColors: Record<string, string> = {
 
 export default async function CreatorTasksPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const creator = await getAssignee(id);
+  const rawCreator = await getAssignee(id);
 
-  if (!creator) {
+  if (!rawCreator) {
     notFound();
   }
+  const creator = JSON.parse(JSON.stringify(rawCreator)) as Assignee;
   
-  const creatorTasks = await getTasksByAssigneeId(id);
+  const rawCreatorTasks = await getTasksByAssigneeId(id);
+  const creatorTasks = JSON.parse(JSON.stringify(rawCreatorTasks)) as Task[];
 
   return (
     <DashboardLayout>

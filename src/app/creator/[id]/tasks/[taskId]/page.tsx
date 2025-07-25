@@ -15,7 +15,7 @@ import { ArrowLeft } from 'lucide-react';
 import TaskDetails from '@/components/TaskDetails';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import CreatorActions from './CreatorActions';
-import { Task } from '@/lib/types';
+import { Task, Client } from '@/lib/types';
 
 
 export default async function CreatorTaskDetailsPage({ params }: { params: { id: string; taskId: string } }) {
@@ -30,7 +30,8 @@ export default async function CreatorTaskDetailsPage({ params }: { params: { id:
   
   // Ensure task is serializable for client components
   const task = JSON.parse(JSON.stringify(rawTask)) as Task;
-  const client = await getClient(task.clientId);
+  const rawClient = await getClient(task.clientId);
+  const client = rawClient ? JSON.parse(JSON.stringify(rawClient)) as Client : null;
 
   return (
     <DashboardLayout>

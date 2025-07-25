@@ -30,13 +30,16 @@ export default async function CreatorDashboardPage({ params }: { params: { id: s
     notFound();
   }
 
-  const creator = await getAssignee(creatorId);
+  const rawCreator = await getAssignee(creatorId);
 
-  if (!creator) {
+  if (!rawCreator) {
     notFound();
   }
+  const creator = JSON.parse(JSON.stringify(rawCreator)) as Assignee;
 
-  const creatorTasks = await getTasksByAssigneeId(creatorId);
+  const rawCreatorTasks = await getTasksByAssigneeId(creatorId);
+  const creatorTasks = JSON.parse(JSON.stringify(rawCreatorTasks)) as Task[];
+
 
   const projectsInProgress = creatorTasks.filter(t => t.workStatus === 'In Progress').length;
   const completedProjects = creatorTasks.filter(t => t.workStatus === 'Completed').length;
