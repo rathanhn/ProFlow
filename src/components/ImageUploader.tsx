@@ -11,7 +11,7 @@ import { Progress } from './ui/progress';
 
 interface ImageUploaderProps {
   value?: string;
-  onChange: (value: string) => void;
+  onChange: (value: string | undefined) => void;
   fallbackText?: string;
 }
 
@@ -39,7 +39,7 @@ export default function ImageUploader({
       setIsLoading(true);
       try {
         await deleteFileByUrl(value);
-        onChange('');
+        onChange(undefined);
         toast({ title: 'Image Removed' });
       } catch (error) {
         console.error(error);
@@ -129,7 +129,7 @@ export default function ImageUploader({
     <div className="flex flex-col items-center gap-4 w-full">
       <div className="relative group">
         <Avatar className="h-24 w-24 border">
-          <AvatarImage src={value} alt="Profile Avatar" />
+          <AvatarImage src={value || undefined} alt="Profile Avatar" />
           <AvatarFallback>{fallbackText}</AvatarFallback>
         </Avatar>
         <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">

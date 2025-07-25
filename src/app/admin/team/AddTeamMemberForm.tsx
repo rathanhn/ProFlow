@@ -37,7 +37,7 @@ export default function AddTeamMemberForm() {
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [description, setDescription] = useState('');
-    const [avatar, setAvatar] = useState('');
+    const [avatar, setAvatar] = useState<string | undefined>(undefined);
     const { toast } = useToast();
     const router = useRouter();
 
@@ -56,7 +56,7 @@ export default function AddTeamMemberForm() {
             setEmail('');
             setMobile('');
             setDescription('');
-            setAvatar('');
+            setAvatar(undefined);
             setIsOpen(false);
             router.refresh();
         } catch (error) {
@@ -72,10 +72,10 @@ export default function AddTeamMemberForm() {
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Creator
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px]" aria-labelledby="add-creator-title" aria-describedby="add-creator-description">
                 <DialogHeader>
-                    <DialogTitle>Add New Creator</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle id="add-creator-title">Add New Creator</DialogTitle>
+                    <DialogDescription id="add-creator-description">
                         Enter the details for the new creator. They will receive an email to set up their password.
                     </DialogDescription>
                 </DialogHeader>

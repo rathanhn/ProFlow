@@ -41,7 +41,7 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [description, setDescription] = useState('');
-    const [avatar, setAvatar] = useState('');
+    const [avatar, setAvatar] = useState<string | undefined>(undefined);
     const { toast } = useToast();
     const router = useRouter();
 
@@ -51,7 +51,7 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
             setEmail(assignee.email || '');
             setMobile(assignee.mobile || '');
             setDescription(assignee.description || '');
-            setAvatar(assignee.avatar || '');
+            setAvatar(assignee.avatar || undefined);
         }
     }, [assignee]);
 
@@ -76,10 +76,10 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px]" aria-labelledby="edit-creator-title" aria-describedby="edit-creator-description">
                 <DialogHeader>
-                    <DialogTitle>Edit Creator</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle id="edit-creator-title">Edit Creator</DialogTitle>
+                    <DialogDescription id="edit-creator-description">
                         Update the details for this creator.
                     </DialogDescription>
                 </DialogHeader>
