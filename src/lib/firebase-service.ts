@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { auth, db, createSecondaryAuth } from './firebase';
@@ -16,6 +17,7 @@ export async function getClients(): Promise<Client[]> {
 }
 
 export async function getClient(id: string): Promise<Client | null> {
+    console.log(`[firebase-service] getClient called with ID: ${id}`);
     if (!id) {
         return null;
     }
@@ -23,8 +25,10 @@ export async function getClient(id: string): Promise<Client | null> {
     const clientSnap = await getDoc(clientDocRef);
     if (clientSnap.exists()) {
         const clientData = clientSnap.data();
+        console.log(`[firebase-service] getClient found document for ID: ${id}`, clientData);
         return JSON.parse(JSON.stringify({ id: clientSnap.id, ...clientData })) as Client;
     } else {
+        console.error(`[firebase-service] getClient did NOT find document for ID: ${id}`);
         return null;
     }
 }
@@ -40,7 +44,7 @@ export async function addClient(client: Omit<Client, 'id'>) {
     try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const uid = userCredential.user.uid;
-        await setDoc(doc(db, "clients", uid), clientData);
+        await setDoc(doc(db, "clients", uid), {email, ...clientData}); // Store email along with other data
         revalidatePath('/admin/clients');
         return { id: uid, ...clientData };
     } catch (error: any) {
@@ -68,12 +72,16 @@ export async function deleteClient(id: string) {
 }
 
 export async function getClientByEmail(email: string): Promise<Client | null> {
+    console.log(`[firebase-service] getClientByEmail called with email: ${email}`);
     const q = query(collection(db, "clients"), where("email", "==", email));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
-        return { id: doc.id, ...doc.data() } as Client;
+        const client = { id: doc.id, ...doc.data() } as Client;
+        console.log(`[firebase-service] getClientByEmail found client:`, client);
+        return client;
     }
+    console.log(`[firebase-service] getClientByEmail did NOT find client for email: ${email}`);
     return null;
 }
 
@@ -194,11 +202,11 @@ export async function addAssignee(assignee: Omit<Assignee, 'id'>): Promise<Assig
     try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const uid = userCredential.user.uid;
-        await setDoc(doc(db, "assignees", uid), assigneeData);
+        await setDoc(doc(db, "assignees", uid), { email, ...assigneeData });
         revalidatePath('/admin/team');
         revalidatePath('/admin/tasks/new');
         revalidatePath('/admin/tasks/*');
-        return { id: uid, ...assigneeData };
+        return { id: uid, email, ...assigneeData };
     } catch (error: any) {
         if (error.code === 'auth/email-already-in-use') {
             throw new Error("A user with this email already exists.");
