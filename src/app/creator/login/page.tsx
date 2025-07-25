@@ -156,8 +156,8 @@ export default function CreatorLoginPage() {
      <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
         <AlertDialogContent>
          <AlertDialogHeader>
-         <AlertDialogTitle>Welcome! Let's secure your account.</AlertDialogTitle>
-         <AlertDialogDescription>
+         <AlertDialogTitle id="reset-password-title">Welcome! Let's secure your account.</AlertDialogTitle>
+         <AlertDialogDescription id="reset-password-desc">
              This is your first time logging in. For your security, please set a new, permanent password.
          </AlertDialogDescription>
          </AlertDialogHeader>
@@ -188,3 +188,4 @@ export default function CreatorLoginPage() {
     </AlertDialog>
     </>
   );
+}
