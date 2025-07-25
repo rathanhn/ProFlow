@@ -1,12 +1,13 @@
 
 
+
 'use server';
 
 import { auth, db, createSecondaryAuth } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction } from 'firebase/firestore';
 import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from './types';
 import { revalidatePath } from 'next/cache';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 
 // This is a placeholder for a server-side admin function to delete a user.
 // In a real application, this would use the Firebase Admin SDK.
@@ -45,18 +46,21 @@ export async function getClient(id: string): Promise<Client | null> {
     }
 }
 
-export async function addClient(client: Omit<Client, 'id'>) {
-    if (!client.password) {
-        throw new Error("Password is required to create a client.");
-    }
+export async function addClient(client: Omit<Client, 'id' | 'password'>) {
+    // Generate a secure temporary password
+    const tempPassword = Math.random().toString(36).slice(-12);
 
-    const { email, password, ...clientData } = client;
+    const { email, ...clientData } = client;
     const secondaryAuth = createSecondaryAuth();
     
     try {
-        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, tempPassword);
         const uid = userCredential.user.uid;
-        await setDoc(doc(db, "clients", uid), {email, ...clientData}); // Store email along with other data
+        await setDoc(doc(db, "clients", uid), {email, ...clientData});
+        
+        // Send password reset email to allow user to set their own password
+        await sendPasswordResetEmail(secondaryAuth, email);
+
         revalidatePath('/admin/clients');
         return { id: uid, ...clientData };
     } catch (error: any) {
@@ -233,18 +237,25 @@ export async function getAssigneeByEmail(email: string): Promise<Assignee | null
     return null;
 }
 
-export async function addAssignee(assignee: Omit<Assignee, 'id'>): Promise<Assignee> {
-    if (!assignee.password || !assignee.email) {
-        throw new Error("Email and password are required to create a creator.");
+export async function addAssignee(assignee: Omit<Assignee, 'id' | 'password'>): Promise<Assignee> {
+    if (!assignee.email) {
+        throw new Error("Email is required to create a creator.");
     }
     
-    const { email, password, ...assigneeData } = assignee;
+    // Generate a secure temporary password
+    const tempPassword = Math.random().toString(36).slice(-12);
+    
+    const { email, ...assigneeData } = assignee;
     const secondaryAuth = createSecondaryAuth();
     
     try {
-        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, tempPassword);
         const uid = userCredential.user.uid;
         await setDoc(doc(db, "assignees", uid), { email, ...assigneeData });
+        
+        // Send password reset email to allow user to set their own password
+        await sendPasswordResetEmail(secondaryAuth, email);
+
         revalidatePath('/admin/team');
         revalidatePath('/admin/tasks/new');
         revalidatePath('/admin/tasks/*');
