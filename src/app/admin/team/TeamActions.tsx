@@ -16,19 +16,19 @@ export default function TeamActions({ assignee }: { assignee: Assignee }) {
     const [isEditDialogOpen, setEditDialogOpen] = React.useState(false);
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this team member? This action cannot be undone.')) {
+        if (confirm('Are you sure you want to delete this creator? This action cannot be undone.')) {
             try {
                 await deleteAssignee(id);
                 toast({
-                    title: "Team Member Deleted",
-                    description: "The team member has been successfully deleted.",
+                    title: "Creator Deleted",
+                    description: "The creator has been successfully deleted.",
                     variant: 'destructive'
                 });
                 router.refresh();
             } catch (error) {
                 toast({
-                    title: "Error Deleting Member",
-                    description: "There was a problem deleting the team member.",
+                    title: "Error Deleting Creator",
+                    description: "There was a problem deleting the creator.",
                     variant: 'destructive'
                 });
             }

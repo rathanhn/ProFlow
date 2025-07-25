@@ -149,7 +149,7 @@ export default function ProjectDetailsPage() {
                             </Avatar>
                             <div>
                                 <p className="font-semibold">{assignee.name}</p>
-                                <p className="text-sm text-muted-foreground">Team Member</p>
+                                <p className="text-sm text-muted-foreground">Creator</p>
                             </div>
                         </div>
                        </Link>

@@ -212,7 +212,7 @@ const DashboardContent = ({
                   <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
                     <Link href="/admin/team">
                       <UserPlus />
-                      <span className={isCollapsed ? 'hidden' : ''}>Team Members</span>
+                      <span className={isCollapsed ? 'hidden' : ''}>Creators</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

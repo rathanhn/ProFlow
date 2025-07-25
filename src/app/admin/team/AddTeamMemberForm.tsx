@@ -50,7 +50,7 @@ export default function AddTeamMemberForm() {
             }
 
             await addAssignee({ name, email, mobile, avatar, description });
-            toast({ title: "Team Member Added", description: `${name} has been added.` });
+            toast({ title: "Creator Added", description: `${name} has been added.` });
             setName('');
             setEmail('');
             setMobile('');
@@ -59,8 +59,8 @@ export default function AddTeamMemberForm() {
             setIsOpen(false);
             router.refresh();
         } catch (error) {
-            console.error("Failed to add team member:", error);
-            toast({ title: 'Error', description: 'Failed to add team member.', variant: 'destructive' });
+            console.error("Failed to add creator:", error);
+            toast({ title: 'Error', description: 'Failed to add creator.', variant: 'destructive' });
         }
     };
 
@@ -68,14 +68,14 @@ export default function AddTeamMemberForm() {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Member
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Creator
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Add New Team Member</DialogTitle>
+                    <DialogTitle>Add New Creator</DialogTitle>
                     <DialogDescription>
-                        Enter the details for the new team member.
+                        Enter the details for the new creator.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -84,7 +84,7 @@ export default function AddTeamMemberForm() {
                         <ImageUploader 
                             value={avatar}
                             onChange={setAvatar}
-                            fallbackText={name?.charAt(0) || 'T'}
+                            fallbackText={name?.charAt(0) || 'C'}
                         />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -101,14 +101,14 @@ export default function AddTeamMemberForm() {
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
                         <Label htmlFor="new-member-desc" className="text-right pt-2">Description</Label>
-                        <Textarea id="new-member-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Team member's role or bio..." className="col-span-3" />
+                        <Textarea id="new-member-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Creator's role or bio..." className="col-span-3" />
                     </div>
                 </div>
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="outline">Cancel</Button>
                     </DialogClose>
-                    <Button type="button" onClick={handleAddMember}>Add Member</Button>
+                    <Button type="button" onClick={handleAddMember}>Add Creator</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

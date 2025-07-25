@@ -46,7 +46,7 @@ export default async function AssigneeProfilePage({ params }: { params: { assign
                                     <AvatarFallback className="text-3xl">{assignee.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <h1 className="text-2xl font-bold">{assignee.name}</h1>
-                                <p className="text-muted-foreground">Team Member</p>
+                                <p className="text-muted-foreground">Creator</p>
 
                                 {assignee.description && (
                                     <p className="mt-4 text-sm text-center">{assignee.description}</p>
@@ -115,7 +115,7 @@ export default async function AssigneeProfilePage({ params }: { params: { assign
                                     ))
                                 ) : (
                                     <p className="text-muted-foreground text-center p-4">
-                                        No projects have been assigned to this team member yet.
+                                        No projects have been assigned to this creator yet.
                                     </p>
                                 )}
                             </div>

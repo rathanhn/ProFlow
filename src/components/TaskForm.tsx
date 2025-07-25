@@ -119,13 +119,13 @@ export default function TaskForm({ task }: TaskFormProps) {
         const newAssignee = await addAssignee({ name: newAssigneeName, email: newAssigneeEmail });
         await fetchAssignees(); // Re-fetch the list
         form.setValue('assigneeId', newAssignee.id); // Set the newly added assignee as selected
-        toast({ title: "Team Member Added", description: `${newAssignee.name} has been added to the team.` });
+        toast({ title: "Creator Added", description: `${newAssignee.name} has been added to the team.` });
         setNewAssigneeName("");
         setNewAssigneeEmail("");
         setAddAssigneeDialogOpen(false); // Close the dialog
     } catch (error) {
         console.error("Failed to add assignee:", error);
-        toast({ title: 'Error', description: 'Failed to add team member.', variant: 'destructive' });
+        toast({ title: 'Error', description: 'Failed to add creator.', variant: 'destructive' });
     }
   }
 
@@ -261,7 +261,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a team member" />
+                              <SelectValue placeholder="Select a creator" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -281,9 +281,9 @@ export default function TaskForm({ task }: TaskFormProps) {
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Add New Team Member</DialogTitle>
+                                    <DialogTitle>Add New Creator</DialogTitle>
                                     <DialogDescription>
-                                        Enter the details for the new team member. They will then be available for assignment.
+                                        Enter the details for the new creator. They will then be available for assignment.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4 py-4">
@@ -300,7 +300,7 @@ export default function TaskForm({ task }: TaskFormProps) {
                                     <DialogClose asChild>
                                         <Button type="button" variant="outline">Cancel</Button>
                                     </DialogClose>
-                                    <Button type="button" onClick={handleAddAssignee}>Add Member</Button>
+                                    <Button type="button" onClick={handleAddAssignee}>Add Creator</Button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>

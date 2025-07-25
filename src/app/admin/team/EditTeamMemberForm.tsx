@@ -64,12 +64,12 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
             }
 
             await updateAssignee(assignee.id, { name, email, mobile, avatar, description });
-            toast({ title: "Team Member Updated", description: `${name}'s details have been updated.` });
+            toast({ title: "Creator Updated", description: `${name}'s details have been updated.` });
             onClose();
             router.refresh();
         } catch (error) {
-            console.error("Failed to update team member:", error);
-            toast({ title: 'Error', description: 'Failed to update team member.', variant: 'destructive' });
+            console.error("Failed to update creator:", error);
+            toast({ title: 'Error', description: 'Failed to update creator.', variant: 'destructive' });
         }
     };
 
@@ -77,9 +77,9 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Team Member</DialogTitle>
+                    <DialogTitle>Edit Creator</DialogTitle>
                     <DialogDescription>
-                        Update the details for this team member.
+                        Update the details for this creator.
                     </DialogDescription>
                 </DialogHeader>
                  <div className="grid gap-4 py-4">
@@ -88,7 +88,7 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
                         <ImageUploader 
                             value={avatar}
                             onChange={setAvatar}
-                            fallbackText={name?.charAt(0) || 'T'}
+                            fallbackText={name?.charAt(0) || 'C'}
                         />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -105,7 +105,7 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
                         <Label htmlFor="edit-member-desc" className="text-right pt-2">Description</Label>
-                        <Textarea id="edit-member-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Team member's role or bio..." className="col-span-3" />
+                        <Textarea id="edit-member-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Creator's role or bio..." className="col-span-3" />
                     </div>
                 </div>
                 <DialogFooter>

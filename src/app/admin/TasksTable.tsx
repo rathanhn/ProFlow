@@ -115,7 +115,15 @@ export default function TasksTable({ tasks, clients }: TasksTableProps) {
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <StatusUpdater task={task} field="paymentStatus" />
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{task.assigneeName || 'N/A'}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {task.assigneeId && task.assigneeName ? (
+                        <Link href={`/profile/${task.assigneeId}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>
+                          {task.assigneeName}
+                        </Link>
+                      ) : (
+                        'N/A'
+                      )}
+                    </TableCell>
                     <TableCell className="whitespace-nowrap">{new Date(task.submissionDate).toLocaleDateString()}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
