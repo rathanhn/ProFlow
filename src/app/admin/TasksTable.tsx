@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,15 +30,6 @@ interface TasksTableProps {
   tasks: Task[];
   clients: Client[];
 }
-
-const statusColors: Record<string, string> = {
-  Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
-  Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
-  Unpaid: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30',
-  Completed: 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30',
-  'In Progress': 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30',
-  Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
-};
 
 export default function TasksTable({ tasks, clients }: TasksTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -83,43 +73,6 @@ export default function TasksTable({ tasks, clients }: TasksTableProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Mobile View */}
-           <div className="grid gap-4 md:hidden">
-            {filteredTasks.map((task: Task) => (
-               <Card key={task.id} onClick={() => handleRowClick(task)} className="cursor-pointer">
-                  <CardHeader>
-                      <CardTitle className="text-base">{task.projectName}</CardTitle>
-                      <CardDescription>{task.clientName}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                          <span className="text-muted-foreground">Work Status</span>
-                          <span onClick={(e) => e.stopPropagation()}><StatusUpdater task={task} field="workStatus" /></span>
-                      </div>
-                      <div className="flex justify-between">
-                          <span className="text-muted-foreground">Payment</span>
-                          <span onClick={(e) => e.stopPropagation()}><StatusUpdater task={task} field="paymentStatus" /></span>
-                      </div>
-                       <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
-                            <div className="flex items-center gap-1">
-                                <CreditCard className="h-3 w-3" />
-                                <span>₹{(task.total || 0).toLocaleString()}</span>
-                            </div>
-                             <div className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                <span>{task.assigneeName || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                <span>{new Date(task.submissionDate).toLocaleDateString()}</span>
-                            </div>
-                       </div>
-                  </CardContent>
-               </Card>
-            ))}
-           </div>
-
-          {/* Desktop View */}
           <div className="hidden md:block relative w-full overflow-x-auto">
             <Table>
               <TableHeader>
@@ -197,6 +150,41 @@ export default function TasksTable({ tasks, clients }: TasksTableProps) {
            </div>
         </CardContent>
       </Card>
+      {/* Mobile View */}
+        <div className="grid gap-4 md:hidden">
+        {filteredTasks.map((task: Task) => (
+            <Card key={task.id} onClick={() => handleRowClick(task)} className="cursor-pointer">
+                <CardHeader>
+                    <CardTitle className="text-base">{task.projectName}</CardTitle>
+                    <CardDescription>{task.clientName}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Work Status</span>
+                        <span onClick={(e) => e.stopPropagation()}><StatusUpdater task={task} field="workStatus" /></span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Payment</span>
+                        <span onClick={(e) => e.stopPropagation()}><StatusUpdater task={task} field="paymentStatus" /></span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+                        <div className="flex items-center gap-1">
+                            <CreditCard className="h-3 w-3" />
+                            <span>₹{(task.total || 0).toLocaleString()}</span>
+                        </div>
+                            <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            <span>{task.assigneeName || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{new Date(task.submissionDate).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        ))}
+        </div>
       {selectedTask && <TaskSheet task={selectedTask} isOpen={isSheetOpen} onClose={handleSheetClose} />}
     </>
   );

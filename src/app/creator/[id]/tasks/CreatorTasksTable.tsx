@@ -59,33 +59,35 @@ export default function CreatorTasksTable({ tasks, statusColors, creatorId }: Cr
       </div>
     
       {/* Desktop View */}
-      <div className="hidden md:block w-full overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project Name</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Work Status</TableHead>
-              <TableHead>Submission Date</TableHead>
-              <TableHead className="text-right">Total Pages</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map((task: Task) => (
-              <TableRow key={task.id} onClick={() => handleRowClick(task.id)} className="cursor-pointer">
-                <TableCell className="font-medium whitespace-nowrap">{task.projectName}</TableCell>
-                <TableCell className="whitespace-nowrap text-muted-foreground">{task.clientName}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={statusColors[task.workStatus]}>
-                    {task.workStatus}
-                  </Badge>
-                </TableCell>
-                <TableCell className="whitespace-nowrap text-muted-foreground">{new Date(task.submissionDate).toLocaleDateString()}</TableCell>
-                <TableCell className="text-right whitespace-nowrap">{task.pages}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="hidden md:block w-full">
+        <div className="overflow-x-auto">
+            <Table>
+            <TableHeader>
+                <TableRow>
+                <TableHead>Project Name</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Work Status</TableHead>
+                <TableHead>Submission Date</TableHead>
+                <TableHead className="text-right">Total Pages</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {tasks.map((task: Task) => (
+                <TableRow key={task.id} onClick={() => handleRowClick(task.id)} className="cursor-pointer">
+                    <TableCell className="font-medium whitespace-nowrap">{task.projectName}</TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">{task.clientName}</TableCell>
+                    <TableCell>
+                    <Badge variant="outline" className={statusColors[task.workStatus]}>
+                        {task.workStatus}
+                    </Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">{new Date(task.submissionDate).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{task.pages}</TableCell>
+                </TableRow>
+                ))}
+            </TableBody>
+            </Table>
+        </div>
       </div>
     </>
   );

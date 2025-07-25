@@ -53,7 +53,7 @@ export const Sidebar = ({ children, className }: { children: React.ReactNode, cl
 
       {/* Mobile Sidebar */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="left" className={cn("w-64 p-0", className)}>
+        <SheetContent side="left" className={cn("w-64 p-0 flex flex-col", className)}>
           {children}
         </SheetContent>
       </Sheet>
@@ -87,7 +87,7 @@ export const SidebarContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col flex-1 overflow-y-auto", className)}
+    className={cn("flex-1 overflow-y-auto", className)}
     {...props}
   />
 ))

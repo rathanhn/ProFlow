@@ -46,63 +46,68 @@ export default async function AdminTeamPage() {
             </div>
         </div>
        
-        <Card>
+        <Card className="md:hidden">
           <CardHeader>
             <CardTitle>All Creators</CardTitle>
             <CardDescription>Manage your creators and their assignments.</CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* Mobile View */}
-            <div className="grid gap-4 md:hidden">
-              {serializableAssignees.map((assignee: Assignee) => (
-                <TeamMemberCard key={assignee.id} assignee={assignee} />
-              ))}
-            </div>
-            
-            {/* Desktop View */}
-            <div className="hidden md:block w-full overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Creator</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Mobile</TableHead>
-                    <TableHead>Profile</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {serializableAssignees.map((assignee: Assignee) => (
-                    <TableRow key={assignee.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarImage src={assignee.avatar} alt="Avatar" />
-                            <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <p className="font-medium whitespace-nowrap">{assignee.name}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.email || "N/A"}</TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.mobile || "N/A"}</TableCell>
-                      <TableCell>
-                         <Button asChild variant="outline" size="sm">
-                            <Link href={`/profile/${assignee.id}`}>
-                               <Eye className="mr-2 h-4 w-4" />
-                               View Profile
-                            </Link>
-                         </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                          <TeamActions assignee={assignee} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
         </Card>
+        <div className="grid gap-4 md:hidden">
+          {serializableAssignees.map((assignee: Assignee) => (
+            <TeamMemberCard key={assignee.id} assignee={assignee} />
+          ))}
+        </div>
+        
+        {/* Desktop View */}
+        <div className="hidden md:block w-full">
+            <Card>
+                 <CardHeader>
+                    <CardTitle>All Creators</CardTitle>
+                    <CardDescription>Manage your creators and their assignments.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Creator</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Mobile</TableHead>
+                            <TableHead>Profile</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {serializableAssignees.map((assignee: Assignee) => (
+                            <TableRow key={assignee.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9">
+                                    <AvatarImage src={assignee.avatar} alt="Avatar" />
+                                    <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <p className="font-medium whitespace-nowrap">{assignee.name}</p>
+                                </div>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.email || "N/A"}</TableCell>
+                            <TableCell className="whitespace-nowrap text-muted-foreground">{assignee.mobile || "N/A"}</TableCell>
+                            <TableCell>
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href={`/profile/${assignee.id}`}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    View Profile
+                                    </Link>
+                                </Button>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <TeamActions assignee={assignee} />
+                            </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
       </div>
     </DashboardLayout>
   );
