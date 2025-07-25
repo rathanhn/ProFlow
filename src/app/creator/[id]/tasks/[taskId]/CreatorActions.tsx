@@ -46,7 +46,7 @@ export default function CreatorActions({ task }: { task: Task }) {
     }
   };
 
-  const handleFileUpload = async (url: string) => {
+  const handleOutputFileUpload = async (url: string) => {
      try {
       await updateTask(task.id, { outputFileLink: url });
       toast({
@@ -58,6 +58,23 @@ export default function CreatorActions({ task }: { task: Task }) {
        toast({
         title: 'Update Failed',
         description: 'Could not link the output file.',
+        variant: 'destructive',
+      });
+    }
+  }
+  
+  const handleProjectFileUpload = async (url: string) => {
+     try {
+      await updateTask(task.id, { projectFileLink: url });
+      toast({
+        title: 'File Uploaded!',
+        description: 'The project file has been linked to the task.',
+      });
+      router.refresh();
+    } catch (error) {
+       toast({
+        title: 'Update Failed',
+        description: 'Could not link the project file.',
         variant: 'destructive',
       });
     }
@@ -85,11 +102,19 @@ export default function CreatorActions({ task }: { task: Task }) {
             </SelectContent>
           </Select>
         </div>
+         <div className="space-y-2">
+          <Label>Project File</Label>
+          <FileUpload 
+            value={task.projectFileLink}
+            onChange={handleProjectFileUpload}
+            folder="project_files"
+          />
+        </div>
         <div className="space-y-2">
           <Label>Output File</Label>
           <FileUpload 
             value={task.outputFileLink}
-            onChange={handleFileUpload}
+            onChange={handleOutputFileUpload}
             folder="output_files"
           />
         </div>
