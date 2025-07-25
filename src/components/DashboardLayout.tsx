@@ -99,7 +99,6 @@ const UserProfile = () => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [clientId, setClientId] = React.useState<string | null>(null);
@@ -109,19 +108,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUser(currentUser);
       setLoading(false);
       if (currentUser) {
-        setClientId(currentUser.uid);
-      } else {
-        if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-          router.push('/admin/login');
-        }
-        const pathSegments = pathname.split('/');
-        if (pathname.startsWith('/client/') && pathSegments.length > 2 && pathSegments[2] && !pathname.includes('/auth')) {
-          router.push(`/client/${pathSegments[2]}/auth`);
+        // Extract client ID from path for client-side navigation
+        if (pathname.startsWith('/client/')) {
+            const pathSegments = pathname.split('/');
+            setClientId(pathSegments[2] || null);
         }
       }
     });
     return () => unsubscribe();
-  }, [pathname, router]);
+  }, [pathname]);
 
   const renderContent = () => {
     if (loading) {
