@@ -47,7 +47,7 @@ export default function CreatorSettingsPage() {
     const { toast } = useToast();
     const router = useRouter();
     const params = useParams();
-    const creatorId = params.id as string;
+    const assigneeId = params.id as string;
 
     const [creator, setCreator] = useState<Assignee | null>(null);
     const [loading, setLoading] = useState(true);
@@ -65,9 +65,9 @@ export default function CreatorSettingsPage() {
     });
     
     useEffect(() => {
-        if (creatorId) {
+        if (assigneeId) {
             const fetchCreator = async () => {
-                const creatorData = await getAssignee(creatorId);
+                const creatorData = await getAssignee(assigneeId);
                 if (creatorData) {
                     setCreator(creatorData);
                     profileForm.reset({
@@ -81,7 +81,7 @@ export default function CreatorSettingsPage() {
             };
             fetchCreator();
         }
-    }, [creatorId, profileForm]);
+    }, [assigneeId, profileForm]);
 
     async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         try {
@@ -96,7 +96,7 @@ export default function CreatorSettingsPage() {
     
     async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
         try {
-            await updateAssignee(creatorId, values);
+            await updateAssignee(assigneeId, values);
             toast({ title: 'Profile Updated!', description: 'Your profile information has been saved.' });
             router.refresh();
         } catch (error) {
@@ -238,9 +238,15 @@ export default function CreatorSettingsPage() {
                                             <FormControl>
                                                  <div className="relative flex items-center">
                                                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input type={showConfirmNewPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
-                                                    <Button type="button" variant="ghost" size="icon" className="absolute right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}>
-                                                        {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        >
+                                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                     </Button>
                                                 </div>
                                             </FormControl>
