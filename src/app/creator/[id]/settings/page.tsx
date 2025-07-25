@@ -113,11 +113,11 @@ export default function CreatorSettingsPage() {
                     <Skeleton className="h-6 w-1/2" />
                     <Card>
                         <CardHeader>
-                            <Skeleton className="h-6 w-1/4" />
-                            <Skeleton className="h-4 w-1/2" />
+                             <Skeleton className="h-6 w-1/4" />
+                             <Skeleton className="h-4 w-1/2" />
                         </CardHeader>
                         <CardContent>
-                            <Skeleton className="h-10 w-full" />
+                             <Skeleton className="h-10 w-full" />
                         </CardContent>
                     </Card>
                 </div>
@@ -233,13 +233,7 @@ export default function CreatorSettingsPage() {
                                                  <div className="relative flex items-center">
                                                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                                     <Input type={showConfirmNewPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-                                                        >
+                                                    <Button type="button" variant="ghost" size="icon" className="absolute right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}>
                                                         {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                     </Button>
                                                 </div>
