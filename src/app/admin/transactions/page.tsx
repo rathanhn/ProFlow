@@ -39,7 +39,35 @@ export default async function AdminTransactionsPage() {
             <CardDescription>Browse through all recorded transactions.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="w-full overflow-x-auto">
+            {/* Mobile View */}
+            <div className="grid gap-4 md:hidden">
+                {transactions.map((transaction: Transaction) => (
+                    <Card key={transaction.id}>
+                        <CardContent className="pt-4">
+                           <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-semibold">
+                                        <Link href={`/admin/tasks/${transaction.taskId}`} className="hover:underline">{transaction.projectName}</Link>
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Client: <Link href={`/admin/clients/${transaction.clientId}/edit`} className="hover:underline">{transaction.clientName}</Link>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground pt-1">
+                                      {new Date(transaction.transactionDate).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-lg">₹{transaction.amount.toLocaleString()}</p>
+                                    <Badge variant="outline" className="mt-1">{transaction.paymentMethod}</Badge>
+                                </div>
+                           </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden md:block w-full overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
