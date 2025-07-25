@@ -17,11 +17,7 @@ import { Task, Client } from '@/lib/types';
 import AdminActions from './AdminActions';
 import TaskDetails from '@/components/TaskDetails';
 
-interface TaskDetailsPageProps {
-  params: { id: string };
-}
-
-export default async function TaskDetailsPage({ params }: TaskDetailsPageProps) {
+export default async function TaskDetailsPage({ params }: { params: { id: string } }) {
   const id = params.id as string;
   const rawTask = await getTask(id);
 
@@ -59,7 +55,7 @@ export default async function TaskDetailsPage({ params }: TaskDetailsPageProps) 
                 <div className="flex items-start gap-4">
                     {client && (
                         <Avatar className="h-12 w-12 border">
-                            <AvatarImage src={client.avatar} />
+                            <AvatarImage src={client.avatar || undefined} />
                             <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                     )}
