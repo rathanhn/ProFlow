@@ -9,18 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
-import { Task } from '@/lib/types';
-import { useRouter } from 'next/navigation';
 import CreatorTasksTable from './CreatorTasksTable';
 
 
