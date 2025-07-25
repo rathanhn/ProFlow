@@ -1,9 +1,8 @@
 
-
 "use client"
 
 import * as React from "react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -75,12 +74,6 @@ export const Sidebar = ({ children, className }: { children: React.ReactNode, cl
         <SheetContent side="left" className={cn("w-64 p-0 flex flex-col", className)}>
             <SheetHeader className="p-4 border-b flex flex-row items-center justify-between h-16 shrink-0">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                 <SheetClose asChild>
-                    <Button variant="ghost" size="icon">
-                        <X className="h-6 w-6" />
-                        <span className="sr-only">Close sidebar</span>
-                    </Button>
-                </SheetClose>
             </SheetHeader>
           {children}
         </SheetContent>
