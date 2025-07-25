@@ -49,7 +49,6 @@ export default function CreatorSettingsPage() {
     const params = useParams();
     const assigneeId = params.id as string;
 
-    const [creator, setCreator] = useState<Assignee | null>(null);
     const [loading, setLoading] = useState(true);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -69,7 +68,6 @@ export default function CreatorSettingsPage() {
             const fetchCreator = async () => {
                 const creatorData = await getAssignee(assigneeId);
                 if (creatorData) {
-                    setCreator(creatorData);
                     profileForm.reset({
                         name: creatorData.name,
                         avatar: creatorData.avatar,
