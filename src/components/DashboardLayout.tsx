@@ -22,6 +22,7 @@ import { auth, clientAuth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
 import NotificationBell from './NotificationBell';
+import { cn } from '@/lib/utils';
 
 
 const UserProfile = () => {
@@ -344,8 +345,8 @@ const DashboardContent = ({
       </Sidebar>
       <div
         className={cn(
-            "flex-1 transition-all duration-300 ease-in-out",
-            isCollapsed ? "lg:ml-16" : "lg:ml-64"
+            "flex-1 transition-all duration-300 ease-in-out lg:ml-64",
+            isCollapsed && "lg:ml-16"
         )}
       >
         <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
