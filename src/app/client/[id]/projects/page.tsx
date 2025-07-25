@@ -25,16 +25,14 @@ const statusColors: Record<string, string> = {
 
 
 export default async function ClientProjectsPage({ params }: { params: { id: string } }) {
-  const { id } = params;
-  
-  const rawClient = await getClient(id);
+  const rawClient = await getClient(params.id);
 
   if (!rawClient) {
     notFound();
   }
   
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-  const rawClientTasks = await getTasksByClientId(id);
+  const rawClientTasks = await getTasksByClientId(params.id);
 
   const clientTasks = rawClientTasks.map(task => ({
     ...JSON.parse(JSON.stringify(task)),
