@@ -52,7 +52,7 @@ export default function CreatorSettingsPage() {
     const [creator, setCreator] = useState<Assignee | null>(null);
     const [loading, setLoading] = useState(true);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
@@ -165,7 +165,7 @@ export default function CreatorSettingsPage() {
                                     <FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input placeholder="+1234567890" {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                                  <FormField control={profileForm.control} name="description" render={({ field }) => (
-                                    <FormItem><FormLabel>Bio / Description</FormLabel><FormControl><Textarea placeholder="Tell us a bit about yourself" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Bio / Description</FormLabel><FormControl><Textarea placeholder="Tell us a bit about yourself" {...field} /></FormControl><FormMessage /></Item>
                                 )}/>
                                  <div className="flex justify-end">
                                     <Button type="submit" disabled={profileForm.formState.isSubmitting}>
@@ -225,7 +225,13 @@ export default function CreatorSettingsPage() {
                                                  <div className="relative flex items-center">
                                                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                                     <Input type={showConfirmNewPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
-                                                    <Button type="button" variant="ghost" size="icon" className="absolute right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                                        >
                                                         {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                     </Button>
                                                 </div>

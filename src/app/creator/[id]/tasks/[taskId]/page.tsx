@@ -14,18 +14,22 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import TaskDetails from '@/components/TaskDetails';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import CreatorActions from './CreatorActions';
+import { Task } from '@/lib/types';
 
 
 export default async function CreatorTaskDetailsPage({ params }: { params: { id: string; taskId: string } }) {
   const { id, taskId } = params;
 
-  const task = await getTask(taskId);
+  const rawTask = await getTask(taskId);
   const creator = await getAssignee(id);
 
-  if (!task || !creator || task.assigneeId !== creator.id) {
+  if (!rawTask || !creator || rawTask.assigneeId !== creator.id) {
     notFound();
   }
   
+  // Ensure task is serializable for client components
+  const task = JSON.parse(JSON.stringify(rawTask)) as Task;
   const client = await getClient(task.clientId);
 
   return (
@@ -54,6 +58,7 @@ export default async function CreatorTaskDetailsPage({ params }: { params: { id:
             </Card>
           </div>
           <div className="space-y-6">
+            <CreatorActions task={task} />
             {client && (
                 <Card>
                     <CardHeader>
@@ -74,7 +79,6 @@ export default async function CreatorTaskDetailsPage({ params }: { params: { id:
                     </CardContent>
                 </Card>
             )}
-            {/* Future Actions Card can go here */}
           </div>
         </div>
       </div>
