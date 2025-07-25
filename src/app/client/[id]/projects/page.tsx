@@ -25,15 +25,12 @@ const statusColors: Record<string, string> = {
 
 export default async function ClientProjectsPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  console.log(`[ClientProjectsPage] Rendering for client ID: ${id}`);
   const rawClient = await getClient(id);
 
   if (!rawClient) {
-    console.error(`[ClientProjectsPage] Client not found for ID: ${id}. Triggering 404.`);
     notFound();
   }
   
-  console.log(`[ClientProjectsPage] Client data found for ID: ${id}`);
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
   const rawClientTasks = await getTasksByClientId(id);
 

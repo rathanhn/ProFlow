@@ -33,15 +33,11 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
 
     useEffect(() => {
         const fetchClientData = async () => {
-            console.log(`[ClientAuthPage] Fetching client data for ID: ${params.id}`);
             const clientData = await getClient(params.id);
             if (clientData) {
-                console.log(`[ClientAuthPage] Client data found:`, clientData);
                 const serializableClient = JSON.parse(JSON.stringify(clientData)) as Client;
                 setClient(serializableClient);
                 setEmail(serializableClient.email);
-            } else {
-                console.error(`[ClientAuthPage] No client data found for ID: ${params.id}`);
             }
         };
 
@@ -50,23 +46,19 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
 
     const handleSignIn = async () => {
         setIsLoading(true);
-        console.log(`[ClientAuthPage] Attempting sign-in for email: ${email}`);
         try {
             await setPersistence(clientAuth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             const user = userCredential.user;
-            console.log(`[ClientAuthPage] Sign-in successful for UID: ${user.uid}`);
 
             // Check if this is the first sign-in
             const lastSignInTime = new Date(user.metadata.lastSignInTime || 0).getTime();
             const creationTime = new Date(user.metadata.creationTime || 0).getTime();
 
             if (Math.abs(lastSignInTime - creationTime) < 5000) { // First login is usually within a few seconds of creation
-                console.log(`[ClientAuthPage] First login detected. Showing password reset dialog.`);
                 setShowPasswordResetDialog(true);
             } else {
                 toast({ title: 'Access Granted!', description: 'Redirecting to your dashboard...' });
-                console.log(`[ClientAuthPage] Redirecting to /client/${user.uid}`);
                 router.push(`/client/${user.uid}`);
             }
         } catch (error) {
@@ -89,12 +81,10 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
 
         const user = clientAuth.currentUser;
         if (user) {
-            console.log(`[ClientAuthPage] Attempting to reset password for UID: ${user.uid}`);
             try {
                 await updatePassword(user, newPassword);
                 toast({ title: 'Password Reset Successful', description: 'Your password has been updated. Redirecting...' });
                 setShowPasswordResetDialog(false);
-                console.log(`[ClientAuthPage] Password reset. Redirecting to /client/${user.uid}`);
                 router.push(`/client/${user.uid}`);
             } catch (error) {
                 console.error("[ClientAuthPage] Password reset error:", error);
