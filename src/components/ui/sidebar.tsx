@@ -44,7 +44,7 @@ export const Sidebar = ({ children, className }: { children: React.ReactNode, cl
     <>
       {/* Desktop Sidebar */}
       <aside className={cn(
-          "hidden lg:flex lg:flex-col fixed inset-y-0 z-50 border-r bg-background transition-all duration-300 ease-in-out",
+          "hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-50 border-r bg-background transition-all duration-300 ease-in-out",
           isCollapsed ? "w-16" : "w-64",
           className
         )}>
@@ -69,7 +69,7 @@ export const SidebarHeader = React.forwardRef<
     return (
         <div
             ref={ref}
-            className={cn("p-4 border-b flex items-center h-16", isCollapsed ? 'justify-center' : 'justify-between', className)}
+            className={cn("p-4 border-b flex items-center h-16 shrink-0", isCollapsed ? 'justify-center' : 'justify-between', className)}
             {...props}
         >
             <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
@@ -155,7 +155,7 @@ export const SidebarFooter = React.forwardRef<
     return (
         <div
             ref={ref}
-            className={cn("p-4 border-t", isCollapsed && "p-2", className)}
+            className={cn("p-4 border-t mt-auto shrink-0", isCollapsed && "p-2", className)}
             {...props}
         />
     )

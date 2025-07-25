@@ -201,7 +201,7 @@ const DashboardContent = ({
       <Sidebar>
         <SidebarHeader>
           <Rocket className="w-6 h-6 text-primary" />
-          <h1 className="text-xl font-semibold">ProFlow</h1>
+          {!isCollapsed && <h1 className="text-xl font-semibold">ProFlow</h1>}
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -343,13 +343,12 @@ const DashboardContent = ({
           <UserProfile />
         </SidebarFooter>
       </Sidebar>
-      <div
-        className={cn(
-            "flex-1 transition-all duration-300 ease-in-out lg:ml-64",
-            isCollapsed && "lg:ml-16"
-        )}
-      >
-        <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
+      <div className="flex-1 flex flex-col">
+        <header className={cn(
+          "flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30 transition-all duration-300 ease-in-out",
+          "lg:ml-16",
+          !isCollapsed && "lg:ml-64"
+        )}>
             <div className="flex items-center">
               <SidebarTrigger />
             </div>
@@ -357,7 +356,15 @@ const DashboardContent = ({
               {user && <NotificationBell />}
             </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">{children}</main>
+        <main className={cn(
+            "flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40 transition-all duration-300 ease-in-out",
+            "lg:ml-16",
+            !isCollapsed && "lg:ml-64"
+        )}>
+          <div className="mx-auto max-w-7xl">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
