@@ -99,24 +99,26 @@ const UserProfile = () => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [clientId, setClientId] = React.useState<string | null>(null);
-
+  
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-      if (currentUser) {
-        // Extract client ID from path for client-side navigation
-        if (pathname.startsWith('/client/')) {
-            const pathSegments = pathname.split('/');
-            setClientId(pathSegments[2] || null);
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, [pathname]);
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          setLoading(false);
+
+          // Basic route protection
+          const isAdminRoute = pathname.startsWith('/admin');
+          const isClientRoute = pathname.startsWith('/client');
+
+          if (!currentUser && (isAdminRoute || isClientRoute)) {
+              if (isAdminRoute) router.push('/admin/login');
+              else router.push('/');
+          }
+      });
+      return () => unsubscribe();
+  }, [pathname, router]);
 
   const renderContent = () => {
     if (loading) {
@@ -133,6 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const isAdminSection = pathname.startsWith('/admin');
   const isClientSection = pathname.startsWith('/client');
+  const clientId = isClientSection ? pathname.split('/')[2] : null;
 
 
   return (
