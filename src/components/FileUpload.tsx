@@ -69,12 +69,15 @@ export default function FileUpload({
     }
 
     try {
-      const { signature, timestamp, folder: signedFolder } = await getUploadSignature({ folder });
+      const { signature, timestamp, folder: signedFolder, use_filename, unique_filename } = await getUploadSignature({ folder });
       const formData = new FormData();
       formData.append('file', file);
       formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
+      formData.append('use_filename', use_filename ? 'true' : 'false');
+      formData.append('unique_filename', unique_filename ? 'true' : 'false');
+
       if (signedFolder) {
         formData.append('folder', signedFolder);
       }

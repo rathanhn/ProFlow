@@ -12,11 +12,13 @@ cloudinary.config({
   secure: true,
 });
 
-export async function getUploadSignature({ folder }: { folder?: string } = {}) {
+export async function getUploadSignature({ folder, use_filename = true, unique_filename = false }: { folder?: string, use_filename?: boolean, unique_filename?: boolean } = {}) {
   const timestamp = Math.round(new Date().getTime() / 1000);
 
-  const paramsToSign: { timestamp: number, folder?: string } = {
+  const paramsToSign: { timestamp: number, folder?: string, use_filename?: boolean, unique_filename?: boolean } = {
     timestamp: timestamp,
+    use_filename,
+    unique_filename,
   };
 
   if (folder) {
@@ -28,7 +30,7 @@ export async function getUploadSignature({ folder }: { folder?: string } = {}) {
     process.env.CLOUDINARY_API_SECRET!
   );
 
-  return { timestamp, signature, folder };
+  return { timestamp, signature, folder, use_filename, unique_filename };
 }
 
 

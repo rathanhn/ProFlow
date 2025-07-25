@@ -75,13 +75,16 @@ export default function ImageUploader({
     }
 
     try {
-      const { signature, timestamp } = await getUploadSignature({ folder: 'avatars' });
+      const { signature, timestamp, use_filename, unique_filename } = await getUploadSignature({ folder: 'avatars', use_filename: false, unique_filename: true });
       const formData = new FormData();
       formData.append('file', file);
       formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
       formData.append('folder', 'avatars');
+      formData.append('use_filename', use_filename ? 'true' : 'false');
+      formData.append('unique_filename', unique_filename ? 'true' : 'false');
+
 
       const endpoint = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`;
       
