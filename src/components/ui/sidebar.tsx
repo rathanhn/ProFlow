@@ -72,9 +72,10 @@ export const Sidebar = ({ children, className }: { children: React.ReactNode, cl
       {/* Mobile Sidebar */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="left" className={cn("w-64 p-0 flex flex-col", className)}>
-            {/* The SheetContent from ui/sheet.tsx already includes a close button */}
-            {/* We pass the children directly into it */}
-            {children}
+          <SheetHeader className="sr-only">
+             <SheetTitle>Sidebar Menu</SheetTitle>
+          </SheetHeader>
+          {children}
         </SheetContent>
       </Sheet>
     </>
