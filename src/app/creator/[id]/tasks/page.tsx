@@ -2,13 +2,6 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import CreatorTasksTable from './CreatorTasksTable';
 
@@ -24,13 +17,14 @@ const statusColors: Record<string, string> = {
 
 
 export default async function CreatorTasksPage({ params }: { params: { id: string } }) {
-  const creator = await getAssignee(params.id);
+  const { id } = params;
+  const creator = await getAssignee(id);
 
   if (!creator) {
     notFound();
   }
   
-  const creatorTasks = await getTasksByAssigneeId(params.id);
+  const creatorTasks = await getTasksByAssigneeId(id);
 
   return (
     <DashboardLayout>
@@ -44,3 +38,4 @@ export default async function CreatorTasksPage({ params }: { params: { id: strin
     </DashboardLayout>
   );
 }
+
