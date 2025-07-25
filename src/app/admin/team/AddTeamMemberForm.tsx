@@ -81,7 +81,6 @@ export default function AddTeamMemberForm() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                      <div className="flex flex-col items-center">
-                        <Label>Profile Picture</Label>
                         <ImageUploader 
                             value={avatar}
                             onChange={setAvatar}
