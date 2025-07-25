@@ -24,7 +24,6 @@ export default function ClientLoginPage() {
 
     const handleLogin = async () => {
         setIsLoading(true);
-        console.log(`[ClientLoginPage] Attempting login for email: ${email}`);
         if (!email || !password) {
             toast({
                 title: 'Login Failed',
@@ -38,26 +37,18 @@ export default function ClientLoginPage() {
         try {
             // Use client-specific auth instance with session persistence
             await setPersistence(clientAuth, browserSessionPersistence);
-            await signInWithEmailAndPassword(clientAuth, email, password);
+            const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             
-            console.log(`[ClientLoginPage] Firebase auth successful. Fetching client data...`);
             // On success, get client data and redirect
-            const client = await getClientByEmail(email);
-            if (client) {
-                console.log(`[ClientLoginPage] Found client data for ID: ${client.id}. Redirecting to /client/${client.id}`);
-                toast({
-                    title: 'Login Successful!',
-                    description: `Welcome back, ${client.name}.`,
-                });
-                router.push(`/client/${client.id}`);
-            } else {
-                 console.error(`[ClientLoginPage] CRITICAL: Auth successful but getClientByEmail returned null for ${email}`);
-                 toast({
-                    title: 'Login Failed',
-                    description: 'Could not find client data after login.',
-                    variant: 'destructive',
-                });
-            }
+            // The UID from auth is the source of truth for the client ID.
+            const clientId = userCredential.user.uid;
+            
+            toast({
+                title: 'Login Successful!',
+                description: `Welcome back!`,
+            });
+            router.push(`/client/${clientId}`);
+
         } catch (error) {
             console.error("[ClientLoginPage] Login error:", error);
             toast({

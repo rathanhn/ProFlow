@@ -16,20 +16,16 @@ export async function getClients(): Promise<Client[]> {
 }
 
 export async function getClient(id: string): Promise<Client | null> {
-    console.log(`[firebase-service] getClient called with ID: ${id}`);
     if (!id) {
-        console.error('[firebase-service] getClient received a null or undefined id.');
         return null;
     }
     const clientDocRef = doc(db, 'clients', id);
     const clientSnap = await getDoc(clientDocRef);
     if (clientSnap.exists()) {
         const clientData = clientSnap.data();
-        console.log(`[firebase-service] getClient found document for ID: ${id}`);
         // Ensure data is serializable
         return JSON.parse(JSON.stringify({ id: clientSnap.id, ...clientData })) as Client;
     } else {
-        console.error(`[firebase-service] getClient did NOT find document for ID: ${id}`);
         return null;
     }
 }
@@ -38,17 +34,15 @@ export async function addClient(client: Omit<Client, 'id'>) {
     if (!client.password) {
         throw new Error("Password is required to create a client.");
     }
-    console.log(`[firebase-service] addClient: Creating user in Auth for email: ${client.email}`);
-    // IMPORTANT: Use the main 'auth' instance for user creation on the server
+
     const userCredential = await createUserWithEmailAndPassword(auth, client.email, client.password);
     const uid = userCredential.user.uid;
-    console.log(`[firebase-service] addClient: Auth user created with UID: ${uid}. Now creating Firestore doc.`);
 
     const { password, ...clientData } = client;
 
     // Use setDoc with the UID as the document ID to ensure they match
     await setDoc(doc(db, "clients", uid), clientData);
-    console.log(`[firebase-service] addClient: Firestore doc created for UID: ${uid}.`);
+    
     revalidatePath('/admin/clients');
     // Return the new client object with the UID as the id
     return { id: uid, ...clientData };
@@ -70,15 +64,12 @@ export async function deleteClient(id: string) {
 }
 
 export async function getClientByEmail(email: string): Promise<Client | null> {
-    console.log(`[firebase-service] getClientByEmail called for: ${email}`);
     const q = query(collection(db, "clients"), where("email", "==", email));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
-        console.log(`[firebase-service] getClientByEmail found doc with ID: ${doc.id}`);
         return { id: doc.id, ...doc.data() } as Client;
     }
-    console.error(`[firebase-service] getClientByEmail did NOT find any client for email: ${email}`);
     return null;
 }
 
@@ -343,10 +334,7 @@ export async function getTransactions(): Promise<Transaction[]> {
 }
 
 export async function getTransactionsByClientId(clientId: string): Promise<Transaction[]> {
-    const q = query(
-        collection(db, "transactions"), 
-        where("clientId", "==", clientId)
-    );
+    const q = query(collection(db, "transactions"), where("clientId", "==", clientId));
     const transactionSnapshot = await getDocs(q);
     const transactionList = transactionSnapshot.docs.map(doc => {
         const data = doc.data();

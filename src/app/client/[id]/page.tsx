@@ -23,12 +23,9 @@ import { Button } from '@/components/ui/button';
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
   const clientId = params.id;
-  console.log(`[ClientDashboardPage] Rendering for client ID: ${clientId}`);
-
   const rawClient = await getClient(clientId);
 
   if (!rawClient) {
-    console.error(`[ClientDashboardPage] Client not found for ID: ${clientId}. Triggering 404.`);
     notFound();
   }
   
