@@ -146,8 +146,9 @@ export async function getTask(id: string): Promise<Task | null> {
 
 export async function addTask(task: Omit<Task, 'id'>) {
     const tasksCol = collection(db, 'tasks');
-    await addDoc(tasksCol, task);
+    const docRef = await addDoc(tasksCol, task);
     revalidatePath('/admin/tasks');
+    return { id: docRef.id, ...task };
 }
 
 export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'clientId'>>) {
@@ -241,6 +242,12 @@ export async function createNotification(notification: Omit<Notification, 'id'>)
     const notificationsCol = collection(db, 'notifications');
     await addDoc(notificationsCol, notification);
     revalidatePath('/admin');
+    if (notification.userId.startsWith('admin')) {
+        // No specific path to revalidate for admin, handled by listener
+    } else {
+        revalidatePath(`/client/${notification.userId}`);
+        revalidatePath(`/creator/${notification.userId}`);
+    }
 }
 
 export async function getAdminNotifications(): Promise<Notification[]> {

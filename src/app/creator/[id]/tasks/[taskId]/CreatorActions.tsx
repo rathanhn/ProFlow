@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import FileUpload from '@/components/FileUpload';
 import { Task, WorkStatus } from '@/lib/types';
-import { updateTask } from '@/lib/firebase-service';
+import { createNotification, updateTask } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
@@ -46,6 +46,22 @@ export default function CreatorActions({ task }: { task: Task }) {
     }
   };
 
+    const notifyClientOfUpload = async (fileType: string) => {
+        try {
+            await createNotification({
+                userId: task.clientId,
+                message: `A ${fileType} has been uploaded for project: ${task.projectName}.`,
+                link: `/client/${task.clientId}/projects/${task.id}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            });
+        } catch (error) {
+            console.error("Failed to send notification to client:", error);
+            // Don't block the main flow, just log it
+        }
+    }
+
+
   const handleOutputFileUpload = async (url: string) => {
      try {
       await updateTask(task.id, { outputFileLink: url });
@@ -53,6 +69,7 @@ export default function CreatorActions({ task }: { task: Task }) {
         title: 'File Uploaded!',
         description: 'The output file has been linked to the task.',
       });
+      await notifyClientOfUpload('new output file');
       router.refresh();
     } catch (error) {
        toast({
@@ -70,6 +87,7 @@ export default function CreatorActions({ task }: { task: Task }) {
         title: 'File Uploaded!',
         description: 'The project file has been linked to the task.',
       });
+      await notifyClientOfUpload('new project file');
       router.refresh();
     } catch (error) {
        toast({

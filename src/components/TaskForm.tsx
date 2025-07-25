@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Task, Client, WorkStatus, PaymentStatus, Assignee } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { addTask, updateTask, getClients, getTasks, getAssignees, addAssignee } from '@/lib/firebase-service';
+import { addTask, updateTask, getClients, getTasks, getAssignees, addAssignee, createNotification } from '@/lib/firebase-service';
 import React, { useState } from 'react';
 import {
     Dialog,
@@ -161,6 +161,39 @@ export default function TaskForm({ task }: TaskFormProps) {
                 title: 'Task Updated!',
                 description: `Project "${values.projectName}" has been saved.`,
             });
+            
+            // Notify if assignee changed
+            if (taskData.assigneeId && taskData.assigneeId !== task.assigneeId) {
+                await createNotification({
+                    userId: taskData.assigneeId,
+                    message: `You have been assigned a new task: ${taskData.projectName}.`,
+                    link: `/creator/${taskData.assigneeId}/tasks/${task.id}`,
+                    isRead: false,
+                    createdAt: new Date().toISOString(),
+                });
+            }
+
+            // Notify client on file uploads
+            if (values.projectFileLink && values.projectFileLink !== task.projectFileLink) {
+                 await createNotification({
+                    userId: client.id,
+                    message: `A new project file was uploaded for: ${task.projectName}.`,
+                    link: `/client/${client.id}/projects/${task.id}`,
+                    isRead: false,
+                    createdAt: new Date().toISOString(),
+                });
+            }
+             if (values.outputFileLink && values.outputFileLink !== task.outputFileLink) {
+                 await createNotification({
+                    userId: client.id,
+                    message: `A new output file was uploaded for: ${task.projectName}.`,
+                    link: `/client/${client.id}/projects/${task.id}`,
+                    isRead: false,
+                    createdAt: new Date().toISOString(),
+                });
+            }
+
+
         } else {
             const newTaskData = {
                 ...finalValues,
@@ -173,11 +206,22 @@ export default function TaskForm({ task }: TaskFormProps) {
                 submissionDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
                 slNo: (await getTasks()).length + 1
             }
-            await addTask(newTaskData as Omit<Task, 'id'>);
+            const addedTask = await addTask(newTaskData as Omit<Task, 'id'>);
             toast({
                 title: 'Task Created!',
                 description: `Project "${values.projectName}" has been added.`,
             });
+            
+            // Notify if assigned on creation
+            if (addedTask && newTaskData.assigneeId) {
+                 await createNotification({
+                    userId: newTaskData.assigneeId,
+                    message: `You have been assigned a new task: ${newTaskData.projectName}.`,
+                    link: `/creator/${newTaskData.assigneeId}/tasks/${addedTask.id}`,
+                    isRead: false,
+                    createdAt: new Date().toISOString(),
+                });
+            }
         }
         router.push('/admin/tasks');
         router.refresh();
