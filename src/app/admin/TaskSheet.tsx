@@ -23,12 +23,19 @@ interface TaskSheetProps {
 }
 
 export default function TaskSheet({ task, isOpen, onClose }: TaskSheetProps) {
+  const titleId = `sheet-title-${task.id}`;
+  const descriptionId = `sheet-description-${task.id}`;
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-full max-w-none sm:max-w-[540px] p-0 flex flex-col">
+      <SheetContent
+        className="w-full max-w-none sm:max-w-[540px] p-0 flex flex-col"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+      >
         <SheetHeader className="p-6 pb-4">
-          <SheetTitle>{task.projectName}</SheetTitle>
-          <SheetDescription>
+          <SheetTitle id={titleId}>{task.projectName}</SheetTitle>
+          <SheetDescription id={descriptionId}>
             Detailed view of the task. Click edit to make changes.
           </SheetDescription>
         </SheetHeader>
@@ -49,4 +56,3 @@ export default function TaskSheet({ task, isOpen, onClose }: TaskSheetProps) {
     </Sheet>
   );
 }
-
