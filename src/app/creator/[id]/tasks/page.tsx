@@ -35,15 +35,11 @@ export default async function CreatorTasksPage({ params }: { params: { id: strin
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>All Your Assigned Tasks</CardTitle>
-            <CardDescription>An overview of all your tasks and their current status.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CreatorTasksTable tasks={creatorTasks} statusColors={statusColors} creatorId={creator.id} />
-          </CardContent>
-        </Card>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">All Your Assigned Tasks</h1>
+          <p className="text-muted-foreground">An overview of all your tasks and their current status.</p>
+        </div>
+        <CreatorTasksTable tasks={creatorTasks} statusColors={statusColors} creatorId={creator.id} />
       </div>
     </DashboardLayout>
   );

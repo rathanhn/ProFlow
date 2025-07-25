@@ -42,15 +42,11 @@ export default async function ClientProjectsPage({ params }: { params: { id: str
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>All Your Projects</CardTitle>
-            <CardDescription>An overview of all your projects and their current status.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ClientProjectsTable tasks={clientTasks} statusColors={statusColors} clientId={client.id} />
-          </CardContent>
-        </Card>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">All Your Projects</h1>
+          <p className="text-muted-foreground">An overview of all your projects and their current status.</p>
+        </div>
+        <ClientProjectsTable tasks={clientTasks} statusColors={statusColors} clientId={client.id} />
       </div>
     </DashboardLayout>
   );
