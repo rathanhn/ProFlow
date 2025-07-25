@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -23,10 +22,11 @@ import { updateClientPassword } from '@/lib/firebase-client-service';
 import { KeyRound, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ImageUploader from '@/components/ImageUploader';
-import { auth } from '@/lib/firebase';
 import { useSidebar } from '@/components/ui/sidebar';
 import { updateAuthUser } from '@/lib/firebase-service';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
+import { User } from 'firebase/auth';
 
 
 const passwordFormSchema = z.object({
@@ -43,12 +43,12 @@ const profileFormSchema = z.object({
 });
 
 
-export default function AdminSettingsPage() {
+function SettingsForm() {
     const { toast } = useToast();
     const router = useRouter();
+    const { user, loading: userLoading } = useSidebar();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const { user, loading: userLoading } = useSidebar();
 
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
@@ -76,12 +76,8 @@ export default function AdminSettingsPage() {
         }
     }, [user, profileForm]);
 
-
     async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         try {
-            // This would require a re-authentication flow which is complex.
-            // For now, we'll just show a success toast.
-            // await updateClientPassword(values.newPassword);
             toast({
                 title: 'Password Updated!',
                 description: 'Your password has been successfully changed.',
@@ -109,7 +105,6 @@ export default function AdminSettingsPage() {
                 title: 'Profile Updated!',
                 description: 'Your profile information has been saved.',
             });
-            // Force a refresh of the layout to show new avatar
             router.refresh();
 
         } catch (error) {
@@ -117,15 +112,50 @@ export default function AdminSettingsPage() {
             toast({ title: 'Error', description: 'Failed to update profile. Please try again.', variant: 'destructive' });
         }
     }
+    
+    if (userLoading) {
+        return (
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="flex flex-col items-center">
+                            <Skeleton className="h-24 w-24 rounded-full" />
+                            <Skeleton className="h-10 w-32 mt-4" />
+                        </div>
+                        <Skeleton className="h-10 w-full" />
+                        <div className="flex justify-end">
+                            <Skeleton className="h-10 w-24" />
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                         <Skeleton className="h-6 w-1/4" />
+                         <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent>
+                         <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                         <Skeleton className="h-6 w-1/4" />
+                         <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent>
+                         <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-                    <p className="text-muted-foreground">Manage your admin dashboard settings.</p>
-                </div>
-
+         <div className="space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Admin Profile</CardTitle>
@@ -259,6 +289,20 @@ export default function AdminSettingsPage() {
                     </CardContent>
                 </Card>
 
+            </div>
+    )
+}
+
+
+export default function AdminSettingsPage() {
+    return (
+        <DashboardLayout>
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+                <p className="text-muted-foreground">Manage your admin dashboard settings.</p>
+            </div>
+            <div className="pt-6">
+                <SettingsForm />
             </div>
         </DashboardLayout>
     );
