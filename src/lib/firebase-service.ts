@@ -16,6 +16,7 @@ export async function getClients(): Promise<Client[]> {
 }
 
 export async function getClient(id: string): Promise<Client | null> {
+    if (!id) return null;
     const clientDocRef = doc(db, 'clients', id);
     const clientSnap = await getDoc(clientDocRef);
     if (clientSnap.exists()) {
@@ -31,15 +32,17 @@ export async function addClient(client: Omit<Client, 'id'>) {
     if (!client.password) {
         throw new Error("Password is required to create a client.");
     }
+    // IMPORTANT: Use the main 'auth' instance for user creation on the server
     const userCredential = await createUserWithEmailAndPassword(auth, client.email, client.password);
     const uid = userCredential.user.uid;
 
     const { password, ...clientData } = client;
 
-    // Use setDoc with the UID as the document ID
+    // Use setDoc with the UID as the document ID to ensure they match
     await setDoc(doc(db, "clients", uid), clientData);
     revalidatePath('/admin/clients');
-    return uid;
+    // Return the new client object with the UID as the id
+    return { id: uid, ...clientData };
 }
 
 export async function updateClient(id: string, client: Partial<Omit<Client, 'id' | 'password'>>) {
