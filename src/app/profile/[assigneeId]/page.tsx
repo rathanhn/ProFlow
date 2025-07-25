@@ -1,20 +1,12 @@
 
-import { getAssignee, getTasksByAssigneeId, getClients } from '@/lib/firebase-service';
+import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MessageSquare, AlertTriangle, Briefcase } from 'lucide-react';
+import { Mail, Phone, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import ReportCreatorButton from './ReportCreatorButton';
 
 export default async function AssigneeProfilePage({ params }: { params: { assigneeId: string } }) {
@@ -26,13 +18,6 @@ export default async function AssigneeProfilePage({ params }: { params: { assign
     }
 
     const tasks = await getTasksByAssigneeId(assigneeId);
-
-    const handleContactOnWhatsApp = () => {
-        if (assignee && assignee.mobile) {
-            const whatsappUrl = `https://wa.me/${assignee.mobile.replace(/\D/g, '')}`;
-            window.open(whatsappUrl, '_blank');
-        }
-    };
     
     return (
         <DashboardLayout>

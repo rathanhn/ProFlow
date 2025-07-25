@@ -41,6 +41,8 @@ export interface Assignee {
     mobile?: string;
     description?: string;
     password?: string;
+    bio?: string;
+    profilePicture?: string;
 }
 
 export interface Notification {

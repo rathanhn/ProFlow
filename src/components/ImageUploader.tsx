@@ -9,15 +9,17 @@ import { getUploadSignature } from '@/lib/actions';
 import { Camera, Loader2 } from 'lucide-react';
 
 interface ImageUploaderProps {
-  value: string;
-  onChange: (value: string) => void;
+  value?: string; // Make value optional as it might not be initially available
+  onChange?: (value: string) => void; // Make onChange optional if it's not always needed
   fallbackText?: string;
+  onUploadComplete: (url: string) => Promise<void>; // Add the new prop
 }
 
 export default function ImageUploader({
   value,
   onChange,
   fallbackText = 'U',
+  onUploadComplete
 }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +53,10 @@ export default function ImageUploader({
 
       if (response.ok) {
         const data = await response.json();
-        onChange(data.secure_url);
+        // Use the new onUploadComplete prop instead of onChange
+        if (onUploadComplete) {
+            await onUploadComplete(data.secure_url);
+        }
         toast({
           title: 'Image Uploaded!',
           description: 'The profile picture has been updated.',
