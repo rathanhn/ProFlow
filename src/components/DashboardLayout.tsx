@@ -109,23 +109,39 @@ const UserProfile = () => {
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <DashboardContent>
+        {children}
+      </DashboardContent>
+    </SidebarProvider>
+  );
+}
+
+// Create a new component to consume the sidebar context
+const DashboardContent = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { loading } = useSidebar();
+  const { isCollapsed, user, loading } = useSidebar();
   
   React.useEffect(() => {
     const isAdminRoute = pathname.startsWith('/admin');
     const isClientRoute = pathname.startsWith('/client');
     const isCreatorRoute = pathname.startsWith('/creator');
 
+    // Choose the correct auth instance based on the current path
     const authInstance = isAdminRoute ? auth : clientAuth;
 
     const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-        if (!user && !loading) {
-            if (isAdminRoute) router.push('/admin/login');
-            else if (isClientRoute) router.push('/client-login');
-            else if (isCreatorRoute) router.push('/creator/login');
-        }
+      if (!user && !loading) {
+        if (isAdminRoute) router.push('/admin/login');
+        else if (isClientRoute) router.push('/client-login');
+        else if (isCreatorRoute) router.push('/creator/login');
+      }
     });
 
     return () => unsubscribe();
@@ -148,40 +164,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isClientSection = pathname.startsWith('/client');
   const isCreatorSection = pathname.startsWith('/creator');
   const id = (isClientSection || isCreatorSection) ? pathname.split('/')[2] : null;
-
-
-  return (
-    <SidebarProvider>
-      <DashboardContent
-        isAdminSection={isAdminSection}
-        isClientSection={isClientSection}
-        isCreatorSection={isCreatorSection}
-        id={id}
-        pathname={pathname}
-      >
-        {renderContent()}
-      </DashboardContent>
-    </SidebarProvider>
-  );
-}
-
-// Create a new component to consume the sidebar context
-const DashboardContent = ({
-  children,
-  isAdminSection,
-  isClientSection,
-  isCreatorSection,
-  id,
-  pathname,
-}: {
-  children: React.ReactNode;
-  isAdminSection: boolean;
-  isClientSection: boolean;
-  isCreatorSection: boolean;
-  id: string | null;
-  pathname: string;
-}) => {
-  const { isCollapsed, user } = useSidebar();
   
 
   return (
@@ -332,7 +314,7 @@ const DashboardContent = ({
         </SidebarFooter>
       </Sidebar>
       <div className={cn(
-        "flex flex-col flex-1 w-full lg:pl-64", 
+        "flex flex-col flex-1 w-full lg:pl-64 overflow-x-hidden", 
         isCollapsed && "lg:pl-16",
         "transition-all duration-300 ease-in-out"
       )}>
@@ -346,7 +328,7 @@ const DashboardContent = ({
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
           <div className="mx-auto max-w-7xl">
-            {children}
+            {renderContent()}
           </div>
         </main>
       </div>
