@@ -18,7 +18,7 @@ import AdminActions from './AdminActions';
 import TaskDetails from '@/components/TaskDetails';
 
 export default async function TaskDetailsPage({ params }: { params: { id: string } }) {
-  const id = params.id as string;
+  const id = params.id;
   const rawTask = await getTask(id);
 
   if (!rawTask) {
