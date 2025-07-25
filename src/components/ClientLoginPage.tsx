@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { User, Eye, EyeOff } from 'lucide-react';
 import { getClientByEmail } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, signOut } from 'firebase/auth';
 import { clientAuth } from '@/lib/firebase';
 
 export default function ClientLoginPage() {
@@ -35,25 +35,33 @@ export default function ClientLoginPage() {
         }
         
         try {
+            // Check if a client record exists for this email first.
+            const clientRecord = await getClientByEmail(email);
+
+            if (!clientRecord) {
+                 throw new Error("No client record found for this email.");
+            }
+
             // Use client-specific auth instance with session persistence
             await setPersistence(clientAuth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             
-            // On success, get client data and redirect
             // The UID from auth is the source of truth for the client ID.
             const clientId = userCredential.user.uid;
             
             toast({
                 title: 'Login Successful!',
-                description: `Welcome back!`,
+                description: `Welcome back, ${clientRecord.name}!`,
             });
             router.push(`/client/${clientId}`);
 
         } catch (error) {
             console.error("[ClientLoginPage] Login error:", error);
+            // Sign out to clear any partial session state
+            await signOut(clientAuth);
             toast({
                 title: 'Login Failed',
-                description: 'Invalid email or password. Please try again.',
+                description: 'Invalid credentials or this email does not belong to a registered client.',
                 variant: 'destructive',
             });
         } finally {

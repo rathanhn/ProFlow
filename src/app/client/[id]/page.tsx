@@ -22,13 +22,18 @@ import { Button } from '@/components/ui/button';
 
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
-  const clientId = params.id;
+  const { id: clientId } = await params;
+
+  if (!clientId) {
+    notFound();
+  }
+
   const rawClient = await getClient(clientId);
 
   if (!rawClient) {
     notFound();
   }
-  
+
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
   const rawClientTasks = await getTasksByClientId(clientId);
 
@@ -41,7 +46,7 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
   const totalSpent = clientTasks.reduce((acc, task) => acc + (task.amountPaid || 0), 0);
   const outstandingBalance = clientTasks.reduce((acc, task) => acc + ((task.total || 0) - (task.amountPaid || 0)), 0);
   const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
-  
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
