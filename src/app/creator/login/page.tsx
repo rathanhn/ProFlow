@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -39,25 +38,20 @@ export default function CreatorLoginPage() {
         }
         
         try {
-            // First, check if a creator record exists for this email. This acts as our role-based access control.
             const creatorRecord = await getAssigneeByEmail(email);
             if (!creatorRecord) {
                  throw new Error("This email does not belong to a registered creator.");
             }
 
-            // If the record exists, proceed with Firebase authentication.
             await setPersistence(clientAuth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             const user = userCredential.user;
 
-            // As a final security check, ensure the authenticated user's ID matches the one in our database.
             if (user.uid !== creatorRecord.id) {
-                 // This case should be rare, but it's a good safeguard.
                 await signOut(clientAuth);
                 throw new Error("Mismatched user ID. Please contact support.");
             }
             
-            // Check if this is the first sign-in to prompt for a password reset.
             const lastSignInTime = new Date(user.metadata.lastSignInTime || 0).getTime();
             const creationTime = new Date(user.metadata.creationTime || 0).getTime();
 
@@ -70,9 +64,16 @@ export default function CreatorLoginPage() {
 
         } catch (error: any) {
             console.error("[CreatorLoginPage] Login error:", error);
-            // Ensure user is signed out in case of partial failure
             await signOut(clientAuth).catch(() => {});
-            toast({ title: 'Login Failed', description: error.message || 'Invalid credentials or not a registered creator.', variant: 'destructive' });
+            
+            let description = 'An unknown error occurred. Please try again.';
+            if (error.code === 'auth/invalid-credential') {
+                description = 'Incorrect password. Please try again.';
+            } else if (error.message) {
+                description = error.message;
+            }
+
+            toast({ title: 'Login Failed', description, variant: 'destructive' });
         } finally {
             setIsLoading(false);
         }
@@ -187,4 +188,3 @@ export default function CreatorLoginPage() {
     </AlertDialog>
     </>
   );
-}
