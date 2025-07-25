@@ -29,7 +29,7 @@ const newAssigneeSchema = z.object({
     password: z.string().min(6, 'Password must be at least 6 characters.'),
     mobile: z.string().optional(),
     description: z.string().optional(),
-    avatar: z.string().url().optional(),
+    avatar: z.string().url().or(z.literal('')).optional(),
 });
 
 export default function AddTeamMemberForm() {
@@ -40,26 +40,27 @@ export default function AddTeamMemberForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [mobile, setMobile] = useState('');
     const [description, setDescription] = useState('');
-    const [avatar, setAvatar] = useState('https://placehold.co/128x128.png');
+    const [avatar, setAvatar] = useState('');
     const { toast } = useToast();
     const router = useRouter();
 
     const handleAddMember = async () => {
         try {
-            const validation = newAssigneeSchema.safeParse({ name, email, password, mobile, avatar, description });
+            const finalAvatar = avatar || `https://placehold.co/128x128.png?text=${name.charAt(0)}`;
+            const validation = newAssigneeSchema.safeParse({ name, email, password, mobile, avatar: finalAvatar, description });
             if (!validation.success) {
                 toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
                 return;
             }
 
-            await addAssignee({ name, email, password, mobile, avatar, description });
+            await addAssignee({ name, email, password, mobile, avatar: finalAvatar, description });
             toast({ title: "Creator Added", description: `${name} has been added.` });
             setName('');
             setEmail('');
             setPassword('');
             setMobile('');
             setDescription('');
-            setAvatar('https://placehold.co/128x128.png');
+            setAvatar('');
             setIsOpen(false);
             router.refresh();
         } catch (error) {

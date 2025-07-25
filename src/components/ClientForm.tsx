@@ -26,7 +26,7 @@ import ImageUploader from './ImageUploader';
 const baseSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
-  avatar: z.string().url('Avatar must be a valid URL.'),
+  avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
 });
 
 const createFormSchema = baseSchema.extend({
@@ -58,20 +58,25 @@ export default function ClientForm({ client }: ClientFormProps) {
       email: client?.email || '',
       password: '',
       confirmPassword: '',
-      avatar: client?.avatar || `https://placehold.co/128x128.png`,
+      avatar: client?.avatar || '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof currentSchema>) {
     try {
+        const finalValues = {
+            ...values,
+            avatar: values.avatar || `https://placehold.co/128x128.png?text=${values.name.charAt(0)}`
+        };
+
         if (client) {
-            await updateClient(client.id, values);
+            await updateClient(client.id, finalValues);
             toast({
                 title: 'Client Updated!',
                 description: `Client "${values.name}" has been saved.`,
             });
         } else {
-            await addClient(values as Omit<Client, 'id'>);
+            await addClient(finalValues as Omit<Client, 'id'>);
             toast({
                 title: 'Client Created!',
                 description: `Client "${values.name}" has been added.`,

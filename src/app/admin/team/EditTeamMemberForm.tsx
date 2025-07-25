@@ -27,7 +27,7 @@ const editAssigneeSchema = z.object({
     email: z.string().email("Please enter a valid email.").optional().or(z.literal('')),
     mobile: z.string().optional(),
     description: z.string().optional(),
-    avatar: z.string().url().optional(),
+    avatar: z.string().url().or(z.literal('')).optional(),
 });
 
 interface EditTeamMemberFormProps {
@@ -41,7 +41,7 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [description, setDescription] = useState('');
-    const [avatar, setAvatar] = useState('https://placehold.co/128x128.png');
+    const [avatar, setAvatar] = useState('');
     const { toast } = useToast();
     const router = useRouter();
 
@@ -51,19 +51,20 @@ export default function EditTeamMemberForm({ assignee, isOpen, onClose }: EditTe
             setEmail(assignee.email || '');
             setMobile(assignee.mobile || '');
             setDescription(assignee.description || '');
-            setAvatar(assignee.avatar || 'https://placehold.co/128x128.png');
+            setAvatar(assignee.avatar || '');
         }
     }, [assignee]);
 
     const handleUpdateMember = async () => {
         try {
-            const validation = editAssigneeSchema.safeParse({ name, email, mobile, avatar, description });
+            const finalAvatar = avatar || `https://placehold.co/128x128.png?text=${name.charAt(0)}`;
+            const validation = editAssigneeSchema.safeParse({ name, email, mobile, avatar: finalAvatar, description });
             if (!validation.success) {
                 toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
                 return;
             }
 
-            await updateAssignee(assignee.id, { name, email, mobile, avatar, description });
+            await updateAssignee(assignee.id, { name, email, mobile, avatar: finalAvatar, description });
             toast({ title: "Creator Updated", description: `${name}'s details have been updated.` });
             onClose();
             router.refresh();

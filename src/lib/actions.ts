@@ -30,3 +30,49 @@ export async function getUploadSignature({ folder }: { folder?: string } = {}) {
 
   return { timestamp, signature, folder };
 }
+
+
+function getPublicIdFromUrl(url: string): string | null {
+    try {
+        const urlParts = url.split('/');
+        const cloudNameIndex = urlParts.indexOf(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!);
+        if (cloudNameIndex === -1 || cloudNameIndex + 3 >= urlParts.length) {
+            return null; // Not a valid Cloudinary URL structure
+        }
+        // The public_id is everything after "upload", "v<version>"
+        const publicIdWithFormat = urlParts.slice(cloudNameIndex + 4).join('/');
+        const publicId = publicIdWithFormat.substring(0, publicIdWithFormat.lastIndexOf('.'));
+        return publicId;
+    } catch (e) {
+        console.error("Failed to parse public ID from URL", e);
+        return null;
+    }
+}
+
+export async function deleteFileByUrl(url: string) {
+    const publicId = getPublicIdFromUrl(url);
+
+    if (!publicId) {
+        throw new Error('Could not determine public_id from URL.');
+    }
+    
+    // Determine resource type based on URL
+    const isImage = /\/image\/upload/.test(url);
+    const resourceType = isImage ? 'image' : 'raw';
+
+    try {
+        const result = await cloudinary.uploader.destroy(publicId, {
+            resource_type: resourceType,
+        });
+        
+        if (result.result !== 'ok') {
+            throw new Error(result.result);
+        }
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Failed to delete from Cloudinary:", error);
+        throw new Error('Could not delete file from Cloudinary.');
+    }
+}
