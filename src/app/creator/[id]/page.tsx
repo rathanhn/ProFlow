@@ -13,7 +13,9 @@ import {
 import {
     ListChecks,
     ArrowRight,
-    CheckCircle2
+    CheckCircle2,
+    DollarSign,
+    Clock
 } from 'lucide-react';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import { Assignee, Task } from '@/lib/types';
@@ -38,6 +40,16 @@ export default async function CreatorDashboardPage({ params }: { params: { id: s
 
   const projectsInProgress = creatorTasks.filter(t => t.workStatus === 'In Progress').length;
   const completedProjects = creatorTasks.filter(t => t.workStatus === 'Completed').length;
+  
+  const totalEarnings = creatorTasks
+    .filter(task => task.paymentStatus === 'Paid')
+    .reduce((acc, task) => acc + (task.total || 0), 0);
+
+  const upcomingDeadlines = creatorTasks
+    .filter(task => task.workStatus !== 'Completed')
+    .sort((a, b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime())
+    .slice(0, 5);
+
 
   return (
     <DashboardLayout>
@@ -53,7 +65,17 @@ export default async function CreatorDashboardPage({ params }: { params: { id: s
             </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">₹{totalEarnings.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">From all paid projects</p>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Projects in Progress</CardTitle>
@@ -78,24 +100,28 @@ export default async function CreatorDashboardPage({ params }: { params: { id: s
         
         <Card>
           <CardHeader>
-            <CardTitle>Your Assigned Tasks</CardTitle>
-            <CardDescription>A brief look at your most recent assigned tasks.</CardDescription>
+            <CardTitle>Upcoming Deadlines</CardTitle>
+            <CardDescription>Your next set of tasks to focus on.</CardDescription>
           </CardHeader>
           <CardContent>
              <div className="space-y-4">
-                {creatorTasks.slice(0, 5).map(task => (
+                {upcomingDeadlines.length > 0 ? upcomingDeadlines.map(task => (
                     <div key={task.id} className="flex justify-between items-center">
                         <div>
                             <p className="font-medium">{task.projectName}</p>
-                            <p className="text-sm text-muted-foreground">Client: {task.clientName} | Status: {task.workStatus}</p>
+                            <p className="text-sm text-muted-foreground">Client: {task.clientName}</p>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href={`/creator/${creator.id}/tasks/${task.id}`}>
-                                View
-                            </Link>
-                        </Button>
+                        <div className="text-right">
+                           <p className="text-sm font-semibold flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                {new Date(task.submissionDate).toLocaleDateString()}
+                           </p>
+                           <p className="text-xs text-muted-foreground">{task.workStatus}</p>
+                        </div>
                     </div>
-                ))}
+                )) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">No upcoming deadlines. Great work!</p>
+                )}
             </div>
              <div className="mt-4 pt-4 border-t">
                 <Button variant="secondary" className="w-full" asChild>

@@ -17,7 +17,8 @@ import {
     Users,
     BellRing,
     ArrowRight,
-    MessageSquareWarning
+    MessageSquareWarning,
+    Clock
 } from 'lucide-react';
 import { getTasks, getClients, getAdminNotifications } from '@/lib/firebase-service';
 import EarningsChart from '@/components/EarningsChart';
@@ -45,6 +46,11 @@ export default async function AdminDashboardPage() {
   const paidButNotCompletedTasks = tasks.filter(
     (task) => task.paymentStatus === 'Paid' && task.workStatus !== 'Completed'
   );
+  
+  const upcomingDeadlines = tasks
+    .filter(task => task.workStatus !== 'Completed')
+    .sort((a, b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime())
+    .slice(0, 5);
 
   return (
     <DashboardLayout>
@@ -157,24 +163,28 @@ export default async function AdminDashboardPage() {
 
          <Card>
             <CardHeader>
-                <CardTitle>Recent Tasks</CardTitle>
-                <CardDescription>A brief look at the most recent projects.</CardDescription>
+                <CardTitle>Upcoming Deadlines</CardTitle>
+                <CardDescription>These projects are next on the timeline.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {tasks.slice(0, 5).map(task => (
+                    {upcomingDeadlines.length > 0 ? upcomingDeadlines.map(task => (
                         <div key={task.id} className="flex justify-between items-center">
                             <div>
                                 <p className="font-medium">{task.projectName}</p>
                                 <p className="text-sm text-muted-foreground">{task.clientName}</p>
                             </div>
-                            <Button variant="outline" size="sm" asChild>
-                                <Link href={`/admin/tasks/${task.id}`}>
-                                    View
-                                </Link>
-                            </Button>
+                            <div className="text-right">
+                               <p className="text-sm font-semibold flex items-center gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    {new Date(task.submissionDate).toLocaleDateString()}
+                               </p>
+                               <p className="text-xs text-muted-foreground">{task.workStatus}</p>
+                            </div>
                         </div>
-                    ))}
+                    )) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">No upcoming deadlines. All projects are completed!</p>
+                    )}
                 </div>
                  <div className="mt-4 pt-4 border-t">
                     <Button variant="secondary" className="w-full" asChild>
