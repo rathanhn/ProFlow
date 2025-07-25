@@ -22,14 +22,18 @@ import { Button } from '@/components/ui/button';
 
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
-  const rawClient = await getClient(params.id);
+  const clientId = params.id;
+  console.log(`[ClientDashboardPage] Rendering for client ID: ${clientId}`);
+
+  const rawClient = await getClient(clientId);
 
   if (!rawClient) {
+    console.error(`[ClientDashboardPage] Client not found for ID: ${clientId}. Triggering 404.`);
     notFound();
   }
   
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-  const rawClientTasks = await getTasksByClientId(params.id);
+  const rawClientTasks = await getTasksByClientId(clientId);
 
   const clientTasks = rawClientTasks.map(task => ({
     ...JSON.parse(JSON.stringify(task)),

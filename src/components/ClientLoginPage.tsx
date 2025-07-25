@@ -24,6 +24,7 @@ export default function ClientLoginPage() {
 
     const handleLogin = async () => {
         setIsLoading(true);
+        console.log(`[ClientLoginPage] Attempting login for email: ${email}`);
         if (!email || !password) {
             toast({
                 title: 'Login Failed',
@@ -39,16 +40,18 @@ export default function ClientLoginPage() {
             await setPersistence(clientAuth, browserSessionPersistence);
             await signInWithEmailAndPassword(clientAuth, email, password);
             
+            console.log(`[ClientLoginPage] Firebase auth successful. Fetching client data...`);
             // On success, get client data and redirect
             const client = await getClientByEmail(email);
             if (client) {
-                console.log(`Login successful for client ID: ${client.id}. Redirecting...`);
+                console.log(`[ClientLoginPage] Found client data for ID: ${client.id}. Redirecting to /client/${client.id}`);
                 toast({
                     title: 'Login Successful!',
                     description: `Welcome back, ${client.name}.`,
                 });
                 router.push(`/client/${client.id}`);
             } else {
+                 console.error(`[ClientLoginPage] CRITICAL: Auth successful but getClientByEmail returned null for ${email}`);
                  toast({
                     title: 'Login Failed',
                     description: 'Could not find client data after login.',
@@ -56,7 +59,7 @@ export default function ClientLoginPage() {
                 });
             }
         } catch (error) {
-            console.error("Login error:", error);
+            console.error("[ClientLoginPage] Login error:", error);
             toast({
                 title: 'Login Failed',
                 description: 'Invalid email or password. Please try again.',
