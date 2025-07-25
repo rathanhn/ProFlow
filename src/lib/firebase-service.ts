@@ -16,13 +16,16 @@ export async function getClients(): Promise<Client[]> {
 }
 
 export async function getClient(id: string): Promise<Client | null> {
+    console.log(`[firebase-service] getClient called with ID: ${id}`);
     const clientDocRef = doc(db, 'clients', id);
     const clientSnap = await getDoc(clientDocRef);
     if (clientSnap.exists()) {
         const clientData = clientSnap.data();
+        console.log(`[firebase-service] getClient found document for ID: ${id}`);
         // Ensure data is serializable
         return JSON.parse(JSON.stringify({ id: clientSnap.id, ...clientData })) as Client;
     } else {
+        console.error(`[firebase-service] getClient did NOT find document for ID: ${id}`);
         return null;
     }
 }
@@ -57,12 +60,15 @@ export async function deleteClient(id: string) {
 }
 
 export async function getClientByEmail(email: string): Promise<Client | null> {
+    console.log(`[firebase-service] getClientByEmail called with email: ${email}`);
     const q = query(collection(db, "clients"), where("email", "==", email));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
+        console.log(`[firebase-service] getClientByEmail found document for email: ${email}`);
         return { id: doc.id, ...doc.data() } as Client;
     }
+    console.error(`[firebase-service] getClientByEmail did NOT find document for email: ${email}`);
     return null;
 }
 
@@ -85,6 +91,7 @@ export async function getTasks(): Promise<Task[]> {
 }
 
 export async function getTasksByClientId(clientId: string): Promise<Task[]> {
+    console.log(`[firebase-service] getTasksByClientId called with ID: ${clientId}`);
     const q = query(collection(db, "tasks"), where("clientId", "==", clientId));
     const taskSnapshot = await getDocs(q);
     const taskList = taskSnapshot.docs.map(doc => {
@@ -96,6 +103,7 @@ export async function getTasksByClientId(clientId: string): Promise<Task[]> {
             submissionDate: new Date(data.submissionDate).toISOString(),
         } as Task;
     });
+    console.log(`[firebase-service] getTasksByClientId found ${taskList.length} tasks for ID: ${clientId}`);
     return taskList;
 }
 
