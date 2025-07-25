@@ -343,8 +343,10 @@ const DashboardContent = ({
         </SidebarFooter>
       </Sidebar>
       <div
-        className="flex-1 transition-all duration-300 ease-in-out"
-        style={{ marginLeft: isCollapsed ? '4rem' : '16rem' }}
+        className={cn(
+            "flex-1 transition-all duration-300 ease-in-out",
+            isCollapsed ? "lg:ml-16" : "lg:ml-64"
+        )}
       >
         <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-30">
             <div className="flex items-center">
