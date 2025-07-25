@@ -65,11 +65,18 @@ export default function CreatorActions({ task }: { task: Task }) {
   const handleOutputFileUpload = async (url: string) => {
      try {
       await updateTask(task.id, { outputFileLink: url });
-      toast({
-        title: 'File Uploaded!',
-        description: 'The output file has been linked to the task.',
-      });
-      await notifyClientOfUpload('new output file');
+      if (url) {
+        toast({
+            title: 'File Uploaded!',
+            description: 'The output file has been linked to the task.',
+        });
+        await notifyClientOfUpload('new output file');
+      } else {
+        toast({
+            title: 'File Removed',
+            description: 'The output file has been removed from the task.',
+        });
+      }
       router.refresh();
     } catch (error) {
        toast({
@@ -83,11 +90,18 @@ export default function CreatorActions({ task }: { task: Task }) {
   const handleProjectFileUpload = async (url: string) => {
      try {
       await updateTask(task.id, { projectFileLink: url });
-      toast({
-        title: 'File Uploaded!',
-        description: 'The project file has been linked to the task.',
-      });
-      await notifyClientOfUpload('new project file');
+       if (url) {
+            toast({
+                title: 'File Uploaded!',
+                description: 'The project file has been linked to the task.',
+            });
+            await notifyClientOfUpload('new project file');
+       } else {
+            toast({
+                title: 'File Removed',
+                description: 'The project file has been removed from the task.',
+            });
+       }
       router.refresh();
     } catch (error) {
        toast({
