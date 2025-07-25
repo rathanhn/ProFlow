@@ -20,7 +20,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <p>Please select your login portal:</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="flex flex-col gap-4">
                     <Button asChild className="w-full">
                         <Link href="/admin/login">
                            <User className="mr-2 h-4 w-4" /> Admin Login
