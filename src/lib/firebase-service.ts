@@ -8,6 +8,18 @@ import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
+// This is a placeholder for a server-side admin function to delete a user.
+// In a real application, this would use the Firebase Admin SDK.
+// Since we don't have the Admin SDK initialized, we'll log the action.
+async function deleteAuthUser(uid: string) {
+    console.log(`[Auth Deletion] An admin SDK would be required to delete user ${uid}. This is a simulated action.`);
+    // Example with Admin SDK:
+    // import { getAuth } from 'firebase-admin/auth';
+    // await getAuth().deleteUser(uid);
+    return;
+}
+
+
 // Client Functions
 export async function getClients(): Promise<Client[]> {
     const clientsCol = collection(db, 'clients');
@@ -65,10 +77,39 @@ export async function updateClient(id: string, client: Partial<Omit<Client, 'id'
 }
 
 export async function deleteClient(id: string) {
+    const batch = writeBatch(db);
+
+    // 1. Delete client document
     const clientDocRef = doc(db, 'clients', id);
-    await deleteDoc(clientDocRef);
-    // Note: This does not delete the user from Firebase Auth.
+    batch.delete(clientDocRef);
+
+    // 2. Find and delete associated tasks
+    const tasksQuery = query(collection(db, 'tasks'), where('clientId', '==', id));
+    const tasksSnapshot = await getDocs(tasksQuery);
+    tasksSnapshot.forEach(doc => batch.delete(doc.ref));
+
+    // 3. Find and delete associated transactions
+    const transactionsQuery = query(collection(db, 'transactions'), where('clientId', '==', id));
+    const transactionsSnapshot = await getDocs(transactionsQuery);
+    transactionsSnapshot.forEach(doc => batch.delete(doc.ref));
+    
+    // 4. Find and delete associated notifications
+    const notificationsQuery = query(collection(db, 'notifications'), where('userId', '==', id));
+    const notificationsSnapshot = await getDocs(notificationsQuery);
+    notificationsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+    // 5. Commit all Firestore deletions
+    await batch.commit();
+
+    // 6. Delete Firebase Auth user
+    // This requires the Admin SDK and cannot be done securely from the client-side SDK.
+    // We are simulating this action. In a production environment, you would use a Cloud Function
+    // triggered by the document deletion or an admin backend.
+    await deleteAuthUser(id);
+    
     revalidatePath('/admin/clients');
+    revalidatePath('/admin/tasks');
+    revalidatePath('/admin/transactions');
 }
 
 export async function getClientByEmail(email: string): Promise<Client | null> {
@@ -232,10 +273,37 @@ export async function deleteTask(id: string) {
 
 
 export async function deleteAssignee(id: string) {
+    const batch = writeBatch(db);
+
+    // 1. Delete assignee document
     const assigneeDocRef = doc(db, 'assignees', id);
-    await deleteDoc(assigneeDocRef);
+    batch.delete(assigneeDocRef);
+
+    // 2. Find all tasks assigned to the creator and un-assign them
+    const tasksQuery = query(collection(db, 'tasks'), where('assigneeId', '==', id));
+    const tasksSnapshot = await getDocs(tasksQuery);
+    tasksSnapshot.forEach(doc => {
+        batch.update(doc.ref, {
+            assigneeId: '',
+            assigneeName: ''
+        });
+    });
+
+    // 3. Find and delete associated notifications
+    const notificationsQuery = query(collection(db, 'notifications'), where('userId', '==', id));
+    const notificationsSnapshot = await getDocs(notificationsQuery);
+    notificationsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+    // 4. Commit all Firestore changes
+    await batch.commit();
+
+    // 5. Delete Firebase Auth user
+    await deleteAuthUser(id);
+
     revalidatePath('/admin/team');
+    revalidatePath('/admin/tasks');
 }
+
 
 // Notification Functions
 export async function createNotification(notification: Omit<Notification, 'id'>) {
