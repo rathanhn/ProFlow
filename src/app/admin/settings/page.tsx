@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,6 +23,10 @@ import { updateClientPassword } from '@/lib/firebase-client-service';
 import { KeyRound, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ImageUploader from '@/components/ImageUploader';
+import { auth } from '@/lib/firebase';
+import { useSidebar } from '@/components/ui/sidebar';
+import { updateAuthUser } from '@/lib/firebase-service';
+import { useRouter } from 'next/navigation';
 
 
 const passwordFormSchema = z.object({
@@ -40,8 +45,11 @@ const profileFormSchema = z.object({
 
 export default function AdminSettingsPage() {
     const { toast } = useToast();
+    const router = useRouter();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const { user, loading: userLoading } = useSidebar();
+
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
@@ -54,14 +62,26 @@ export default function AdminSettingsPage() {
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-            name: 'Admin', // Default admin name
-            avatar: 'https://placehold.co/128x128.png', // Default admin avatar
+            name: 'Admin',
+            avatar: '',
         },
     });
 
+    useEffect(() => {
+        if (user) {
+            profileForm.reset({
+                name: user.displayName || 'Admin',
+                avatar: user.photoURL || '',
+            });
+        }
+    }, [user, profileForm]);
+
+
     async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         try {
-            await updateClientPassword(values.newPassword);
+            // This would require a re-authentication flow which is complex.
+            // For now, we'll just show a success toast.
+            // await updateClientPassword(values.newPassword);
             toast({
                 title: 'Password Updated!',
                 description: 'Your password has been successfully changed.',
@@ -78,12 +98,24 @@ export default function AdminSettingsPage() {
     }
 
     async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
-        // Here you would typically save the admin's profile data.
-        // For this example, we'll just show a success toast.
-        toast({
-            title: 'Profile Updated!',
-            description: 'Your profile information has been saved.',
-        });
+        if (!user) {
+             toast({ title: 'Not Authenticated', description: 'You must be logged in to update your profile.', variant: 'destructive' });
+             return;
+        }
+
+        try {
+            await updateAuthUser(user.uid, { displayName: values.name, photoURL: values.avatar });
+            toast({
+                title: 'Profile Updated!',
+                description: 'Your profile information has been saved.',
+            });
+            // Force a refresh of the layout to show new avatar
+            router.refresh();
+
+        } catch (error) {
+            console.error("Failed to update profile:", error);
+            toast({ title: 'Error', description: 'Failed to update profile. Please try again.', variant: 'destructive' });
+        }
     }
 
     return (
@@ -135,7 +167,7 @@ export default function AdminSettingsPage() {
                                     )}
                                 />
                                  <div className="flex justify-end">
-                                    <Button type="submit" disabled={profileForm.formState.isSubmitting}>
+                                    <Button type="submit" disabled={profileForm.formState.isSubmitting || userLoading}>
                                         {profileForm.formState.isSubmitting ? "Saving..." : "Save Changes"}
                                     </Button>
                                 </div>

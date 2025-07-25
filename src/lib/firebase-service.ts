@@ -1,13 +1,14 @@
 
 
 
+
 'use server';
 
 import { auth, db, createSecondaryAuth } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction } from 'firebase/firestore';
 import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from './types';
 import { revalidatePath } from 'next/cache';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 
 // This is a placeholder for a server-side admin function to delete a user.
 // In a real application, this would use the Firebase Admin SDK.
@@ -18,6 +19,25 @@ async function deleteAuthUser(uid: string) {
     // import { getAuth } from 'firebase-admin/auth';
     // await getAuth().deleteUser(uid);
     return;
+}
+
+// In a real app, this would use the Firebase Admin SDK to update a user by UID.
+// We are simulating this by updating the current user if the UID matches.
+// This is not secure for a multi-user admin scenario but works for this single-admin setup.
+export async function updateAuthUser(uid: string, data: { displayName?: string, photoURL?: string }) {
+     console.log(`[Auth Update] An admin SDK would be required to securely update user ${uid}. This is a simulated action for the current user.`);
+     // This part is tricky without an admin SDK. We will assume for the admin role,
+     // we can update the currently signed-in user if the UID matches.
+     const currentUser = auth.currentUser;
+     if (currentUser && currentUser.uid === uid) {
+        try {
+            await updateProfile(currentUser, data);
+        } catch (error) {
+            console.error("Failed to update auth profile for current admin:", error);
+            throw new Error("Could not update admin auth profile.");
+        }
+     }
+     // For clients/creators, this would ideally be a Cloud Function triggered by a Firestore update.
 }
 
 
@@ -56,6 +76,12 @@ export async function addClient(client: Omit<Client, 'id' | 'password'>) {
     try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, tempPassword);
         const uid = userCredential.user.uid;
+
+        await updateProfile(userCredential.user, {
+            displayName: clientData.name,
+            photoURL: clientData.avatar
+        });
+
         await setDoc(doc(db, "clients", uid), {email, ...clientData});
         
         // Send password reset email to allow user to set their own password
@@ -76,8 +102,19 @@ export async function addClient(client: Omit<Client, 'id' | 'password'>) {
 export async function updateClient(id: string, client: Partial<Omit<Client, 'id' | 'password'>>) {
     const clientDocRef = doc(db, 'clients', id);
     await updateDoc(clientDocRef, client);
+
+    // This is a placeholder for updating the auth user. In a real app, use Admin SDK.
+    const updateData: { displayName?: string, photoURL?: string } = {};
+    if (client.name) updateData.displayName = client.name;
+    if (client.avatar) updateData.photoURL = client.avatar;
+
+    if (Object.keys(updateData).length > 0) {
+       await updateAuthUser(id, updateData);
+    }
+    
     revalidatePath('/admin/clients');
     revalidatePath(`/admin/clients/${id}/edit`);
+    revalidatePath(`/client/${id}/settings`);
 }
 
 export async function deleteClient(id: string) {
@@ -251,6 +288,12 @@ export async function addAssignee(assignee: Omit<Assignee, 'id' | 'password'>): 
     try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, tempPassword);
         const uid = userCredential.user.uid;
+
+        await updateProfile(userCredential.user, {
+            displayName: assigneeData.name,
+            photoURL: assigneeData.avatar
+        });
+        
         await setDoc(doc(db, "assignees", uid), { email, ...assigneeData });
         
         // Send password reset email to allow user to set their own password
@@ -273,6 +316,16 @@ export async function addAssignee(assignee: Omit<Assignee, 'id' | 'password'>): 
 export async function updateAssignee(id: string, assignee: Partial<Omit<Assignee, 'id'>>) {
     const assigneeDocRef = doc(db, 'assignees', id);
     await updateDoc(assigneeDocRef, assignee);
+    
+    // This is a placeholder for updating the auth user. In a real app, use Admin SDK.
+    const updateData: { displayName?: string, photoURL?: string } = {};
+    if (assignee.name) updateData.displayName = assignee.name;
+    if (assignee.avatar) updateData.photoURL = assignee.avatar;
+
+    if (Object.keys(updateData).length > 0) {
+       await updateAuthUser(id, updateData);
+    }
+
     revalidatePath('/admin/team');
 }
 

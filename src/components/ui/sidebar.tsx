@@ -1,12 +1,16 @@
 
+
 "use client"
 
 import * as React from "react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Slot } from "@radix-ui/react-slot"
+import { auth, clientAuth } from "@/lib/firebase"
+import { onAuthStateChanged, User } from "firebase/auth"
+import { usePathname } from "next/navigation"
 
 
 interface SidebarContextProps {
@@ -14,16 +18,31 @@ interface SidebarContextProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
   isCollapsed: boolean;
   setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  user: User | null;
+  loading: boolean;
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | undefined>(undefined)
 
 export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false)
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    // Determine which auth instance to use based on the route
+    const currentAuth = pathname.startsWith('/admin') ? auth : clientAuth;
+    const unsubscribe = onAuthStateChanged(currentAuth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [pathname]);
 
   return (
-    <SidebarContext.Provider value={{ isOpen, setIsOpen, isCollapsed, setIsCollapsed }}>
+    <SidebarContext.Provider value={{ isOpen, setIsOpen, isCollapsed, setIsCollapsed, user, loading }}>
       {children}
     </SidebarContext.Provider>
   )
@@ -54,8 +73,14 @@ export const Sidebar = ({ children, className }: { children: React.ReactNode, cl
       {/* Mobile Sidebar */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="left" className={cn("w-64 p-0 flex flex-col", className)}>
-            <SheetHeader className="sr-only">
-                <SheetTitle>Navigation Menu</SheetTitle>
+            <SheetHeader className="p-4 border-b flex flex-row items-center justify-between h-16 shrink-0">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                 <SheetClose asChild>
+                    <Button variant="ghost" size="icon">
+                        <X className="h-6 w-6" />
+                        <span className="sr-only">Close sidebar</span>
+                    </Button>
+                </SheetClose>
             </SheetHeader>
           {children}
         </SheetContent>
@@ -78,7 +103,13 @@ export const SidebarHeader = React.forwardRef<
             <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
                 {children}
             </div>
-            <SidebarCollapseButton />
+             <div className={cn(isCollapsed && 'hidden')}>
+                 <SidebarCollapseButton />
+             </div>
+             <div className={cn(!isCollapsed && 'hidden')}>
+                  <SidebarCollapseButton />
+             </div>
+
         </div>
     )
 })

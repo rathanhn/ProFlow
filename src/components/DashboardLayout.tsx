@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
@@ -23,47 +24,47 @@ import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
 import NotificationBell from './NotificationBell';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 
 const UserProfile = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { isCollapsed } = useSidebar();
-  const [user, setUser] = React.useState<User | null>(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    // Determine which auth instance to use based on the route
-    const currentAuth = pathname.startsWith('/admin') ? auth : clientAuth;
-    const unsubscribe = onAuthStateChanged(currentAuth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [pathname]);
+  const { toast } = useToast();
+  const { isCollapsed, user, loading } = useSidebar();
 
   const handleLogout = async () => {
-    if (pathname.startsWith('/admin')) {
-      await signOut(auth);
-      router.push('/admin/login');
-    } else {
-      await signOut(clientAuth);
-      if (pathname.startsWith('/client')) {
-        router.push('/client-login');
-      } else if (pathname.startsWith('/creator')) {
-        router.push('/creator/login');
-      } else {
-        router.push('/');
-      }
+     const currentAuth = pathname.startsWith('/admin') ? auth : clientAuth;
+    try {
+        await signOut(currentAuth);
+        toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
+        if (pathname.startsWith('/admin')) {
+            router.push('/admin/login');
+        } else if (pathname.startsWith('/client')) {
+            router.push('/client-login');
+        } else if (pathname.startsWith('/creator')) {
+            router.push('/creator/login');
+        } else {
+            router.push('/');
+        }
+    } catch (error) {
+        toast({ title: 'Logout Failed', description: 'Could not log you out. Please try again.', variant: 'destructive' });
     }
   };
 
   const getAvatarFallback = () => {
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
+    if (user?.email) return user.email.charAt(0).toUpperCase();
+    if (user?.displayName) return user.displayName.charAt(0).toUpperCase();
     return 'U';
   };
+  
+  const getDisplayName = () => {
+    if (user?.displayName) return user.displayName;
+    if (pathname.startsWith('/admin')) return 'Admin';
+    if (pathname.startsWith('/creator')) return 'Creator';
+    return user?.email || 'User';
+  }
+
 
   if (loading) {
     return (
@@ -80,15 +81,10 @@ const UserProfile = () => {
   }
 
   if (user) {
-    const getDisplayName = () => {
-        if (pathname.startsWith('/admin')) return 'Admin';
-        if (pathname.startsWith('/creator')) return 'Creator';
-        return user.displayName || 'Client';
-    }
     return (
       <div className="flex items-center gap-3">
         <Avatar>
-          <AvatarImage src={user.photoURL || `https://placehold.co/40x40.png`} alt="User avatar" />
+          <AvatarImage src={user.photoURL || undefined} alt="User avatar" />
           <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
         </Avatar>
         {!isCollapsed && (
@@ -115,7 +111,7 @@ const UserProfile = () => {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [loading, setLoading] = React.useState(true);
+  const { loading } = useSidebar();
   
   React.useEffect(() => {
     const isAdminRoute = pathname.startsWith('/admin');
@@ -125,8 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const authInstance = isAdminRoute ? auth : clientAuth;
 
     const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-        setLoading(false);
-        if (!user) {
+        if (!user && !loading) {
             if (isAdminRoute) router.push('/admin/login');
             else if (isClientRoute) router.push('/client-login');
             else if (isCreatorRoute) router.push('/creator/login');
@@ -134,7 +129,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
 
     return () => unsubscribe();
-  }, [pathname, router]);
+  }, [pathname, router, loading]);
 
   const renderContent = () => {
     if (loading) {
@@ -186,14 +181,7 @@ const DashboardContent = ({
   id: string | null;
   pathname: string;
 }) => {
-  const { isCollapsed } = useSidebar();
-  const [user, setUser] = React.useState<User | null>(null);
-
-  React.useEffect(() => {
-    const authInstance = isAdminSection ? auth : clientAuth;
-    const unsubscribe = onAuthStateChanged(authInstance, setUser);
-    return () => unsubscribe();
-  }, [isAdminSection]);
+  const { isCollapsed, user } = useSidebar();
   
 
   return (
