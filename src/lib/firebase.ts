@@ -1,7 +1,8 @@
 
+
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, Auth } from "firebase/auth";
+import { getAuth, Auth, initializeAuth, browserSessionPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBqhCw9LHugRvO9_qSXgn3B7_nwS6K-s-Q",
@@ -15,16 +16,24 @@ const firebaseConfig = {
 // Initialize Firebase App
 let app: FirebaseApp;
 if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
+  app = initializeApp(firebaseConfig, "primary");
 } else {
-  app = getApp();
+  app = getApp("primary");
 }
 
 const db = getFirestore(app);
-
-// Use getAuth to get the default auth instance.
-// Persistence is now handled at the time of login.
 const auth: Auth = getAuth(app); 
-const clientAuth: Auth = getAuth(app); // Also get the default instance; we will set its persistence dynamically.
+const clientAuth: Auth = getAuth(app); 
+
+
+// This is a workaround for the server-side user creation issue.
+// We create a temporary, secondary Firebase app instance to handle user creation
+// without affecting the main admin auth state.
+export function createSecondaryAuth(): Auth {
+    const secondaryAppName = `secondary-app-${Date.now()}`;
+    const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+    return getAuth(secondaryApp);
+}
+
 
 export { app, db, auth, clientAuth };

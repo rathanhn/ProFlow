@@ -35,19 +35,20 @@ export default function ClientLoginPage() {
         }
         
         try {
-            // Check if a client record exists for this email first.
             const clientRecord = await getClientByEmail(email);
 
             if (!clientRecord) {
-                 throw new Error("No client record found for this email.");
+                 throw new Error("This email does not belong to a registered client.");
             }
 
-            // Use client-specific auth instance with session persistence
             await setPersistence(clientAuth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             
-            // The UID from auth is the source of truth for the client ID.
             const clientId = userCredential.user.uid;
+
+            if (clientId !== clientRecord.id) {
+                throw new Error("Mismatched user ID. Please contact support.");
+            }
             
             toast({
                 title: 'Login Successful!',
@@ -55,13 +56,12 @@ export default function ClientLoginPage() {
             });
             router.push(`/client/${clientId}`);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("[ClientLoginPage] Login error:", error);
-            // Sign out to clear any partial session state
             await signOut(clientAuth);
             toast({
                 title: 'Login Failed',
-                description: 'Invalid credentials or this email does not belong to a registered client.',
+                description: error.message || 'Invalid credentials or not a registered client.',
                 variant: 'destructive',
             });
         } finally {
@@ -109,9 +109,9 @@ export default function ClientLoginPage() {
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
-            Are you an admin?{' '}
-            <Link href="/admin/login" className="underline">
-              Login here
+            Not a client?{' '}
+            <Link href="/" className="underline">
+              Go to main page
             </Link>
           </div>
         </CardContent>

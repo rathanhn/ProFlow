@@ -1,4 +1,5 @@
 
+
 export type WorkStatus = "Pending" | "In Progress" | "Completed";
 export type PaymentStatus = "Unpaid" | "Partial" | "Paid";
 export type PaymentMethod = "Cash" | "Bank Transfer" | "UPI" | "Other";
@@ -29,7 +30,7 @@ export interface Client {
   name: string;
   email: string;
   avatar: string;
-  password?: string; // Keep for form data, but won't be stored in Firestore
+  password?: string;
 }
 
 export interface Assignee {
@@ -39,11 +40,12 @@ export interface Assignee {
     avatar?: string;
     mobile?: string;
     description?: string;
+    password?: string;
 }
 
 export interface Notification {
     id: string;
-    userId: string; // 'admin' or client UID
+    userId: string; // 'admin', client UID, or creator UID
     message: string;
     link: string;
     isRead: boolean;

@@ -1,11 +1,11 @@
 
 'use server';
 
-import { auth, db } from './firebase';
+import { auth, db, createSecondaryAuth } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction } from 'firebase/firestore';
 import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from './types';
 import { revalidatePath } from 'next/cache';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 // Client Functions
 export async function getClients(): Promise<Client[]> {
@@ -23,7 +23,6 @@ export async function getClient(id: string): Promise<Client | null> {
     const clientSnap = await getDoc(clientDocRef);
     if (clientSnap.exists()) {
         const clientData = clientSnap.data();
-        // Ensure data is serializable
         return JSON.parse(JSON.stringify({ id: clientSnap.id, ...clientData })) as Client;
     } else {
         return null;
@@ -35,17 +34,23 @@ export async function addClient(client: Omit<Client, 'id'>) {
         throw new Error("Password is required to create a client.");
     }
 
-    const userCredential = await createUserWithEmailAndPassword(auth, client.email, client.password);
-    const uid = userCredential.user.uid;
-
-    const { password, ...clientData } = client;
-
-    // Use setDoc with the UID as the document ID to ensure they match
-    await setDoc(doc(db, "clients", uid), clientData);
+    const { email, password, ...clientData } = client;
+    const secondaryAuth = createSecondaryAuth();
     
-    revalidatePath('/admin/clients');
-    // Return the new client object with the UID as the id
-    return { id: uid, ...clientData };
+    try {
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const uid = userCredential.user.uid;
+        await setDoc(doc(db, "clients", uid), clientData);
+        revalidatePath('/admin/clients');
+        return { id: uid, ...clientData };
+    } catch (error: any) {
+        if (error.code === 'auth/email-already-in-use') {
+            throw new Error("A user with this email already exists.");
+        }
+        throw error;
+    } finally {
+        await signOut(secondaryAuth);
+    }
 }
 
 export async function updateClient(id: string, client: Partial<Omit<Client, 'id' | 'password'>>) {
@@ -59,7 +64,6 @@ export async function deleteClient(id: string) {
     const clientDocRef = doc(db, 'clients', id);
     await deleteDoc(clientDocRef);
     // Note: This does not delete the user from Firebase Auth.
-    // That would require a separate admin SDK setup.
     revalidatePath('/admin/clients');
 }
 
@@ -80,7 +84,6 @@ export async function getTasks(): Promise<Task[]> {
     const taskSnapshot = await getDocs(query(tasksCol, orderBy('slNo', 'desc')));
     const taskList = taskSnapshot.docs.map(doc => {
         const data = doc.data();
-        // Ensure dates are strings
         return { 
             id: doc.id, 
             ...data,
@@ -127,7 +130,6 @@ export async function getTask(id: string): Promise<Task | null> {
     const taskSnap = await getDoc(taskDocRef);
     if (taskSnap.exists()) {
         const taskData = taskSnap.data();
-        // Ensure data is serializable
         return JSON.parse(JSON.stringify({ id: taskSnap.id, ...taskData })) as Task;
     } else {
         return null;
@@ -171,13 +173,40 @@ export async function getAssignee(id: string): Promise<Assignee | null> {
     return null;
 }
 
+export async function getAssigneeByEmail(email: string): Promise<Assignee | null> {
+    const q = query(collection(db, "assignees"), where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as Assignee;
+    }
+    return null;
+}
+
 export async function addAssignee(assignee: Omit<Assignee, 'id'>): Promise<Assignee> {
-    const assigneesCol = collection(db, 'assignees');
-    const docRef = await addDoc(assigneesCol, assignee);
-    revalidatePath('/admin/team');
-    revalidatePath('/admin/tasks/new');
-    revalidatePath('/admin/tasks/*');
-    return { id: docRef.id, ...assignee };
+    if (!assignee.password || !assignee.email) {
+        throw new Error("Email and password are required to create a creator.");
+    }
+    
+    const { email, password, ...assigneeData } = assignee;
+    const secondaryAuth = createSecondaryAuth();
+    
+    try {
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const uid = userCredential.user.uid;
+        await setDoc(doc(db, "assignees", uid), assigneeData);
+        revalidatePath('/admin/team');
+        revalidatePath('/admin/tasks/new');
+        revalidatePath('/admin/tasks/*');
+        return { id: uid, ...assigneeData };
+    } catch (error: any) {
+        if (error.code === 'auth/email-already-in-use') {
+            throw new Error("A user with this email already exists.");
+        }
+        throw error;
+    } finally {
+        await signOut(secondaryAuth);
+    }
 }
 
 export async function updateAssignee(id: string, assignee: Partial<Omit<Assignee, 'id'>>) {
@@ -188,7 +217,6 @@ export async function updateAssignee(id: string, assignee: Partial<Omit<Assignee
 
 export async function deleteTask(id: string) {
     const taskDocRef = doc(db, 'tasks', id);
-    // You might want to delete related transactions as well, or handle them appropriately.
     await deleteDoc(taskDocRef);
     revalidatePath('/admin/tasks');
 }
@@ -205,7 +233,6 @@ export async function createNotification(notification: Omit<Notification, 'id'>)
     const notificationsCol = collection(db, 'notifications');
     await addDoc(notificationsCol, notification);
     revalidatePath('/admin');
-    // We don't need to revalidate other paths for notifications as they are fetched client-side.
 }
 
 export async function getAdminNotifications(): Promise<Notification[]> {
@@ -216,7 +243,6 @@ export async function getAdminNotifications(): Promise<Notification[]> {
     const snapshot = await getDocs(q);
     const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
     
-    // Filter and sort in code to avoid composite index
     return notifications
         .filter(n => !n.isRead)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -278,13 +304,11 @@ export async function addTransactionAndUpdateTask(
                 newPaymentStatus = 'Unpaid';
             }
 
-            // Update the task document
             transaction.update(taskDocRef, { 
                 amountPaid: newAmountPaid,
                 paymentStatus: newPaymentStatus
             });
 
-            // Create a new transaction document
             const newTransaction: Omit<Transaction, 'id'> = {
                 taskId: taskId,
                 clientId: currentTaskData.clientId,
@@ -299,7 +323,6 @@ export async function addTransactionAndUpdateTask(
             return currentTaskData;
         });
 
-        // Revalidate paths after the transaction is successful
         revalidatePath('/admin/tasks');
         revalidatePath(`/admin/tasks/${taskId}`);
         revalidatePath('/admin/tasks/*');
@@ -345,7 +368,6 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
         } as Transaction;
     });
     
-    // Sort manually on the server
     transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
 
     return transactionList;

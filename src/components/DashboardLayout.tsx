@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown } from 'lucide-react';
-import { auth } from '@/lib/firebase';
+import { auth, clientAuth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
 import NotificationBell from './NotificationBell';
@@ -32,19 +32,28 @@ const UserProfile = () => {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    // Determine which auth instance to use based on the route
+    const currentAuth = pathname.startsWith('/admin') ? auth : clientAuth;
+    const unsubscribe = onAuthStateChanged(currentAuth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    if(pathname.startsWith('/admin')) {
+    if (pathname.startsWith('/admin')) {
+      await signOut(auth);
       router.push('/admin/login');
     } else {
-      router.push('/');
+      await signOut(clientAuth);
+      if (pathname.startsWith('/client')) {
+        router.push('/client-login');
+      } else if (pathname.startsWith('/creator')) {
+        router.push('/creator/login');
+      } else {
+        router.push('/');
+      }
     }
   };
 
@@ -70,16 +79,21 @@ const UserProfile = () => {
   }
 
   if (user) {
+    const getDisplayName = () => {
+        if (pathname.startsWith('/admin')) return 'Admin';
+        if (pathname.startsWith('/creator')) return 'Creator';
+        return user.displayName || 'Client';
+    }
     return (
       <div className="flex items-center gap-3">
         <Avatar>
-          <AvatarImage src="https://placehold.co/40x40.png" alt="User avatar" />
+          <AvatarImage src={user.photoURL || `https://placehold.co/40x40.png`} alt="User avatar" />
           <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
         </Avatar>
         {!isCollapsed && (
           <>
             <div className="flex-1 overflow-hidden">
-              <p className="font-semibold text-sm truncate">{pathname.startsWith('/admin') ? 'Admin' : (user.displayName || 'User')}</p>
+              <p className="font-semibold text-sm truncate">{getDisplayName()}</p>
               <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
@@ -100,24 +114,25 @@ const UserProfile = () => {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
   
   React.useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-          setUser(currentUser);
-          setLoading(false);
+    const isAdminRoute = pathname.startsWith('/admin');
+    const isClientRoute = pathname.startsWith('/client');
+    const isCreatorRoute = pathname.startsWith('/creator');
 
-          // Basic route protection
-          const isAdminRoute = pathname.startsWith('/admin');
-          const isClientRoute = pathname.startsWith('/client');
+    const authInstance = isAdminRoute ? auth : clientAuth;
 
-          if (!currentUser && (isAdminRoute || isClientRoute)) {
-              if (isAdminRoute) router.push('/admin/login');
-              else router.push('/');
-          }
-      });
-      return () => unsubscribe();
+    const unsubscribe = onAuthStateChanged(authInstance, (user) => {
+        setLoading(false);
+        if (!user) {
+            if (isAdminRoute) router.push('/admin/login');
+            else if (isClientRoute) router.push('/client-login');
+            else if (isCreatorRoute) router.push('/creator/login');
+        }
+    });
+
+    return () => unsubscribe();
   }, [pathname, router]);
 
   const renderContent = () => {
@@ -135,7 +150,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const isAdminSection = pathname.startsWith('/admin');
   const isClientSection = pathname.startsWith('/client');
-  const clientId = isClientSection ? pathname.split('/')[2] : null;
+  const isCreatorSection = pathname.startsWith('/creator');
+  const id = (isClientSection || isCreatorSection) ? pathname.split('/')[2] : null;
 
 
   return (
@@ -143,8 +159,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <DashboardContent
         isAdminSection={isAdminSection}
         isClientSection={isClientSection}
-        user={user}
-        clientId={clientId}
+        isCreatorSection={isCreatorSection}
+        id={id}
         pathname={pathname}
       >
         {renderContent()}
@@ -158,18 +174,26 @@ const DashboardContent = ({
   children,
   isAdminSection,
   isClientSection,
-  user,
-  clientId,
+  isCreatorSection,
+  id,
   pathname,
 }: {
   children: React.ReactNode;
   isAdminSection: boolean;
   isClientSection: boolean;
-  user: User | null;
-  clientId: string | null;
+  isCreatorSection: boolean;
+  id: string | null;
   pathname: string;
 }) => {
   const { isCollapsed } = useSidebar();
+  const [user, setUser] = React.useState<User | null>(null);
+
+  React.useEffect(() => {
+    const authInstance = isAdminSection ? auth : clientAuth;
+    const unsubscribe = onAuthStateChanged(authInstance, setUser);
+    return () => unsubscribe();
+  }, [isAdminSection]);
+  
 
   return (
     <div className="flex min-h-screen">
@@ -240,11 +264,11 @@ const DashboardContent = ({
                 </SidebarMenuItem>
               </>
             )}
-            {isClientSection && user && clientId && (
+            {isClientSection && user && id && (
               <>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === `/client/${clientId}`}>
-                    <Link href={`/client/${clientId}`}>
+                  <SidebarMenuButton asChild isActive={pathname === `/client/${id}`}>
+                    <Link href={`/client/${id}`}>
                       <Briefcase />
                       <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
                     </Link>
@@ -252,31 +276,59 @@ const DashboardContent = ({
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
-                    <Link href={`/client/${clientId}/projects`}>
+                    <Link href={`/client/${id}/projects`}>
                       <ListChecks />
                       <span className={isCollapsed ? 'hidden' : ''}>My Projects</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/transactions`)}>
-                    <Link href={`/client/${clientId}/transactions`}>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/transactions`)}>
+                    <Link href={`/client/${id}/transactions`}>
                       <Banknote />
                       <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/export`)}>
-                    <Link href={`/client/${clientId}/export`}>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/export`)}>
+                    <Link href={`/client/${id}/export`}>
                       <FileDown />
                       <span className={isCollapsed ? 'hidden' : ''}>Export</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${clientId}/settings`)}>
-                    <Link href={`/client/${clientId}/settings`}>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)}>
+                    <Link href={`/client/${id}/settings`}>
+                      <Settings />
+                      <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
+            )}
+            {isCreatorSection && user && id && (
+              <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === `/creator/${id}`}>
+                    <Link href={`/creator/${id}`}>
+                      <Home />
+                      <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/tasks`)}>
+                    <Link href={`/creator/${id}/tasks`}>
+                      <ListChecks />
+                      <span className={isCollapsed ? 'hidden' : ''}>My Tasks</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/settings`)}>
+                    <Link href={`/creator/${id}/settings`}>
                       <Settings />
                       <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
                     </Link>
