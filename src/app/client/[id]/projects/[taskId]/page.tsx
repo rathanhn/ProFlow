@@ -1,6 +1,4 @@
 
-'use client';
-
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -11,12 +9,12 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getTask, getClient, getAssignee } from '@/lib/firebase-service';
-import { notFound, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, User, Download, Mail, Phone, Eye } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Task, Client, Assignee } from '@/lib/types';
 import ClientActions from './ClientActions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,39 +35,25 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
     </div>
 );
 
-export default function ProjectDetailsPage() {
-  const params = useParams();
-  const { id, taskId } = params as { id: string; taskId: string };
-  const [task, setTask] = useState<Task | null>(null);
-  const [client, setClient] = useState<Client | null>(null);
-  const [assignee, setAssignee] = useState<Assignee | null>(null);
+export default async function ProjectDetailsPage({ params }: { params: { id: string; taskId: string } }) {
+  const { id, taskId } = params;
 
-  useEffect(() => {
-    if (id && taskId) {
-      const fetchDetails = async () => {
-        const taskData = await getTask(taskId);
-        const clientData = await getClient(id);
-        
-        if (!taskData || !clientData || taskData.clientId !== clientData.id) {
-          notFound();
-        }
-        
-        setTask(JSON.parse(JSON.stringify(taskData)));
-        setClient(JSON.parse(JSON.stringify(clientData)));
+  const rawTask = await getTask(taskId);
+  const rawClient = await getClient(id);
 
-        if (taskData.assigneeId) {
-            const assigneeData = await getAssignee(taskData.assigneeId);
-            if (assigneeData) {
-                setAssignee(JSON.parse(JSON.stringify(assigneeData)));
-            }
-        }
-      };
-      fetchDetails();
+  if (!rawTask || !rawClient || rawTask.clientId !== rawClient.id) {
+    notFound();
+  }
+  
+  const task = JSON.parse(JSON.stringify(rawTask)) as Task;
+  const client = JSON.parse(JSON.stringify(rawClient)) as Client;
+  
+  let assignee: Assignee | null = null;
+  if (task.assigneeId) {
+    const rawAssignee = await getAssignee(task.assigneeId);
+    if(rawAssignee) {
+        assignee = JSON.parse(JSON.stringify(rawAssignee));
     }
-  }, [id, taskId]);
-
-  if (!task || !client) {
-    return <DashboardLayout><div>Loading...</div></DashboardLayout>;
   }
 
   const amountPaid = task.amountPaid ?? 0;

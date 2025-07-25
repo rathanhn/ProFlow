@@ -22,14 +22,15 @@ import { Button } from '@/components/ui/button';
 
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
-  const rawClient = await getClient(params.id);
+  const { id } = params;
+  const rawClient = await getClient(id);
 
   if (!rawClient) {
     notFound();
   }
   
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-  const rawClientTasks = await getTasksByClientId(params.id);
+  const rawClientTasks = await getTasksByClientId(id);
 
   const clientTasks = rawClientTasks.map(task => ({
     ...JSON.parse(JSON.stringify(task)),
