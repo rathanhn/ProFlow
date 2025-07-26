@@ -15,7 +15,11 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHea
 import { Eye, EyeOff } from 'lucide-react';
 import type { Client } from '@/lib/types';
 
-export default function ClientAuthPage({ params }: { params: { id: string } }) {
+type Props = {
+    params: { id: string };
+};
+
+export default function ClientAuthPage({ params }: Props) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);

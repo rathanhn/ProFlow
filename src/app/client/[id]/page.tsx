@@ -20,8 +20,11 @@ import { Task, Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
+type Props = {
+    params: { id: string };
+};
 
-export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
+export default async function ClientDashboardPage({ params }: Props) {
   const { id: clientId } = params;
 
   if (!clientId) {

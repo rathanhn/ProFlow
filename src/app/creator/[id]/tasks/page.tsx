@@ -16,8 +16,11 @@ const statusColors: Record<string, string> = {
   Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
 };
 
+type Props = {
+    params: { id: string };
+};
 
-export default async function CreatorTasksPage({ params }: { params: { id: string } }) {
+export default async function CreatorTasksPage({ params }: Props) {
   const { id } = params;
   const rawCreator = await getAssignee(id);
 

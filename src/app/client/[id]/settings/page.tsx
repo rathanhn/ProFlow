@@ -40,7 +40,11 @@ const profileFormSchema = z.object({
   avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
 });
 
-export default function ClientSettingsPage({ params }: { params: { id: string }}) {
+type Props = {
+    params: { id: string };
+};
+
+export default function ClientSettingsPage({ params }: Props) {
     const { toast } = useToast();
     const router = useRouter();
     const clientId = params.id;
