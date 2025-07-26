@@ -8,16 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Mail, Phone, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import ReportCreatorButton from './ReportCreatorButton';
+import { Assignee, Task } from '@/lib/types';
 
 export default async function AssigneeProfilePage({ params }: { params: { assigneeId: string } }) {
     const assigneeId = params.assigneeId;
-    const assignee = await getAssignee(assigneeId);
+    const rawAssignee = await getAssignee(assigneeId);
 
-    if (!assignee) {
+    if (!rawAssignee) {
         notFound();
     }
+    const assignee = JSON.parse(JSON.stringify(rawAssignee)) as Assignee;
 
-    const tasks = await getTasksByAssigneeId(assigneeId);
+    const rawTasks = await getTasksByAssigneeId(assigneeId);
+    const tasks = JSON.parse(JSON.stringify(rawTasks)) as Task[];
     
     return (
         <DashboardLayout>
