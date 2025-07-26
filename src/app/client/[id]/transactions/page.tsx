@@ -21,11 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
-interface PageProps {
-  params: { id: string };
-}
-
-export default async function ClientTransactionsPage({ params }: PageProps) {
+export default async function ClientTransactionsPage({ params }: { params: { id: string } }) {
   const clientId = params.id;
   if (!clientId) {
       notFound();

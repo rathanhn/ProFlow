@@ -9,11 +9,7 @@ import { Mail, Phone, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import ReportCreatorButton from './ReportCreatorButton';
 
-interface PageProps {
-    params: { assigneeId: string };
-}
-
-export default async function AssigneeProfilePage({ params }: PageProps) {
+export default async function AssigneeProfilePage({ params }: { params: { assigneeId: string } }) {
     const assigneeId = params.assigneeId;
     const assignee = await getAssignee(assigneeId);
 

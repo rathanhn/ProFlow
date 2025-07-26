@@ -15,35 +15,31 @@ export default function EditClientPage() {
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        const fetchClient = async () => {
-            const clientData = await getClient(id);
-            if (!clientData) {
-                notFound();
-            }
-            setClient(clientData);
-            setLoading(false);
-        };
-        fetchClient();
+        if (id) {
+            const fetchClient = async () => {
+                const clientData = await getClient(id);
+                if (!clientData) {
+                    notFound();
+                }
+                // Serialize the client data to ensure it's a plain object
+                setClient(clientData ? JSON.parse(JSON.stringify(clientData)) : null);
+                setLoading(false);
+            };
+            fetchClient();
+        }
     }, [id]);
 
     if (loading) {
         return <DashboardLayout><div>Loading...</div></DashboardLayout>;
     }
 
-    // Ensure client data is serializable
-    const serializableClient = client ? {
-        ...client,
-        // Convert any non-serializable fields here if necessary
-    } : null;
-
-
-    if (!serializableClient) {
-        return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+    if (!client) {
+        return <DashboardLayout><div>Client not found.</div></DashboardLayout>;
     }
 
     return (
         <DashboardLayout>
-            <ClientForm client={serializableClient} />
+            <ClientForm client={client} />
         </DashboardLayout>
     );
 }
