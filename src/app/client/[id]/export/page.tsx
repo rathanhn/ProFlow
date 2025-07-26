@@ -10,11 +10,11 @@ export default async function ClientExportPage({ params }: { params: { id: strin
         notFound();
     }
 
-    const tasks = await getTasksByClientId(clientId);
-    const transactions = await getTransactionsByClientId(clientId);
+    const rawTasks = await getTasksByClientId(clientId);
+    const rawTransactions = await getTransactionsByClientId(clientId);
 
-    const tasksToExport = JSON.parse(JSON.stringify(tasks));
-    const transactionsToExport = JSON.parse(JSON.stringify(transactions));
+    const tasksToExport = JSON.parse(JSON.stringify(rawTasks));
+    const transactionsToExport = JSON.parse(JSON.stringify(rawTransactions));
 
     return (
         <DashboardLayout>

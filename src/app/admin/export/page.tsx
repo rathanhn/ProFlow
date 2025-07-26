@@ -4,11 +4,11 @@ import ExportCard from './ExportCard';
 import { getTasks, getTransactions } from '@/lib/firebase-service';
 
 export default async function AdminExportPage() {
-    const tasks = await getTasks();
-    const transactions = await getTransactions();
+    const rawTasks = await getTasks();
+    const rawTransactions = await getTransactions();
 
-    const tasksToExport = JSON.parse(JSON.stringify(tasks));
-    const transactionsToExport = JSON.parse(JSON.stringify(transactions));
+    const tasksToExport = JSON.parse(JSON.stringify(rawTasks));
+    const transactionsToExport = JSON.parse(JSON.stringify(rawTransactions));
 
     return (
         <DashboardLayout>
