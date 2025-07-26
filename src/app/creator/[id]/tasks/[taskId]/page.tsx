@@ -17,11 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import CreatorActions from './CreatorActions';
 import { Task, Client, Assignee } from '@/lib/types';
 
-interface PageProps {
-  params: { id: string; taskId: string };
-}
-
-export default async function CreatorTaskDetailsPage({ params }: PageProps) {
+export default async function CreatorTaskDetailsPage({ params }: { params: { id: string; taskId: string } }) {
   const { id, taskId } = params;
 
   const rawTask = await getTask(taskId);

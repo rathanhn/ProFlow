@@ -15,13 +15,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHea
 import { Eye, EyeOff } from 'lucide-react';
 import type { Client } from '@/lib/types';
 
-interface ClientAuthPageProps {
-    params: {
-        id: string;
-    };
-}
-
-export default function ClientAuthPage({ params }: ClientAuthPageProps) {
+export default function ClientAuthPage({ params }: { params: { id: string } }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +35,7 @@ export default function ClientAuthPage({ params }: ClientAuthPageProps) {
         const fetchClientData = async () => {
             const clientData = await getClient(params.id);
             if (clientData) {
-                const serializableClient = JSON.parse(JSON.parse(JSON.stringify(clientData))) as Client;
+                const serializableClient = JSON.parse(JSON.stringify(clientData)) as Client;
                 setClient(serializableClient);
                 setEmail(serializableClient.email);
             }

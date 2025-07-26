@@ -86,11 +86,10 @@ export default function CreatorSettingsPage() {
                 try {
                     const assigneeData = await getAssignee(id);
                     if (assigneeData) {
-                        const serializableAssignee = JSON.parse(JSON.stringify(assigneeData));
-                        setAssignee(serializableAssignee);
+                        setAssignee(assigneeData);
                         profileForm.reset({
-                            name: serializableAssignee.name,
-                            bio: serializableAssignee.bio || '',
+                            name: assigneeData.name,
+                            bio: assigneeData.bio || '',
                         });
                     } else {
                         toast({
