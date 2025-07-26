@@ -28,10 +28,10 @@ import TeamMemberCard from './TeamMemberCard';
 
 
 export default async function AdminTeamPage() {
-    const assignees = await getAssignees();
+    const rawAssignees = await getAssignees();
     
     // Ensure assignees are serializable
-    const serializableAssignees = JSON.parse(JSON.stringify(assignees)) as Assignee[];
+    const assignees = JSON.parse(JSON.stringify(rawAssignees)) as Assignee[];
 
   return (
     <DashboardLayout>
@@ -53,7 +53,7 @@ export default async function AdminTeamPage() {
           </CardHeader>
         </Card>
         <div className="grid gap-4 md:hidden">
-          {serializableAssignees.map((assignee: Assignee) => (
+          {assignees.map((assignee: Assignee) => (
             <TeamMemberCard key={assignee.id} assignee={assignee} />
           ))}
         </div>
@@ -77,7 +77,7 @@ export default async function AdminTeamPage() {
                         </TableRow>
                         </TableHeader>
                         <TableBody>
-                        {serializableAssignees.map((assignee: Assignee) => (
+                        {assignees.map((assignee: Assignee) => (
                             <TableRow key={assignee.id}>
                             <TableCell>
                                 <div className="flex items-center gap-3">

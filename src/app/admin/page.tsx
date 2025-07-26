@@ -24,19 +24,17 @@ import { getTasks, getClients, getAdminNotifications } from '@/lib/firebase-serv
 import EarningsChart from '@/components/EarningsChart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AIInsights from './AIInsights';
+import { Client, Task } from '@/lib/types';
 
 
 export default async function AdminDashboardPage() {
   const rawTasks = await getTasks();
-  const clients = await getClients();
+  const rawClients = await getClients();
   const unreadNotifications = await getAdminNotifications();
 
-  // Serialize task dates
-  const tasks = rawTasks.map(task => ({
-    ...JSON.parse(JSON.stringify(task)), // Ensure plain object
-    acceptedDate: new Date(task.acceptedDate).toISOString(),
-    submissionDate: new Date(task.submissionDate).toISOString(),
-  }));
+  // Serialize data
+  const tasks = JSON.parse(JSON.stringify(rawTasks)) as Task[];
+  const clients = JSON.parse(JSON.stringify(rawClients)) as Client[];
   
   const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + (task.total || 0), 0);
   const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + ((task.total || 0) - (task.amountPaid || 0)), 0);

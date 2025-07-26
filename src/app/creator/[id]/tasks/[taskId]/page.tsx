@@ -15,20 +15,25 @@ import { ArrowLeft } from 'lucide-react';
 import TaskDetails from '@/components/TaskDetails';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import CreatorActions from './CreatorActions';
-import { Task, Client } from '@/lib/types';
+import { Task, Client, Assignee } from '@/lib/types';
 
-export default async function CreatorTaskDetailsPage({ params }: { params: { id: string; taskId: string } }) {
+interface PageProps {
+  params: { id: string; taskId: string };
+}
+
+export default async function CreatorTaskDetailsPage({ params }: PageProps) {
   const { id, taskId } = params;
 
   const rawTask = await getTask(taskId);
-  const creator = await getAssignee(id);
+  const rawCreator = await getAssignee(id);
 
-  if (!rawTask || !creator || rawTask.assigneeId !== creator.id) {
+  if (!rawTask || !rawCreator || rawTask.assigneeId !== rawCreator.id) {
     notFound();
   }
   
-  // Ensure task is serializable for client components
   const task = JSON.parse(JSON.stringify(rawTask)) as Task;
+  const creator = JSON.parse(JSON.stringify(rawCreator)) as Assignee;
+  
   const rawClient = await getClient(task.clientId);
   const client = rawClient ? JSON.parse(JSON.stringify(rawClient)) as Client : null;
 

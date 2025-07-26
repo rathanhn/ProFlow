@@ -2,17 +2,15 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import { getTasks, getClients } from '@/lib/firebase-service';
 import TasksTable from '@/app/admin/TasksTable';
+import { Client, Task } from '@/lib/types';
 
 export default async function AdminTasksPage() {
   const rawTasks = await getTasks();
-  const clients = await getClients();
+  const rawClients = await getClients();
 
-  // Serialize task dates
-  const tasks = rawTasks.map(task => ({
-    ...JSON.parse(JSON.stringify(task)), // Ensure plain object
-    acceptedDate: new Date(task.acceptedDate).toISOString(),
-    submissionDate: new Date(task.submissionDate).toISOString(),
-  }));
+  // Serialize data
+  const tasks = JSON.parse(JSON.stringify(rawTasks)) as Task[];
+  const clients = JSON.parse(JSON.stringify(rawClients)) as Client[];
 
   return (
     <DashboardLayout>
