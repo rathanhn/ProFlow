@@ -36,7 +36,11 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
     </div>
 );
 
-export default async function ProjectDetailsPage({ params }: { params: { id: string; taskId: string } }) {
+interface PageProps {
+  params: { id: string; taskId: string };
+}
+
+export default async function ProjectDetailsPage({ params }: PageProps) {
   const { id, taskId } = params;
 
   const rawTask = await getTask(taskId);

@@ -8,9 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Mail, Phone, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import ReportCreatorButton from './ReportCreatorButton';
-import { type PageProps } from 'next/types';
 
-export default async function AssigneeProfilePage({ params }: PageProps<{ assigneeId: string }>) {
+interface PageProps {
+    params: { assigneeId: string };
+}
+
+export default async function AssigneeProfilePage({ params }: PageProps) {
     const assigneeId = params.assigneeId;
     const assignee = await getAssignee(assigneeId);
 

@@ -1,4 +1,3 @@
-'use client';
 
 import React from 'react';
 import { notFound } from 'next/navigation';
@@ -34,11 +33,7 @@ export default async function ClientProjectsPage({ params }: { params: { id: str
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
   const rawClientTasks = await getTasksByClientId(params.id);
 
-  const clientTasks = rawClientTasks.map(task => ({
-    ...JSON.parse(JSON.stringify(task)),
-    acceptedDate: new Date(task.acceptedDate).toISOString(),
-    submissionDate: new Date(task.submissionDate).toISOString(),
-  })) as Task[];
+  const clientTasks = JSON.parse(JSON.stringify(rawClientTasks)) as Task[];
 
   return (
     <DashboardLayout>

@@ -20,9 +20,12 @@ import { Transaction } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { type PageProps } from 'next/types';
 
-export default async function ClientTransactionsPage({ params }: PageProps<{ id: string }>) {
+interface PageProps {
+  params: { id: string };
+}
+
+export default async function ClientTransactionsPage({ params }: PageProps) {
   const clientId = params.id;
   if (!clientId) {
       notFound();
