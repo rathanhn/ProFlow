@@ -22,11 +22,7 @@ import { Assignee, Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
-type Props = {
-    params: { id: string };
-};
-
-export default async function CreatorDashboardPage({ params }: Props) {
+export default async function CreatorDashboardPage({ params }: { params: { id: string } }) {
   const creatorId = params.id;
 
   if (!creatorId) {

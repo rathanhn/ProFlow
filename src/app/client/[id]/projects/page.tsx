@@ -22,11 +22,7 @@ const statusColors: Record<string, string> = {
   Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
 };
 
-type Props = {
-    params: { id: string };
-};
-
-export default async function ClientProjectsPage({ params }: Props) {
+export default async function ClientProjectsPage({ params }: { params: { id: string } }) {
   const rawClient = await getClient(params.id);
 
   if (!rawClient) {

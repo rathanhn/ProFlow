@@ -4,11 +4,7 @@ import { getTasksByClientId, getTransactionsByClientId } from '@/lib/firebase-se
 import { notFound } from 'next/navigation';
 import ExportCard from '@/app/admin/export/ExportCard'; // Reusing the same card component
 
-type Props = {
-    params: { id: string };
-};
-
-export default async function ClientExportPage({ params }: Props) {
+export default async function ClientExportPage({ params }: { params: { id: string } }) {
     const clientId = params.id;
     if (!clientId) {
         notFound();

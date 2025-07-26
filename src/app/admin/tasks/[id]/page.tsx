@@ -1,3 +1,4 @@
+
 // src/app/admin/tasks/[id]/page.tsx
 
 import DashboardLayout from '@/components/DashboardLayout';
@@ -18,11 +19,7 @@ import { Task, Client } from '@/lib/types';
 import AdminActions from './AdminActions';
 import TaskDetails from '@/components/TaskDetails';
 
-type Props = {
-  params: { id: string };
-};
-
-export default async function TaskPage({ params }: Props) {
+export default async function TaskPage({ params }: { params: { id: string } }) {
   const id = params.id;
 
   const rawTask = await getTask(id);
