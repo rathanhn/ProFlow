@@ -1,3 +1,4 @@
+// src/app/admin/tasks/[id]/page.tsx
 
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -21,54 +22,54 @@ type Props = {
   params: { id: string };
 };
 
-export default async function TaskDetailsPage({ params }: Props) {
+export default async function TaskPage({ params }: Props) {
   const id = params.id;
-  const rawTask = await getTask(id);
 
-  if (!rawTask) {
-    notFound();
-  }
+  const rawTask = await getTask(id);
+  if (!rawTask) notFound();
 
   const task = JSON.parse(JSON.stringify(rawTask)) as Task;
-  
-  const rawClient = await getClient(task.clientId);
-  const client = rawClient ? JSON.parse(JSON.stringify(rawClient)) as Client : null;
 
+  const rawClient = await getClient(task.clientId);
+  const client = rawClient
+    ? (JSON.parse(JSON.stringify(rawClient)) as Client)
+    : null;
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Button variant="outline" asChild>
-                <Link href="/admin/tasks">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to All Tasks
-                </Link>
-            </Button>
-            <Button asChild>
-                <Link href={`/admin/tasks/${task.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Task
-                </Link>
-            </Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin/tasks">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to All Tasks
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href={`/admin/tasks/${task.id}/edit`}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Task
+            </Link>
+          </Button>
         </div>
+
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
                 <div className="flex items-start gap-4">
-                    {client && (
-                        <Avatar className="h-12 w-12 border">
-                            <AvatarImage src={client.avatar || undefined} />
-                            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                    )}
-                    <div>
-                        <CardTitle className="text-2xl">{task.projectName}</CardTitle>
-                        <CardDescription>
-                            Task ID: {task.id} &middot; For {task.clientName}
-                        </CardDescription>
-                    </div>
+                  {client && (
+                    <Avatar className="h-12 w-12 border">
+                      <AvatarImage src={client.avatar || undefined} />
+                      <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div>
+                    <CardTitle className="text-2xl">{task.projectName}</CardTitle>
+                    <CardDescription>
+                      Task ID: {task.id} &middot; For {task.clientName}
+                    </CardDescription>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -77,7 +78,7 @@ export default async function TaskDetailsPage({ params }: Props) {
             </Card>
           </div>
           <div className="space-y-6">
-            <AdminActions task={task}/>
+            <AdminActions task={task} />
           </div>
         </div>
       </div>
