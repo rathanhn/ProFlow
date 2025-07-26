@@ -19,7 +19,7 @@ import { Task, Client } from '@/lib/types';
 import AdminActions from './AdminActions';
 import TaskDetails from '@/components/TaskDetails';
 
-export default async function TaskPage({ params }: { params: { id: string } }) {
+export default async function ({ params }: { params: { id: string } }) {
   const id = params.id;
 
   const rawTask = await getTask(id);
