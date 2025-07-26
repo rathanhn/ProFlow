@@ -19,6 +19,7 @@ import { Task, Client, Assignee } from '@/lib/types';
 import ClientActions from './ClientActions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+
 const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
   Partial: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',

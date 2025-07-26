@@ -20,8 +20,9 @@ import { Transaction } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { type PageProps } from 'next/types';
 
-export default async function ClientTransactionsPage({ params }: { params: { id: string } }) {
+export default async function ClientTransactionsPage({ params }: PageProps<{ id: string }>) {
   const clientId = params.id;
   if (!clientId) {
       notFound();
@@ -54,7 +55,7 @@ export default async function ClientTransactionsPage({ params }: { params: { id:
                     </div>
                     <div className="text-right">
                         <p className="font-bold text-lg">₹{transaction.amount.toLocaleString()}</p>
-                        <Badge variant="outline" className="mt-1">{transaction.paymentMethod}</Badge>
+                        <Badge variant="outline">{transaction.paymentMethod}</Badge>
                     </div>
                 </div>
               </CardContent>
@@ -63,7 +64,8 @@ export default async function ClientTransactionsPage({ params }: { params: { id:
           {transactions.length === 0 && (
              <Card>
                 <CardContent className="pt-6">
-                    <p className="text-muted-foreground text-center">You have not made any transactions yet.</p>
+                    <p className="text-muted-foreground text-center">You have not made any transactions yet.
+</p>
                 </CardContent>
              </Card>
           )}

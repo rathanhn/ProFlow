@@ -21,9 +21,10 @@ import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import { Assignee, Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { type PageProps } from 'next/types';
 
 
-export default async function CreatorDashboardPage({ params }: { params: { id: string } }) {
+export default async function CreatorDashboardPage({ params }: PageProps<{ id: string }>) {
   const creatorId = params.id;
 
   if (!creatorId) {

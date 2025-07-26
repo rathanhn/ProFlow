@@ -15,7 +15,13 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHea
 import { Eye, EyeOff } from 'lucide-react';
 import type { Client } from '@/lib/types';
 
-export default function ClientAuthPage({ params }: { params: { id: string } }) {
+interface ClientAuthPageProps {
+    params: {
+        id: string;
+    };
+}
+
+export default function ClientAuthPage({ params }: ClientAuthPageProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +41,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
         const fetchClientData = async () => {
             const clientData = await getClient(params.id);
             if (clientData) {
-                const serializableClient = JSON.parse(JSON.stringify(clientData)) as Client;
+                const serializableClient = JSON.parse(JSON.parse(JSON.stringify(clientData))) as Client;
                 setClient(serializableClient);
                 setEmail(serializableClient.email);
             }
@@ -126,7 +132,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
                             >
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
-                        </div>
+                         </div>
                     </div>
                     <Button onClick={handleSignIn} disabled={isLoading || !email} className="w-full">
                         {isLoading ? 'Signing In...' : 'Sign In'}

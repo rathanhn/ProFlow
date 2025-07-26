@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 
 
 export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
-  const { id: clientId } = await params;
+  const { id: clientId } = params;
 
   if (!clientId) {
     notFound();

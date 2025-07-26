@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Mail, Phone, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import ReportCreatorButton from './ReportCreatorButton';
+import { type PageProps } from 'next/types';
 
-export default async function AssigneeProfilePage({ params }: { params: { assigneeId: string } }) {
+export default async function AssigneeProfilePage({ params }: PageProps<{ assigneeId: string }>) {
     const assigneeId = params.assigneeId;
     const assignee = await getAssignee(assigneeId);
 
@@ -62,7 +63,7 @@ export default async function AssigneeProfilePage({ params }: { params: { assign
                            )}
                             {assignee.mobile && (
                                 <Button className="w-full justify-start gap-2" asChild>
-                                   <a href={`https://wa.me/${assignee.mobile.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                                   <a href={`https://wa.me/${assignee.mobile.replace(/D/g, '')}`} target="_blank" rel="noopener noreferrer">
                                      <MessageSquare className="h-4 w-4" />
                                      <span>Chat on WhatsApp</span>
                                    </a>

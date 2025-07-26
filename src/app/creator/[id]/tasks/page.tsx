@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import CreatorTasksTable from './CreatorTasksTable';
 import { Assignee, Task } from '@/lib/types';
+import { type PageProps } from 'next/types';
 
 
 const statusColors: Record<string, string> = {
@@ -17,7 +18,7 @@ const statusColors: Record<string, string> = {
 };
 
 
-export default async function CreatorTasksPage({ params }: { params: { id: string } }) {
+export default async function CreatorTasksPage({ params }: PageProps<{ id: string }>) {
   const { id } = params;
   const rawCreator = await getAssignee(id);
 
