@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,9 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHea
 import { Eye, EyeOff } from 'lucide-react';
 import type { Client } from '@/lib/types';
 
-export default function ClientAuthPage({ params }: { params: { id: string } }) {
+export default function ClientAuthPage() {
+    const params = useParams();
+    const clientId = params.id as string;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +35,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
 
     useEffect(() => {
         const fetchClientData = async () => {
-            const clientData = await getClient(params.id);
+            const clientData = await getClient(clientId);
             if (clientData) {
                 const serializableClient = JSON.parse(JSON.stringify(clientData)) as Client;
                 setClient(serializableClient);
@@ -42,7 +44,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
         };
 
         fetchClientData();
-    }, [params.id]);
+    }, [clientId]);
 
     const handleSignIn = async () => {
         setIsLoading(true);
@@ -137,7 +139,7 @@ export default function ClientAuthPage({ params }: { params: { id: string } }) {
              <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
                 <AlertDialogContent>
                  <AlertDialogHeader>
-                 <AlertDialogTitle>Welcome! Let's secure your account.</AlertDialogTitle>
+                 <AlertDialogTitle>Welcome! Let&apos;s secure your account.</AlertDialogTitle>
                  <AlertDialogDescription>
                      This is your first time logging in. For your security, please set a new, permanent password.
                  </AlertDialogDescription>

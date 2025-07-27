@@ -67,11 +67,11 @@ export default function ClientForm({ client }: ClientFormProps) {
         }
         router.push('/admin/clients');
         router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Failed to save client:", error);
         toast({
             title: 'Error',
-            description: error.message || 'Failed to save client. Please try again.',
+            description: error instanceof Error ? error.message : 'Failed to save client. Please try again.',
             variant: 'destructive'
         })
     }

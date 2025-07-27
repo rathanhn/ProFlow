@@ -36,8 +36,8 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
     </div>
 );
 
-export default async function ({ params }: { params: { id: string; taskId: string } }) {
-  const { id, taskId } = params;
+export default async function ClientProjectDetailPage({ params }: { params: Promise<{ id: string; taskId: string }> }) {
+  const { id, taskId } = await params;
 
   const rawTask = await getTask(taskId);
   const rawClient = await getClient(id);

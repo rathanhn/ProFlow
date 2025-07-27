@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { updateClientPassword } from '@/lib/firebase-client-service';
@@ -110,11 +111,11 @@ export default function CreatorSettingsPage() {
                 setCurrentPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error('Error updating password:', error);
                 toast({
                     title: 'Error',
-                    description: error.message || 'Failed to update password.',
+                    description: error instanceof Error ? error.message : 'Failed to update password.',
                     variant: 'destructive',
                 });
             }
@@ -132,11 +133,11 @@ export default function CreatorSettingsPage() {
                     description: 'Profile updated successfully.',
                 });
                 router.refresh();
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error('Error updating profile:', error);
                 toast({
                     title: 'Error',
-                    description: error.message || 'Failed to update profile.',
+                    description: error instanceof Error ? error.message : 'Failed to update profile.',
                     variant: 'destructive',
                 });
             }
@@ -153,10 +154,10 @@ export default function CreatorSettingsPage() {
                     description: 'Avatar updated successfully.',
                 });
                 router.refresh();
-            } catch (error: any) {
+            } catch (error: unknown) {
                  toast({
                     title: 'Error',
-                    description: error.message || 'Failed to update avatar.',
+                    description: error instanceof Error ? error.message : 'Failed to update avatar.',
                     variant: 'destructive',
                 });
             }

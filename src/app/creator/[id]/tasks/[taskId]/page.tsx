@@ -17,8 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import CreatorActions from './CreatorActions';
 import { Task, Client, Assignee } from '@/lib/types';
 
-export default async function ({ params }: { params: { id: string; taskId: string } }) {
-  const { id, taskId } = params;
+export default async function CreatorTaskDetailPage({ params }: { params: Promise<{ id: string; taskId: string }> }) {
+  const { id, taskId } = await params;
 
   const rawTask = await getTask(taskId);
   const rawCreator = await getAssignee(id);

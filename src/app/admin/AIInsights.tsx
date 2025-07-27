@@ -63,7 +63,7 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                 <h3 className="font-semibold">{chartData.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{chartData.description}</p>
                  <ResponsiveContainer width="100%" height={250}>
-                    {chartData.type === 'bar' && (
+                    {chartData.type === 'bar' ? (
                         <BarChart data={chartData.data}>
                             <XAxis dataKey="x" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                             <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
@@ -77,8 +77,7 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                             <Legend />
                             <Bar dataKey="y" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name={chartData.yLabel} />
                         </BarChart>
-                    )}
-                    {chartData.type === 'pie' && (
+                    ) : (
                         <PieChart>
                             <Pie data={chartData.data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8">
                                 {chartData.data.map((entry, index) => (

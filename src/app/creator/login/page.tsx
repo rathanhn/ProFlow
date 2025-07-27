@@ -62,15 +62,15 @@ export default function CreatorLoginPage() {
                 router.push(`/creator/${user.uid}`);
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("[CreatorLoginPage] Login error:", error);
             await signOut(clientAuth).catch(() => {});
             
             let description = 'An unknown error occurred. Please try again.';
-            if (error.code === 'auth/invalid-credential') {
+            if (typeof error === 'object' && error && 'code' in error && (error as { code?: string }).code === 'auth/invalid-credential') {
                 description = 'Incorrect password. Please try again.';
-            } else if (error.message) {
-                description = error.message;
+            } else if (typeof error === 'object' && error && 'message' in error) {
+                description = (error as { message?: string }).message || description;
             }
 
             toast({ title: 'Login Failed', description, variant: 'destructive' });
@@ -156,7 +156,7 @@ export default function CreatorLoginPage() {
      <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
         <AlertDialogContent>
          <AlertDialogHeader>
-         <AlertDialogTitle id="reset-password-title">Welcome! Let's secure your account.</AlertDialogTitle>
+         <AlertDialogTitle id="reset-password-title">Welcome! Let&apos;s secure your account.</AlertDialogTitle>
          <AlertDialogDescription id="reset-password-desc">
              This is your first time logging in. For your security, please set a new, permanent password.
          </AlertDialogDescription>

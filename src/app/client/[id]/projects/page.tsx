@@ -22,15 +22,16 @@ const statusColors: Record<string, string> = {
   Pending: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30',
 };
 
-export default async function ClientProjectsPage({ params }: { params: { id: string } }) {
-  const rawClient = await getClient(params.id);
+export default async function ClientProjectsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const rawClient = await getClient(id);
 
   if (!rawClient) {
     notFound();
   }
   
   const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-  const rawClientTasks = await getTasksByClientId(params.id);
+  const rawClientTasks = await getTasksByClientId(id);
 
   const clientTasks = JSON.parse(JSON.stringify(rawClientTasks)) as Task[];
 

@@ -135,11 +135,11 @@ export default function CreatorSettingsPage() {
                     description: 'Password updated successfully.',
                 });
                 passwordForm.reset();
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error('Error updating password:', error);
                 toast({
                     title: 'Error',
-                    description: error.message || 'Failed to update password.',
+                    description: (typeof error === 'object' && error && 'message' in error) ? (error as { message?: string }).message || 'Failed to update password.' : 'Failed to update password.',
                     variant: 'destructive',
                 });
             }
@@ -168,11 +168,11 @@ export default function CreatorSettingsPage() {
                     title: 'Success',
                     description: 'Profile updated successfully.',
                 });
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error('Error updating profile:', error);
                 toast({
                     title: 'Error',
-                    description: error.message || 'Failed to update profile.',
+                    description: (typeof error === 'object' && error && 'message' in error) ? (error as { message?: string }).message || 'Failed to update profile.' : 'Failed to update profile.',
                     variant: 'destructive',
                 });
             }
@@ -185,8 +185,8 @@ export default function CreatorSettingsPage() {
         }
     };
 
-    const handleProfilePictureUpload = async (url: string) => {
-        if (id && typeof id === 'string' && assignee) {
+    const handleProfilePictureUpload = async (url: string | undefined) => {
+        if (id && typeof id === 'string' && assignee && url) {
             try {
                 const updatedAssignee: Partial<Assignee> = {
                     profilePicture: url,
@@ -197,13 +197,35 @@ export default function CreatorSettingsPage() {
                     title: 'Success',
                     description: 'Profile picture updated successfully.',
                 });
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error('Error updating profile picture:', error);
                 toast({
                     title: 'Error',
-                    description: error.message || 'Failed to update profile picture.',
+                    description: (typeof error === 'object' && error && 'message' in error) ? (error as { message?: string }).message || 'Failed to update profile picture.' : 'Failed to update profile picture.',
                     variant: 'destructive',
                 });
+            }
+        } else if (!url) {
+            // Handle case where image is removed
+            if (id && typeof id === 'string' && assignee) {
+                try {
+                    const updatedAssignee: Partial<Assignee> = {
+                        profilePicture: undefined,
+                    };
+                    await updateAssignee(id, updatedAssignee);
+                    setAssignee(prev => prev ? { ...prev, profilePicture: undefined } : null);
+                    toast({
+                        title: 'Success',
+                        description: 'Profile picture removed successfully.',
+                    });
+                } catch (error: unknown) {
+                    console.error('Error removing profile picture:', error);
+                    toast({
+                        title: 'Error',
+                        description: (typeof error === 'object' && error && 'message' in error) ? (error as { message?: string }).message || 'Failed to remove profile picture.' : 'Failed to remove profile picture.',
+                        variant: 'destructive',
+                    });
+                }
             }
         } else {
             toast({
@@ -374,7 +396,11 @@ export default function CreatorSettingsPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                              <div className="flex items-center space-x-4">
-                                <ImageUploader onUploadComplete={handleProfilePictureUpload} />
+                                <ImageUploader 
+                                    value={assignee?.profilePicture} 
+                                    onChange={handleProfilePictureUpload}
+                                    fallbackText={assignee?.name?.charAt(0) || 'C'}
+                                />
                                  {assignee?.profilePicture && (
                                     <img src={assignee.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
                                 )}

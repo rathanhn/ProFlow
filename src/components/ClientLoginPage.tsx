@@ -56,12 +56,12 @@ export default function ClientLoginPage() {
             });
             router.push(`/client/${clientId}`);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("[ClientLoginPage] Login error:", error);
             await signOut(clientAuth);
             toast({
                 title: 'Login Failed',
-                description: error.message || 'Invalid credentials or not a registered client.',
+                description: error instanceof Error ? error.message : 'Invalid credentials or not a registered client.',
                 variant: 'destructive',
             });
         } finally {

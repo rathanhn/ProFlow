@@ -22,11 +22,11 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
 type Props = {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 };
 
 export default async function ClientTransactionsPage({ params }: Props) {
-  const clientId = params.id;
+  const { id: clientId } = await params;
   if (!clientId) {
       notFound();
   }

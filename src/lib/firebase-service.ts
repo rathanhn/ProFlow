@@ -89,8 +89,8 @@ export async function addClient(client: Omit<Client, 'id' | 'password'>) {
 
         revalidatePath('/admin/clients');
         return { id: uid, ...clientData };
-    } catch (error: any) {
-        if (error.code === 'auth/email-already-in-use') {
+    } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/email-already-in-use') {
             throw new Error("A user with this email already exists.");
         }
         throw error;
@@ -303,8 +303,8 @@ export async function addAssignee(assignee: Omit<Assignee, 'id' | 'password'>): 
         revalidatePath('/admin/tasks/new');
         revalidatePath('/admin/tasks/*');
         return { id: uid, email, ...assigneeData };
-    } catch (error: any) {
-        if (error.code === 'auth/email-already-in-use') {
+    } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/email-already-in-use') {
             throw new Error("A user with this email already exists.");
         }
         throw error;

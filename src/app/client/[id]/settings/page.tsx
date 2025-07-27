@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from '@/components/ui/button';
 import {
@@ -40,10 +40,11 @@ const profileFormSchema = z.object({
   avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
 });
 
-export default function ClientSettingsPage({ params }: { params: { id: string } }) {
+export default function ClientSettingsPage() {
     const { toast } = useToast();
     const router = useRouter();
-    const clientId = params.id;
+    const params = useParams();
+    const clientId = params.id as string;
 
     const [client, setClient] = useState<Client | null>(null);
     const [loading, setLoading] = useState(true);

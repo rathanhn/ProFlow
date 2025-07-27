@@ -96,7 +96,7 @@ export default async function AdminDashboardPage() {
             <BellRing className="h-4 w-4" />
             <AlertTitle>Action Required!</AlertTitle>
             <AlertDescription>
-              The following projects have been paid for but their work status is not yet 'Completed'. Please review and update their status.
+              The following projects have been paid for but their work status is not yet &apos;Completed&apos;. Please review and update their status.
               <ul className="mt-2 list-disc list-inside">
                 {paidButNotCompletedTasks.map(task => (
                   <li key={task.id}>

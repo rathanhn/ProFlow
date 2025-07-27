@@ -10,8 +10,8 @@ import Link from 'next/link';
 import ReportCreatorButton from './ReportCreatorButton';
 import { Assignee, Task } from '@/lib/types';
 
-export default async function ({ params }: { params: { assigneeId: string } }) {
-    const assigneeId = params.assigneeId;
+export default async function ProfilePage({ params }: { params: Promise<{ assigneeId: string }> }) {
+    const { assigneeId } = await params;
     const rawAssignee = await getAssignee(assigneeId);
 
     if (!rawAssignee) {

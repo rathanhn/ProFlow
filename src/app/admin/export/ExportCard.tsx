@@ -18,7 +18,7 @@ interface ExportCardProps {
   title: string;
   description: string;
   buttonLabel: string;
-  data: any[];
+  data: Record<string, unknown>[];
   filename: string;
 }
 
@@ -31,7 +31,7 @@ export default function ExportCard({
 }: ExportCardProps) {
   const { toast } = useToast();
 
-  const convertToCSV = (objArray: any[]) => {
+  const convertToCSV = (objArray: Record<string, unknown>[]) => {
     if (!objArray || objArray.length === 0) {
       return '';
     }
