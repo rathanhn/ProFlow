@@ -15,7 +15,7 @@ import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, 
 import { clientAuth } from '@/lib/firebase';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '@/lib/firebase';
 
 
 export default function CreatorLoginPage() {

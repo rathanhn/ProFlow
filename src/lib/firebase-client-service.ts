@@ -1,7 +1,7 @@
 
 'use client';
 
-import { auth } from './firebase';
+import { auth } from '@/lib/firebase';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 
 export async function updateClientPassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {

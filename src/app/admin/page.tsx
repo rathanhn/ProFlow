@@ -41,7 +41,7 @@ import { useRouter } from 'next/navigation';
 export default function AdminDashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
-  const [unreadNotifications, setUnreadNotifications] = useState<any[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState<unknown[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const haptic = useHapticFeedback();
   const router = useRouter();

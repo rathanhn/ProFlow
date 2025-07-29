@@ -4,7 +4,7 @@
 
 'use server';
 
-import { auth, db, createSecondaryAuth } from './firebase';
+import { auth, db, createSecondaryAuth } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction } from 'firebase/firestore';
 import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from './types';
 import { revalidatePath } from 'next/cache';
