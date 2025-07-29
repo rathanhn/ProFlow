@@ -519,3 +519,11 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
 
     return transactionList;
 }
+
+export async function getAdminByEmail(email: string) {
+  const q = query(collection(db, "admins"), where("email", "==", email));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return null;
+  const docSnap = snapshot.docs[0];
+  return { id: docSnap.id, ...docSnap.data() };
+}

@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Rocket, Eye, EyeOff } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { getAdminByEmail } from '@/lib/firebase-service';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,19 +23,30 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-        await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
+      // Check for admin tag
+      const adminRecord = await getAdminByEmail(email);
+      if (!adminRecord) {
+        await signOut(auth);
         toast({
-            title: 'Admin Login Successful!',
-            description: 'Redirecting to the dashboard.',
+          title: 'Access Denied',
+          description: 'You are not an admin.',
+          variant: 'destructive',
         });
-        router.push('/admin');
+        return;
+      }
+      toast({
+        title: 'Admin Login Successful!',
+        description: 'Redirecting to the dashboard.',
+      });
+      router.push('/admin');
     } catch (error) {
-        console.error("Admin login error:", error);
-        toast({
-            title: 'Login Failed',
-            description: 'Invalid credentials. Please make sure you have created an admin user in your Firebase project.',
-            variant: 'destructive',
-        });
+      console.error("Admin login error:", error);
+      toast({
+        title: 'Login Failed',
+        description: 'Invalid credentials. Please make sure you have created an admin user in your Firebase project.',
+        variant: 'destructive',
+      });
     }
   };
   

@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, signOut, updatePassword } from 'firebase/auth';
 import { clientAuth } from '@/lib/firebase';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from './firebase';
 
 
 export default function CreatorLoginPage() {
@@ -188,4 +190,12 @@ export default function CreatorLoginPage() {
     </AlertDialog>
     </>
   );
+}
+
+export async function getAdminByEmail(email: string) {
+  const q = query(collection(db, "admins"), where("email", "==", email));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return null;
+  const docSnap = snapshot.docs[0];
+  return { id: docSnap.id, ...docSnap.data() };
 }
