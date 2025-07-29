@@ -3,6 +3,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getUploadSignature, deleteFileByUrl } from '@/lib/actions';

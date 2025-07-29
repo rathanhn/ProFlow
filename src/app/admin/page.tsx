@@ -1,4 +1,6 @@
 
+'use client';
+
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
@@ -18,23 +20,60 @@ import {
     BellRing,
     ArrowRight,
     MessageSquareWarning,
-    Clock
+    Clock,
+    Plus,
+    UserPlus,
+    FileText
 } from 'lucide-react';
 import { getTasks, getClients, getAdminNotifications } from '@/lib/firebase-service';
 import EarningsChart from '@/components/EarningsChart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AIInsights from './AIInsights';
 import { Client, Task } from '@/lib/types';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import { FloatingActionButton } from '@/components/ui/floating-action-button';
+import { RippleButton } from '@/components/ui/ripple-effect';
+import { useHapticFeedback } from '@/lib/haptic-feedback';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 
-export default async function AdminDashboardPage() {
-  const rawTasks = await getTasks();
-  const rawClients = await getClients();
-  const unreadNotifications = await getAdminNotifications();
+export default function AdminDashboardPage() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const haptic = useHapticFeedback();
+  const router = useRouter();
 
-  // Serialize data
-  const tasks = JSON.parse(JSON.stringify(rawTasks)) as Task[];
-  const clients = JSON.parse(JSON.stringify(rawClients)) as Client[];
+  const loadData = async () => {
+    try {
+      const [rawTasks, rawClients, notifications] = await Promise.all([
+        getTasks(),
+        getClients(),
+        getAdminNotifications()
+      ]);
+
+      // Serialize data
+      setTasks(JSON.parse(JSON.stringify(rawTasks)) as Task[]);
+      setClients(JSON.parse(JSON.stringify(rawClients)) as Client[]);
+      setUnreadNotifications(notifications);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      haptic.error();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleRefresh = async () => {
+    haptic.androidSwipeRefresh();
+    await loadData();
+  };
   
   const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + (task.total || 0), 0);
   const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + ((task.total || 0) - (task.amountPaid || 0)), 0);
@@ -50,25 +89,76 @@ export default async function AdminDashboardPage() {
     .sort((a, b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime())
     .slice(0, 5);
 
+  // FAB actions
+  const fabActions = [
+    {
+      id: 'new-task',
+      label: 'New Task',
+      icon: Plus,
+      onClick: () => {
+        haptic.androidClick();
+        router.push('/admin/tasks/new');
+      },
+    },
+    {
+      id: 'new-client',
+      label: 'New Client',
+      icon: UserPlus,
+      onClick: () => {
+        haptic.androidClick();
+        router.push('/admin/clients/new');
+      },
+    },
+    {
+      id: 'export',
+      label: 'Export Data',
+      icon: FileText,
+      onClick: () => {
+        haptic.androidClick();
+        router.push('/admin/export');
+      },
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="space-y-6 fab-safe-bottom">
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
                 <p className="text-muted-foreground">An overview of all client projects and finances.</p>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button variant="outline" asChild className="w-full sm:w-auto">
-                    <Link href="/admin/export">
-                        <File className="mr-2 h-4 w-4" /> Export
-                    </Link>
-                </Button>
-                <Button asChild className="w-full sm:w-auto">
-                    <Link href="/admin/tasks/new">
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Task
-                    </Link>
-                </Button>
+                <RippleButton
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  onClick={() => {
+                    haptic.androidClick();
+                    router.push('/admin/export');
+                  }}
+                >
+                  <File className="mr-2 h-4 w-4" /> Export
+                </RippleButton>
+                <RippleButton
+                  className="w-full sm:w-auto"
+                  onClick={() => {
+                    haptic.androidClick();
+                    router.push('/admin/tasks/new');
+                  }}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Task
+                </RippleButton>
             </div>
         </div>
 
@@ -192,7 +282,15 @@ export default async function AdminDashboardPage() {
             </CardContent>
         </Card>
 
-      </div>
+        </div>
+      </PullToRefresh>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        actions={fabActions}
+        position="bottom-right"
+        size="default"
+      />
     </DashboardLayout>
   );
 }

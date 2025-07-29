@@ -1,4 +1,6 @@
 
+'use client';
+
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -19,51 +21,132 @@ import { getTransactions } from '@/lib/firebase-service';
 import { Transaction } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import { RippleButton } from '@/components/ui/ripple-effect';
+import { useHapticFeedback } from '@/lib/haptic-feedback';
+import { useRouter } from 'next/navigation';
+import { Eye, FileText, Plus } from 'lucide-react';
+import { LongPressMenu } from '@/components/ui/long-press';
 
-export default async function AdminTransactionsPage() {
-  const rawTransactions = await getTransactions();
-  // Ensure transactions are serializable
-  const transactions = JSON.parse(JSON.stringify(rawTransactions)) as Transaction[];
+export default function AdminTransactionsPage() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const haptic = useHapticFeedback();
+  const router = useRouter();
+
+  const loadTransactions = async () => {
+    try {
+      const rawTransactions = await getTransactions();
+      setTransactions(JSON.parse(JSON.stringify(rawTransactions)) as Transaction[]);
+    } catch (error) {
+      console.error('Failed to load transactions:', error);
+      haptic.error();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const handleRefresh = async () => {
+    haptic.androidSwipeRefresh();
+    await loadTransactions();
+  };
+
+  const getLongPressActions = (transaction: Transaction) => [
+    {
+      id: 'view',
+      label: 'View Task',
+      icon: Eye,
+      onClick: () => router.push(`/admin/tasks/${transaction.taskId}`),
+    },
+    {
+      id: 'export',
+      label: 'Export Receipt',
+      icon: FileText,
+      onClick: () => {
+        // Export functionality would go here
+        haptic.androidClick();
+      },
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">All Transactions</h1>
-          <p className="text-muted-foreground">A record of all payments received.</p>
-        </div>
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="space-y-6 fab-safe-bottom">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">All Transactions</h1>
+            <p className="text-muted-foreground">A record of all payments received.</p>
+          </div>
 
-        <Card className="md:hidden">
-          <CardHeader>
-            <CardTitle>Transaction History</CardTitle>
-            <CardDescription>Browse through all recorded transactions.</CardDescription>
-          </CardHeader>
-        </Card>
-        <div className="grid gap-4 md:hidden">
-            {transactions.map((transaction: Transaction) => (
-                <Card key={transaction.id}>
-                    <CardContent className="pt-4">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="font-semibold">
-                                    <Link href={`/admin/tasks/${transaction.taskId}`} className="hover:underline">{transaction.projectName}</Link>
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    Client: <Link href={`/admin/clients/${transaction.clientId}/edit`} className="hover:underline">{transaction.clientName}</Link>
-                                </p>
-                                <p className="text-xs text-muted-foreground pt-1">
-                                    {new Date(transaction.transactionDate).toLocaleDateString()}
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-bold text-lg">₹{transaction.amount.toLocaleString()}</p>
-                                <Badge variant="outline" className="mt-1">{transaction.paymentMethod}</Badge>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
+          <Card className="md:hidden">
+            <CardHeader>
+              <CardTitle>Transaction History</CardTitle>
+              <CardDescription>Browse through all recorded transactions.</CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Mobile View with Long Press */}
+          <div className="grid gap-4 md:hidden">
+              {transactions.map((transaction: Transaction) => (
+                  <LongPressMenu key={transaction.id} actions={getLongPressActions(transaction)}>
+                      <Card className="cursor-pointer">
+                          <CardContent className="pt-4">
+                              <div className="flex justify-between items-start">
+                                  <div>
+                                      <div className="font-semibold">
+                                          <RippleButton
+                                            variant="ghost"
+                                            className="p-0 h-auto font-semibold text-left justify-start hover:underline"
+                                            onClick={() => {
+                                              haptic.androidClick();
+                                              router.push(`/admin/tasks/${transaction.taskId}`);
+                                            }}
+                                          >
+                                            {transaction.projectName}
+                                          </RippleButton>
+                                      </div>
+                                      <div className="text-sm text-muted-foreground">
+                                          <span>Client: </span>
+                                          <RippleButton
+                                            variant="ghost"
+                                            className="p-0 h-auto text-sm text-muted-foreground hover:underline ml-1"
+                                            onClick={() => {
+                                              haptic.androidClick();
+                                              router.push(`/admin/clients/${transaction.clientId}/edit`);
+                                            }}
+                                          >
+                                            {transaction.clientName}
+                                          </RippleButton>
+                                      </div>
+                                      <div className="text-xs text-muted-foreground pt-1">
+                                          {new Date(transaction.transactionDate).toLocaleDateString()}
+                                      </div>
+                                  </div>
+                                  <div className="text-right">
+                                      <p className="font-bold text-lg">₹{transaction.amount.toLocaleString()}</p>
+                                      <Badge variant="outline" className="mt-1">{transaction.paymentMethod}</Badge>
+                                  </div>
+                              </div>
+                          </CardContent>
+                      </Card>
+                  </LongPressMenu>
+              ))}
+          </div>
 
         {/* Desktop View */}
         <div className="hidden md:block w-full">
@@ -118,8 +201,9 @@ export default async function AdminTransactionsPage() {
                 )}
                 </CardContent>
             </Card>
+          </div>
         </div>
-      </div>
+      </PullToRefresh>
     </DashboardLayout>
   );
 }

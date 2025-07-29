@@ -1,7 +1,9 @@
 
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -15,29 +17,80 @@ import {
     ArrowRight,
     CheckCircle2,
     DollarSign,
-    Clock
+    Clock,
+    Plus,
+    Settings,
+    FileText
 } from 'lucide-react';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import { Assignee, Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import { FloatingActionButton } from '@/components/ui/floating-action-button';
+import { RippleButton } from '@/components/ui/ripple-effect';
+import { useHapticFeedback } from '@/lib/haptic-feedback';
 
-export default async function CreatorDashboardPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: creatorId } = await params;
+export default function CreatorDashboardPage({ params }: { params: Promise<{ id: string }> }) {
+  const [creatorId, setCreatorId] = useState<string>('');
+  const [creator, setCreator] = useState<Assignee | null>(null);
+  const [creatorTasks, setCreatorTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const haptic = useHapticFeedback();
+  const router = useRouter();
 
-  if (!creatorId) {
-    notFound();
+  useEffect(() => {
+    const loadParams = async () => {
+      const resolvedParams = await params;
+      setCreatorId(resolvedParams.id);
+    };
+    loadParams();
+  }, [params]);
+
+  const loadData = async () => {
+    if (!creatorId) return;
+
+    try {
+      const rawCreator = await getAssignee(creatorId);
+      if (!rawCreator) {
+        notFound();
+        return;
+      }
+
+      const [rawCreatorTasks] = await Promise.all([
+        getTasksByAssigneeId(creatorId)
+      ]);
+
+      setCreator(JSON.parse(JSON.stringify(rawCreator)) as Assignee);
+      setCreatorTasks(JSON.parse(JSON.stringify(rawCreatorTasks)) as Task[]);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      haptic.error();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (creatorId) {
+      loadData();
+    }
+  }, [creatorId]);
+
+  const handleRefresh = async () => {
+    haptic.androidSwipeRefresh();
+    await loadData();
+  };
+
+  if (isLoading || !creator) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
   }
-
-  const rawCreator = await getAssignee(creatorId);
-
-  if (!rawCreator) {
-    notFound();
-  }
-  const creator = JSON.parse(JSON.stringify(rawCreator)) as Assignee;
-
-  const rawCreatorTasks = await getTasksByAssigneeId(creatorId);
-  const creatorTasks = JSON.parse(JSON.stringify(rawCreatorTasks)) as Task[];
 
 
   const projectsInProgress = creatorTasks.filter(t => t.workStatus === 'In Progress').length;
@@ -52,19 +105,40 @@ export default async function CreatorDashboardPage({ params }: { params: Promise
     .sort((a, b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime())
     .slice(0, 5);
 
+  const fabActions = [
+    {
+      id: 'tasks',
+      label: 'View Tasks',
+      icon: ListChecks,
+      onClick: () => {
+        haptic.androidClick();
+        router.push(`/creator/${creatorId}/tasks`);
+      },
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      onClick: () => {
+        haptic.androidClick();
+        router.push(`/creator/${creatorId}/settings`);
+      },
+    },
+  ];
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-start gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary">
-                <AvatarImage src={creator.avatar} />
-                <AvatarFallback className="text-2xl">{creator.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">{creator.name}</h1>
-                <p className="text-muted-foreground">Welcome to your creator dashboard.</p>
-            </div>
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="space-y-6 fab-safe-bottom">
+          <div className="flex items-start gap-4">
+              <Avatar className="h-16 w-16 border-2 border-primary">
+                  <AvatarImage src={creator.avatar} />
+                  <AvatarFallback className="text-2xl">{creator.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                  <h1 className="text-3xl font-bold tracking-tight">{creator.name}</h1>
+                  <p className="text-muted-foreground">Welcome to your creator dashboard.</p>
+              </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -126,13 +200,28 @@ export default async function CreatorDashboardPage({ params }: { params: Promise
                 )}
             </div>
              <div className="mt-4 pt-4 border-t">
-                <Button variant="secondary" className="w-full" asChild>
-                   <Link href={`/creator/${creator.id}/tasks`}>View All Tasks <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                </Button>
+                <RippleButton
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => {
+                    haptic.androidClick();
+                    router.push(`/creator/${creator.id}/tasks`);
+                  }}
+                >
+                  View All Tasks <ArrowRight className="ml-2 h-4 w-4" />
+                </RippleButton>
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </PullToRefresh>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        actions={fabActions}
+        position="bottom-right"
+        size="default"
+      />
     </DashboardLayout>
   );
 }

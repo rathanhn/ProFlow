@@ -1,7 +1,9 @@
 
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -13,48 +15,131 @@ import {
 import {
     DollarSign,
     ListChecks,
-    ArrowRight
+    ArrowRight,
+    FileText,
+    Settings,
+    CreditCard
 } from 'lucide-react';
 import { getClient, getTasksByClientId } from '@/lib/firebase-service';
 import { Task, Client } from '@/lib/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ClickableAvatar } from '@/components/ClickableAvatar';
 import { Button } from '@/components/ui/button';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import { FloatingActionButton } from '@/components/ui/floating-action-button';
+import { RippleButton } from '@/components/ui/ripple-effect';
+import { useHapticFeedback } from '@/lib/haptic-feedback';
 
-export default async function ClientDashboardPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: clientId } = await params;
+export default function ClientDashboardPage({ params }: { params: Promise<{ id: string }> }) {
+  const [clientId, setClientId] = useState<string>('');
+  const [client, setClient] = useState<Client | null>(null);
+  const [clientTasks, setClientTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const haptic = useHapticFeedback();
+  const router = useRouter();
 
-  if (!clientId) {
-    notFound();
+  useEffect(() => {
+    const loadParams = async () => {
+      const resolvedParams = await params;
+      setClientId(resolvedParams.id);
+    };
+    loadParams();
+  }, [params]);
+
+  const loadData = async () => {
+    if (!clientId) return;
+
+    try {
+      const rawClient = await getClient(clientId);
+      if (!rawClient) {
+        notFound();
+        return;
+      }
+
+      const rawClientTasks = await getTasksByClientId(clientId);
+
+      setClient(JSON.parse(JSON.stringify(rawClient)) as Client);
+      setClientTasks(JSON.parse(JSON.stringify(rawClientTasks)) as Task[]);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      haptic.error();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (clientId) {
+      loadData();
+    }
+  }, [clientId]);
+
+  const handleRefresh = async () => {
+    haptic.androidSwipeRefresh();
+    await loadData();
+  };
+
+  if (isLoading || !client) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
   }
-
-  const rawClient = await getClient(clientId);
-
-  if (!rawClient) {
-    notFound();
-  }
-
-  const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-  const rawClientTasks = await getTasksByClientId(clientId);
-
-  const clientTasks = JSON.parse(JSON.stringify(rawClientTasks)) as Task[];
 
   const totalSpent = clientTasks.reduce((acc, task) => acc + (task.amountPaid || 0), 0);
   const outstandingBalance = clientTasks.reduce((acc, task) => acc + ((task.total || 0) - (task.amountPaid || 0)), 0);
   const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
 
+  const fabActions = [
+    {
+      id: 'projects',
+      label: 'View Projects',
+      icon: ListChecks,
+      onClick: () => {
+        haptic.androidClick();
+        router.push(`/client/${clientId}/projects`);
+      },
+    },
+    {
+      id: 'transactions',
+      label: 'Transactions',
+      icon: CreditCard,
+      onClick: () => {
+        haptic.androidClick();
+        router.push(`/client/${clientId}/transactions`);
+      },
+    },
+    {
+      id: 'export',
+      label: 'Export Data',
+      icon: FileText,
+      onClick: () => {
+        haptic.androidClick();
+        router.push(`/client/${clientId}/export`);
+      },
+    },
+  ];
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-start gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary">
-                <AvatarImage src={client.avatar} />
-                <AvatarFallback className="text-2xl">{client.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
-                <p className="text-muted-foreground">Welcome to your personal dashboard.</p>
-            </div>
-        </div>
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="space-y-6 fab-safe-bottom">
+          <div className="flex items-start gap-4">
+              <ClickableAvatar
+                  src={client.avatar}
+                  fallback={client.name.charAt(0)}
+                  userName={client.name}
+                  userEmail={client.email}
+                  size="xl"
+                  className="border-2 border-primary"
+              />
+              <div>
+                  <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
+                  <p className="text-muted-foreground">Welcome to your personal dashboard.</p>
+              </div>
+          </div>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
           <Card>
@@ -111,13 +196,28 @@ export default async function ClientDashboardPage({ params }: { params: Promise<
                 ))}
             </div>
              <div className="mt-4 pt-4 border-t">
-                <Button variant="secondary" className="w-full" asChild>
-                   <Link href={`/client/${client.id}/projects`}>View All Projects <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                </Button>
+                <RippleButton
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => {
+                    haptic.androidClick();
+                    router.push(`/client/${client.id}/projects`);
+                  }}
+                >
+                  View All Projects <ArrowRight className="ml-2 h-4 w-4" />
+                </RippleButton>
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </PullToRefresh>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        actions={fabActions}
+        position="bottom-right"
+        size="default"
+      />
     </DashboardLayout>
   );
 }

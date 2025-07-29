@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { updateClientPassword } from '@/lib/firebase-client-service';
-import { KeyRound, Eye, EyeOff, User as UserIcon } from 'lucide-react';
+import { KeyRound, Eye, EyeOff, User as UserIcon, LogOut, AlertTriangle } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ImageUploader from '@/components/ImageUploader';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -27,6 +27,19 @@ import { updateAuthUser } from '@/lib/firebase-service';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User } from 'firebase/auth';
+import { auth, clientAuth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 
 const passwordFormSchema = z.object({
@@ -49,6 +62,7 @@ function SettingsForm() {
     const { user, loading: userLoading } = useSidebar();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
@@ -75,6 +89,27 @@ function SettingsForm() {
             });
         }
     }, [user, profileForm]);
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await signOut(auth);
+            toast({
+                title: 'Logged Out',
+                description: 'You have been successfully logged out.'
+            });
+            router.push('/admin/login');
+        } catch (error) {
+            console.error('Logout error:', error);
+            toast({
+                title: 'Logout Failed',
+                description: 'Could not log you out. Please try again.',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
 
     async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         try {
@@ -286,6 +321,58 @@ function SettingsForm() {
                                 </div>
                             </form>
                         </Form>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-destructive/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-destructive">
+                            <AlertTriangle className="h-5 w-5" />
+                            Danger Zone
+                        </CardTitle>
+                        <CardDescription>
+                            Actions that will log you out of your account.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                            <div>
+                                <h4 className="font-medium text-sm">Sign Out</h4>
+                                <p className="text-xs text-muted-foreground">
+                                    Log out of your admin account and return to the login page.
+                                </p>
+                            </div>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        disabled={isLoggingOut}
+                                        className="ml-4"
+                                    >
+                                        <LogOut className="h-4 w-4 mr-2" />
+                                        {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            You will be logged out of your admin account and redirected to the login page.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={handleLogout}
+                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                            Sign Out
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                     </CardContent>
                 </Card>
 

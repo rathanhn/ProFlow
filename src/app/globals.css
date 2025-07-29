@@ -2,8 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+html, body {
   font-family: 'Inter', sans-serif;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden; /* Let the main container handle scrolling */
+  scroll-behavior: smooth;
+}
+
+/* Ensure proper scrolling on mobile */
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Safe area support for mobile devices */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 1.5rem);
+}
+
+/* Mobile tabs safe area */
+.mobile-tabs-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+}
+
+/* Content padding for mobile tabs */
+.mobile-content-padding {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ensure proper spacing for sticky header and tabs */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.sticky-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: hsl(var(--background) / 0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* Ensure content is scrollable and doesn't get hidden behind FAB */
+.fab-safe-bottom {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  min-height: 100vh; /* Ensure content takes full height */
+}
+
+/* Prevent scroll issues on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure proper touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y; /* Allow vertical scrolling */
+}
+
+/* Main scrollable container - only this should have overflow */
+.scrollable-content {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  /* Ensure touch events are properly handled */
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Content areas - no overflow, just touch handling */
+.content-area {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  /* Ensure content area is fully touchable */
+  pointer-events: auto;
+  position: relative;
+  min-height: 100%;
+}
+
+/* Ensure all interactive elements are touchable */
+.card-content, .table-container {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
+}
+
+
+
+/* Ensure FAB doesn't block scrolling */
+.fab-container {
+  pointer-events: none;
+}
+
+.fab-container > * {
+  pointer-events: auto;
 }
 
 @layer base {

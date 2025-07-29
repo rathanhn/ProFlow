@@ -14,6 +14,7 @@ import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Edit } from 'lucide-react';
+import { ClickableAvatar } from '@/components/ClickableAvatar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Task, Client } from '@/lib/types';
 import AdminActions from './AdminActions';
@@ -56,10 +57,14 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
               <CardHeader>
                 <div className="flex items-start gap-4">
                   {client && (
-                    <Avatar className="h-12 w-12 border">
-                      <AvatarImage src={client.avatar || undefined} />
-                      <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    <ClickableAvatar
+                      src={client.avatar}
+                      fallback={client.name.charAt(0)}
+                      userName={client.name}
+                      userEmail={client.email}
+                      size="lg"
+                      className="border"
+                    />
                   )}
                   <div>
                     <CardTitle className="text-2xl">{task.projectName}</CardTitle>

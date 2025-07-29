@@ -1,0 +1,7 @@
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g transform="translate(0,16) scale(0.1,-0.1)" fill="#000000" stroke="none">
+    <path d="M20 80 L20 20 L60 20 Q80 20 80 40 Q80 60 60 60 L20 60 L20 80 Z"/>
+    <path d="M100 80 L100 20 L140 20 L140 30 L110 30 L110 45 L130 45 L130 55 L110 55 L110 80 L100 80 Z"/>
+    <path d="M30 10 Q60 8 90 10 Q120 12 140 10" stroke="#4F46E5" stroke-width="2" fill="none"/>
+  </g>
+</svg>

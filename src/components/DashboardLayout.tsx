@@ -13,9 +13,10 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
-  SidebarTrigger,
   useSidebar
 } from '@/components/ui/sidebar';
+import { MobileTabs } from '@/components/ui/mobile-tabs';
+import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown } from 'lucide-react';
@@ -32,6 +33,7 @@ const UserProfile = () => {
   const router = useRouter();
   const { toast } = useToast();
   const { isCollapsed, user, loading } = useSidebar();
+  const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
 
   const handleLogout = async () => {
      const currentAuth = pathname.startsWith('/admin') ? auth : clientAuth;
@@ -82,11 +84,19 @@ const UserProfile = () => {
 
   if (user) {
     return (
-      <div className="flex items-center gap-3">
-        <Avatar>
-          <AvatarImage src={user.photoURL || undefined} alt="User avatar" />
-          <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
-        </Avatar>
+      <>
+        <div className="flex items-center gap-3">
+          <Avatar
+            className="cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all duration-200"
+            onClick={() => {
+              // Always open viewer - use photoURL if available, otherwise create a placeholder
+              const imageUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(getDisplayName())}&size=400&background=0ea5e9&color=ffffff&bold=true`;
+              openViewer(imageUrl, getDisplayName(), user.email || undefined);
+            }}
+          >
+            <AvatarImage src={user.photoURL || undefined} alt="User avatar" />
+            <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
+          </Avatar>
         {!isCollapsed && (
           <>
             <div className="flex-1 overflow-hidden">
@@ -98,7 +108,17 @@ const UserProfile = () => {
             </Button>
           </>
         )}
-      </div>
+        </div>
+
+        {/* Profile Image Viewer */}
+        <ProfileImageViewer
+          isOpen={isOpen}
+          onClose={closeViewer}
+          imageUrl={imageData.imageUrl}
+          userName={imageData.userName}
+          userEmail={imageData.userEmail}
+        />
+      </>
     );
   }
 
@@ -167,8 +187,8 @@ const DashboardContent = ({
   
 
   return (
-    <div className="flex min-h-screen bg-muted/40">
-      <Sidebar>
+    <div className="flex h-screen bg-muted/40 overflow-hidden">
+      <Sidebar className="hidden md:flex">
         <SidebarHeader>
           <Rocket className="w-6 h-6 text-primary" />
           {!isCollapsed && <h1 className="text-xl font-semibold">ProFlow</h1>}
@@ -225,6 +245,7 @@ const DashboardContent = ({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
                     <Link href="/admin/settings">
@@ -318,20 +339,28 @@ const DashboardContent = ({
         isCollapsed && "lg:pl-16",
         "transition-all duration-300 ease-in-out"
       )}>
-        <header className="flex items-center justify-between lg:justify-end p-4 border-b h-16 sticky top-0 bg-background z-30">
-            <div className="flex items-center lg:hidden">
-              <SidebarTrigger />
+        <header className="sticky-header flex items-center justify-between p-4 h-16">
+            {/* ProFlow Logo for Mobile */}
+            <div className="flex items-center md:hidden">
+              <Rocket className="w-6 h-6 text-primary mr-2" />
+              <h1 className="text-lg font-semibold">ProFlow</h1>
             </div>
-            <div className="flex items-center gap-4">
+
+            {/* Desktop keeps the right-aligned content */}
+            <div className="flex items-center gap-4 md:ml-auto">
               {user && <NotificationBell />}
             </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 scrollable-content">
+          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-24 md:pb-8">
             {renderContent()}
           </div>
         </main>
       </div>
+
+      {/* Mobile Tab Navigation */}
+      <MobileTabs />
     </div>
   );
 };
+  

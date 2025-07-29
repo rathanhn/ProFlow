@@ -2,7 +2,7 @@
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ClickableAvatar } from '@/components/ClickableAvatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mail, Phone, MessageSquare } from 'lucide-react';
@@ -29,10 +29,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ assign
                    <Card>
                         <CardContent className="pt-6">
                             <div className="flex flex-col items-center text-center">
-                                <Avatar className="h-24 w-24 mb-4 border-2 border-primary">
-                                    <AvatarImage src={assignee.avatar} alt={assignee.name} />
-                                    <AvatarFallback className="text-3xl">{assignee.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
+                                <ClickableAvatar
+                                    src={assignee.avatar}
+                                    fallback={assignee.name.charAt(0)}
+                                    userName={assignee.name}
+                                    userEmail={assignee.email}
+                                    size="xl"
+                                    className="mb-4 border-2 border-primary h-24 w-24"
+                                />
                                 <h1 className="text-2xl font-bold">{assignee.name}</h1>
                                 <p className="text-muted-foreground">Creator</p>
 
