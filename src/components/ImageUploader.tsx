@@ -7,6 +7,7 @@ import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profi
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getUploadSignature, deleteFileByUrl } from '@/lib/actions';
+import { generateFallbackAvatar, checkCloudinaryConfig } from '@/lib/cloudinary-config';
 import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { Progress } from './ui/progress';
 
@@ -76,7 +77,18 @@ export default function ImageUploader({
     }
 
     try {
+      // Check Cloudinary configuration
+      const configCheck = checkCloudinaryConfig();
+      if (!configCheck.isValid) {
+        throw new Error(`Cloudinary configuration issues: ${configCheck.issues.join(', ')}`);
+      }
+
       const { signature, timestamp, use_filename, unique_filename } = await getUploadSignature({ folder: 'avatars', use_filename: false, unique_filename: true });
+
+      if (!signature) {
+        throw new Error('Failed to generate upload signature. Please check server configuration.');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
@@ -105,7 +117,18 @@ export default function ImageUploader({
           onChange(data.secure_url);
           toast({ title: 'Image Uploaded!' });
         } else {
-          throw new Error('Upload failed with status: ' + xhr.status);
+          let errorMessage = `Upload failed with status: ${xhr.status}`;
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            if (errorData.error && errorData.error.message) {
+              errorMessage += ` - ${errorData.error.message}`;
+            }
+          } catch (e) {
+            // If response is not JSON, use the status text
+            errorMessage += ` - ${xhr.statusText}`;
+          }
+          console.error('Cloudinary upload error:', xhr.responseText);
+          throw new Error(errorMessage);
         }
         setIsLoading(false);
       };
@@ -116,12 +139,19 @@ export default function ImageUploader({
 
       xhr.send(formData);
     } catch (error) {
-      console.error(error);
+      console.error('Upload error:', error);
+
+      // Fallback: Generate a placeholder avatar URL
+      const fallbackUrl = generateFallbackAvatar(fallbackText, 200);
+
       toast({
-        title: 'Upload Failed',
-        description: 'Could not upload the image. Please try again.',
+        title: 'Upload Failed - Using Fallback',
+        description: 'Using generated avatar. Please check Cloudinary configuration.',
         variant: 'destructive',
       });
+
+      // Use the fallback avatar
+      onChange(fallbackUrl);
       setIsLoading(false);
     }
   };

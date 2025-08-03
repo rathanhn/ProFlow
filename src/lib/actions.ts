@@ -13,6 +13,22 @@ cloudinary.config({
 });
 
 export async function getUploadSignature({ folder, use_filename = true, unique_filename = false }: { folder?: string, use_filename?: boolean, unique_filename?: boolean } = {}) {
+  // Check if required environment variables are set
+  if (!process.env.CLOUDINARY_API_SECRET) {
+    console.error('CLOUDINARY_API_SECRET is not set');
+    throw new Error('Cloudinary API secret is not configured');
+  }
+
+  if (!process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY) {
+    console.error('NEXT_PUBLIC_CLOUDINARY_API_KEY is not set');
+    throw new Error('Cloudinary API key is not configured');
+  }
+
+  if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
+    console.error('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME is not set');
+    throw new Error('Cloudinary cloud name is not configured');
+  }
+
   const timestamp = Math.round(new Date().getTime() / 1000);
 
   const paramsToSign: { timestamp: number, folder?: string, use_filename?: boolean, unique_filename?: boolean } = {
@@ -25,12 +41,18 @@ export async function getUploadSignature({ folder, use_filename = true, unique_f
     paramsToSign.folder = folder;
   }
 
-  const signature = cloudinary.utils.api_sign_request(
-    paramsToSign,
-    process.env.CLOUDINARY_API_SECRET!
-  );
+  try {
+    const signature = cloudinary.utils.api_sign_request(
+      paramsToSign,
+      process.env.CLOUDINARY_API_SECRET!
+    );
 
-  return { timestamp, signature, folder, use_filename, unique_filename };
+    console.log('Upload signature generated successfully');
+    return { timestamp, signature, folder, use_filename, unique_filename };
+  } catch (error) {
+    console.error('Failed to generate signature:', error);
+    throw new Error('Failed to generate upload signature');
+  }
 }
 
 
