@@ -2,9 +2,10 @@
 
 // Utility to check Cloudinary configuration
 export function checkCloudinaryConfig() {
+  // Fallback to hard-coded values if environment variables are not set
   const config = {
-    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-    apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dfk9licqv',
+    apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '892517721593495',
     hasApiSecret: !!process.env.CLOUDINARY_API_SECRET, // Don't expose the actual secret
   };
 

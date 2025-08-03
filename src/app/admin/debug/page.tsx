@@ -10,6 +10,12 @@ import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 export default function AdminDebugPage() {
   const cloudinaryCheck = checkCloudinaryConfig();
 
+  // Debug: Log environment variables to console
+  console.log('Environment Variables Debug:');
+  console.log('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
+  console.log('NEXT_PUBLIC_CLOUDINARY_API_KEY:', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">

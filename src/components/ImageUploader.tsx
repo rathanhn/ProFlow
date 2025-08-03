@@ -91,7 +91,7 @@ export default function ImageUploader({
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
+      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '892517721593495');
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
       formData.append('folder', 'avatars');
@@ -99,7 +99,7 @@ export default function ImageUploader({
       formData.append('unique_filename', unique_filename ? 'true' : 'false');
 
 
-      const endpoint = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`;
+      const endpoint = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dfk9licqv'}/image/upload`;
       
       const xhr = new XMLHttpRequest();
       xhr.open('POST', endpoint, true);
