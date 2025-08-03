@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { addTask, getTasks } from '@/lib/firebase-service';
-import { Task, WorkStatus, PaymentStatus } from '@/lib/types';
-import { Upload, FileText, Plus, Download, Copy } from 'lucide-react';
+import { addTask, getTasks, getClients } from '@/lib/firebase-service';
+import { Task, WorkStatus, PaymentStatus, Client } from '@/lib/types';
+import { Upload, FileText, Plus, Download, Copy, CloudUpload, FileSpreadsheet } from 'lucide-react';
 import { convertNotionToProFlow, csvToJson, generateSampleJson } from '@/lib/notion-converter';
 
 interface TaskImportData {
@@ -25,15 +26,38 @@ interface TaskImportData {
 }
 
 export default function TaskImportPage() {
-  const [clientId] = useState('lx3NLv6g45YwM1DI4IFGUMaIpeg2'); // The client ID you provided
-  const [clientName, setClientName] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState('');
+  const [clients, setClients] = useState<Client[]>([]);
   const [jsonData, setJsonData] = useState('');
   const [csvData, setCsvData] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingClients, setIsLoadingClients] = useState(true);
   const [previewTasks, setPreviewTasks] = useState<TaskImportData[]>([]);
-  const [activeTab, setActiveTab] = useState<'json' | 'csv'>('json');
+  const [activeTab, setActiveTab] = useState<'file' | 'json' | 'csv'>('file');
+  const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  // Load clients on component mount
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        const clientData = await getClients();
+        setClients(clientData);
+      } catch (error) {
+        console.error('Failed to load clients:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load clients',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoadingClients(false);
+      }
+    };
+
+    loadClients();
+  }, [toast]);
 
   // Sample data format for reference
   const sampleData = `[
@@ -54,6 +78,94 @@ export default function TaskImportPage() {
     "notes": "Brand identity project"
   }
 ]`;
+
+  // File handling functions
+  const handleFileUpload = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (file.name.endsWith('.csv')) {
+        setCsvData(content);
+        setActiveTab('csv');
+      } else if (file.name.endsWith('.json')) {
+        setJsonData(content);
+        setActiveTab('json');
+      } else {
+        // Try to parse as CSV by default
+        setCsvData(content);
+        setActiveTab('csv');
+      }
+      toast({
+        title: 'File Loaded',
+        description: `${file.name} has been loaded successfully`,
+      });
+    };
+    reader.readAsText(file);
+  }, [toast]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  }, [handleFileUpload]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  }, [handleFileUpload]);
+
+  // Export functions
+  const exportSampleCSV = () => {
+    const csvContent = `Project Name,Pages,Rate,Status,Notes,Start Date,Due Date
+Website Redesign,8,150,In Progress,Modern responsive design,2024-01-15,2024-02-15
+Logo Design,3,200,Pending,Brand identity project,2024-01-20,2024-02-05
+Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_tasks.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: 'Sample Downloaded',
+      description: 'Sample CSV file has been downloaded',
+    });
+  };
+
+  const exportSampleJSON = () => {
+    const jsonContent = generateSampleJson();
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_tasks.json';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: 'Sample Downloaded',
+      description: 'Sample JSON file has been downloaded',
+    });
+  };
 
   const handlePreview = () => {
     try {
@@ -106,10 +218,10 @@ export default function TaskImportPage() {
   };
 
   const handleImport = async () => {
-    if (!clientName.trim()) {
+    if (!selectedClientId) {
       toast({
-        title: 'Client Name Required',
-        description: 'Please enter the client name',
+        title: 'Client Required',
+        description: 'Please select a client',
         variant: 'destructive',
       });
       return;
@@ -124,6 +236,16 @@ export default function TaskImportPage() {
       return;
     }
 
+    const selectedClient = clients.find(c => c.id === selectedClientId);
+    if (!selectedClient) {
+      toast({
+        title: 'Client Not Found',
+        description: 'Selected client not found',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const existingTasks = await getTasks();
@@ -132,8 +254,8 @@ export default function TaskImportPage() {
       for (const taskData of previewTasks) {
         const newTask: Omit<Task, 'id'> = {
           slNo: slNo++,
-          clientName: clientName.trim(),
-          clientId: clientId,
+          clientName: selectedClient.name,
+          clientId: selectedClientId,
           acceptedDate: new Date(taskData.acceptedDate!).toISOString(),
           projectName: taskData.projectName,
           pages: taskData.pages,
@@ -155,7 +277,7 @@ export default function TaskImportPage() {
 
       toast({
         title: 'Import Successful!',
-        description: `${previewTasks.length} tasks imported successfully`,
+        description: `${previewTasks.length} tasks imported for ${selectedClient.name}`,
       });
 
       router.push('/admin/tasks');
@@ -177,24 +299,42 @@ export default function TaskImportPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Import Tasks</h1>
           <p className="text-muted-foreground">
-            Import tasks for client ID: <code className="bg-muted px-2 py-1 rounded">{clientId}</code>
+            Bulk import tasks from CSV, JSON files or Notion exports
           </p>
         </div>
 
-        {/* Client Name Input */}
+        {/* Client Selection */}
         <Card>
           <CardHeader>
-            <CardTitle>Client Information</CardTitle>
+            <CardTitle>Select Client</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="clientName">Client Name</Label>
-              <Input
-                id="clientName"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                placeholder="Enter client name"
-              />
+              <Label htmlFor="clientSelect">Choose Client</Label>
+              {isLoadingClients ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <span className="text-sm text-muted-foreground">Loading clients...</span>
+                </div>
+              ) : (
+                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {clients.length === 0 && !isLoadingClients && (
+                <p className="text-sm text-muted-foreground">
+                  No clients found. Please add clients first.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -209,22 +349,73 @@ export default function TaskImportPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Tab Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
-                variant={activeTab === 'json' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('json')}
+                variant={activeTab === 'file' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('file')}
                 size="sm"
               >
-                JSON Format
+                <CloudUpload className="mr-2 h-4 w-4" />
+                Upload File
               </Button>
               <Button
                 variant={activeTab === 'csv' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('csv')}
                 size="sm"
               >
-                CSV from Notion
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                CSV Text
+              </Button>
+              <Button
+                variant={activeTab === 'json' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('json')}
+                size="sm"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                JSON Text
               </Button>
             </div>
+
+            {/* File Upload */}
+            {activeTab === 'file' && (
+              <div>
+                <Label>Upload CSV or JSON File</Label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    isDragOver
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <CloudUpload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <div className="space-y-2">
+                    <p className="text-lg font-medium">
+                      {isDragOver ? 'Drop your file here' : 'Drag & drop your file here'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Supports CSV and JSON files
+                    </p>
+                    <div className="pt-4">
+                      <input
+                        type="file"
+                        accept=".csv,.json,.txt"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                      <Button asChild variant="outline">
+                        <label htmlFor="file-upload" className="cursor-pointer">
+                          Choose File
+                        </label>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* JSON Input */}
             {activeTab === 'json' && (
@@ -259,10 +450,12 @@ Logo Design,3,200,Pending,Brand identity project,2024-01-20,2024-02-05"
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button onClick={handlePreview} variant="outline">
                 Preview Tasks
               </Button>
+
+              {/* Sample Data Buttons */}
               {activeTab === 'json' && (
                 <Button
                   onClick={() => setJsonData(sampleData)}
@@ -284,6 +477,24 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                   Load Sample CSV
                 </Button>
               )}
+
+              {/* Export Buttons */}
+              <Button
+                onClick={exportSampleCSV}
+                variant="ghost"
+                size="sm"
+              >
+                <Download className="mr-1 h-3 w-3" />
+                Download CSV Sample
+              </Button>
+              <Button
+                onClick={exportSampleJSON}
+                variant="ghost"
+                size="sm"
+              >
+                <Download className="mr-1 h-3 w-3" />
+                Download JSON Sample
+              </Button>
               <Button
                 onClick={() => {
                   const sample = generateSampleJson();
@@ -342,13 +553,45 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
         {/* Instructions */}
         <Card>
           <CardHeader>
-            <CardTitle>Instructions</CardTitle>
+            <CardTitle>Import Instructions</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p><strong>Required fields:</strong> projectName, pages, rate</p>
-            <p><strong>Optional fields:</strong> workStatus, notes, acceptedDate, submissionDate</p>
-            <p><strong>Work Status options:</strong> "Pending", "In Progress", "Completed"</p>
-            <p><strong>Date format:</strong> YYYY-MM-DD (e.g., 2024-01-15)</p>
+          <CardContent className="space-y-4 text-sm">
+            <div>
+              <h4 className="font-medium mb-2">📁 File Upload</h4>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li>Drag & drop CSV or JSON files directly</li>
+                <li>Supports .csv, .json, and .txt files</li>
+                <li>Automatically detects file format</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">📋 Required Fields</h4>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li><strong>Project Name:</strong> Name of the project/task</li>
+                <li><strong>Pages:</strong> Number of pages (numeric)</li>
+                <li><strong>Rate:</strong> Rate per page (numeric)</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">⚙️ Optional Fields</h4>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li><strong>Work Status:</strong> "Pending", "In Progress", "Completed"</li>
+                <li><strong>Notes:</strong> Additional project details</li>
+                <li><strong>Start/Accepted Date:</strong> YYYY-MM-DD format</li>
+                <li><strong>Due/Submission Date:</strong> YYYY-MM-DD format</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">🎯 Notion Export</h4>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li>Export your Notion database as CSV</li>
+                <li>Common column names are automatically mapped</li>
+                <li>Use "Project Name", "Pages", "Rate" for best results</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
       </div>
