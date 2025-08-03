@@ -30,11 +30,10 @@ import {
   Users,
   CreditCard,
   Clock,
-  FileSpreadsheet,
-  FilePdf,
+  File,
   Mail
 } from 'lucide-react';
-import { useToast } from '@/components/ui/toast-system';
+import { useToast, ToastProvider } from '@/components/ui/toast-system';
 
 interface ReportTemplate {
   id: string;
@@ -46,7 +45,7 @@ interface ReportTemplate {
   formats: ('pdf' | 'excel' | 'csv')[];
 }
 
-export default function AdminReportsPage() {
+function AdminReportsPageContent() {
   const [selectedReport, setSelectedReport] = useState<string>('');
   const [dateRange, setDateRange] = useState('30d');
   const [format, setFormat] = useState<'pdf' | 'excel' | 'csv'>('pdf');
@@ -286,13 +285,13 @@ export default function AdminReportsPage() {
                     <SelectContent>
                       <SelectItem value="pdf">
                         <div className="flex items-center gap-2">
-                          <FilePdf className="h-4 w-4" />
+                          <File className="h-4 w-4" />
                           PDF Document
                         </div>
                       </SelectItem>
                       <SelectItem value="excel">
                         <div className="flex items-center gap-2">
-                          <FileSpreadsheet className="h-4 w-4" />
+                          <File className="h-4 w-4" />
                           Excel Spreadsheet
                         </div>
                       </SelectItem>
@@ -383,5 +382,13 @@ export default function AdminReportsPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AdminReportsPage() {
+  return (
+    <ToastProvider position="top-right">
+      <AdminReportsPageContent />
+    </ToastProvider>
   );
 }

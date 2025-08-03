@@ -39,7 +39,7 @@ import {
   CreditCard,
   Shield
 } from 'lucide-react';
-import { useToast } from '@/components/ui/toast-system';
+import { useToast, ToastProvider } from '@/components/ui/toast-system';
 
 interface FAQ {
   id: string;
@@ -55,7 +55,7 @@ interface SupportTicket {
   description: string;
 }
 
-export default function AdminHelpPage() {
+function AdminHelpPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [supportTicket, setSupportTicket] = useState<SupportTicket>({
@@ -410,5 +410,13 @@ export default function AdminHelpPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AdminHelpPage() {
+  return (
+    <ToastProvider position="top-right">
+      <AdminHelpPageContent />
+    </ToastProvider>
   );
 }

@@ -29,7 +29,7 @@ import {
   UserCheck,
   Activity
 } from 'lucide-react';
-import { useToast } from '@/components/ui/toast-system';
+import { useToast, ToastProvider } from '@/components/ui/toast-system';
 
 interface SecurityLog {
   id: string;
@@ -40,7 +40,7 @@ interface SecurityLog {
   status: 'success' | 'failed' | 'warning';
 }
 
-export default function AdminSecurityPage() {
+function AdminSecurityPageContent() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [loginAlerts, setLoginAlerts] = useState(true);
@@ -452,5 +452,13 @@ export default function AdminSecurityPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AdminSecurityPage() {
+  return (
+    <ToastProvider position="top-right">
+      <AdminSecurityPageContent />
+    </ToastProvider>
   );
 }

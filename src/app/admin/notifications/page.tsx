@@ -35,7 +35,7 @@ import {
   Trash2,
   MarkAsUnread
 } from 'lucide-react';
-import { useToast } from '@/components/ui/toast-system';
+import { useToast, ToastProvider } from '@/components/ui/toast-system';
 import { getNotifications, markNotificationAsRead, deleteNotification } from '@/lib/firebase-service';
 
 interface Notification {
@@ -49,7 +49,7 @@ interface Notification {
   actionUrl?: string;
 }
 
-export default function AdminNotificationsPage() {
+function AdminNotificationsPageContent() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
@@ -462,5 +462,13 @@ export default function AdminNotificationsPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AdminNotificationsPage() {
+  return (
+    <ToastProvider position="top-right">
+      <AdminNotificationsPageContent />
+    </ToastProvider>
   );
 }
