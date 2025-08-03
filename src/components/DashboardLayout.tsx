@@ -352,8 +352,10 @@ const DashboardContent = ({
             </div>
         </header>
         <main className="flex-1 scrollable-content">
-          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-24 md:pb-8">
-            {renderContent()}
+          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-24 md:pb-8 animate-fade-in">
+            <div className="animate-slide-up">
+              {renderContent()}
+            </div>
           </div>
         </main>
       </div>

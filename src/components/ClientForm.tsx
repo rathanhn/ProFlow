@@ -84,16 +84,19 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{client ? 'Edit Client' : 'Create a New Client'}</CardTitle>
-        <CardDescription>
-          {client ? 'Update the details for this client.' : 'The new client will receive an email to set up their account password.'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="animate-fade-in">
+      <Card className="hover-lift">
+        <CardHeader className="text-center pb-6">
+          <CardTitle className="text-2xl">
+            {client ? 'Edit Client' : 'Create a New Client'}
+          </CardTitle>
+          <CardDescription className="text-base">
+            {client ? 'Update the details for this client.' : 'The new client will receive an email to set up their account password.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
              <FormField
               control={form.control}
               name="avatar"

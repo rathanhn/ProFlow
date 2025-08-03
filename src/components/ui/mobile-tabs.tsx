@@ -166,21 +166,30 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
               key={tab.id}
               variant="ghost"
               className={cn(
-                'flex items-center justify-center p-3 min-w-0 flex-1 h-12 rounded-lg transition-all duration-200',
+                'flex flex-col items-center justify-center p-2 min-w-0 flex-1 h-16 rounded-xl transition-all duration-300 group',
                 isActive
-                  ? 'text-primary bg-primary/10'
+                  ? 'text-primary bg-primary/10 shadow-sm'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
               onClick={() => handleTabPress(tab)}
             >
-              <div className="relative">
-                <Icon className={cn('h-6 w-6', isActive && 'text-primary')} />
+              <div className="relative mb-1">
+                <Icon className={cn(
+                  'h-6 w-6 transition-all duration-300',
+                  isActive ? 'text-primary scale-110' : 'group-hover:scale-105'
+                )} />
                 {tab.badge && tab.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center animate-pulse">
                     {tab.badge > 99 ? '99+' : tab.badge}
                   </span>
                 )}
               </div>
+              <span className={cn(
+                'text-xs font-medium transition-all duration-300 leading-tight',
+                isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+              )}>
+                {tab.label}
+              </span>
             </RippleButton>
           );
         })}

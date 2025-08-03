@@ -112,22 +112,36 @@ body {
 
 @layer base {
   :root {
+    /* Enhanced color palette with better contrast and accessibility */
     --background: 210 40% 98%;
     --foreground: 224 71% 4%;
-    --card: 210 40% 98%;
+    --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
-    --popover: 210 40% 98%;
+    --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 243 75% 54%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 224 71% 4%;
+    --secondary-hover: 210 40% 92%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 28% 45%;
     --accent: 173 80% 40%;
     --accent-foreground: 0 0% 100%;
+    --accent-hover: 173 80% 35%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
+    --destructive-hover: 0 84.2% 55%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --success-hover: 142 76% 31%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 0 0% 100%;
+    --warning-hover: 43 96% 51%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+    --info-hover: 199 89% 43%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 243 75% 59%;
@@ -136,7 +150,32 @@ body {
     --chart-3: 358 75% 59%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Enhanced spacing scale */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+
+    /* Typography scale */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+
+    /* Shadow scale */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   }
   .dark {
     --background: 222 47% 11%;
@@ -172,5 +211,140 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Enhanced typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-3xl lg:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl lg:text-3xl;
+  }
+
+  h3 {
+    @apply text-xl lg:text-2xl;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+/* Enhanced animations and transitions */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  .transition-all-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-colors-smooth {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass-effect {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { getTasks, getClients, getAdminNotifications } from '@/lib/firebase-service';
 import EarningsChart from '@/components/EarningsChart';
+import { DonutChart, ProgressRing, MetricCard } from '@/components/ui/charts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AIInsights from './AIInsights';
 import { Client, Task } from '@/lib/types';

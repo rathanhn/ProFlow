@@ -64,56 +64,61 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
   const isDueSoon = daysRemaining <= 3 && daysRemaining >= 0;
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
+    <Card className="hover-lift group animate-fade-in">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg mb-2">{task.projectName}</CardTitle>
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors-smooth truncate">
+              {task.projectName}
+            </CardTitle>
             {showClient && (
-              <p className="text-sm text-muted-foreground mb-2">
-                Client: {task.clientName}
+              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                <User className="h-3 w-3" />
+                {task.clientName}
               </p>
             )}
             <div className="flex flex-wrap gap-2">
-              <Badge className={getStatusColor(task.workStatus)}>
+              <Badge className={cn(getStatusColor(task.workStatus), "transition-all-smooth")}>
                 {task.workStatus}
               </Badge>
-              <Badge className={getPaymentColor(task.paymentStatus)}>
+              <Badge className={cn(getPaymentColor(task.paymentStatus), "transition-all-smooth")}>
                 {task.paymentStatus}
               </Badge>
               {isOverdue && (
-                <Badge className="bg-red-100 text-red-800">
+                <Badge className="bg-red-100 text-red-800 animate-pulse">
+                  <Clock className="h-3 w-3 mr-1" />
                   Overdue
                 </Badge>
               )}
               {isDueSoon && !isOverdue && (
                 <Badge className="bg-orange-100 text-orange-800">
+                  <Clock className="h-3 w-3 mr-1" />
                   Due Soon
                 </Badge>
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all-smooth">
             <Link href={`/admin/tasks/${task.id}`}>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="icon-sm" className="hover:bg-primary hover:text-primary-foreground">
                 <Eye className="h-4 w-4" />
               </Button>
             </Link>
             <Link href={`/admin/tasks/${task.id}/edit`}>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="icon-sm" className="hover:bg-accent hover:text-accent-foreground">
                 <Edit className="h-4 w-4" />
               </Button>
             </Link>
             {onDelete && (
-              <Button 
-                variant="outline" 
-                size="sm"
+              <Button
+                variant="outline"
+                size="icon-sm"
                 onClick={() => {
                   if (confirm('Are you sure you want to delete this task?')) {
                     onDelete(task.id);
                   }
                 }}
-                className="text-red-600 hover:text-red-700"
+                className="hover:bg-destructive hover:text-destructive-foreground"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

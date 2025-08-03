@@ -69,51 +69,59 @@ export default function TaskList({
     <div className="space-y-6">
       {/* Statistics */}
       {tasks.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
+          <Card className="hover-lift">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
-                  <p className="text-2xl font-bold">{stats.totalTasks}</p>
+                  <p className="text-2xl font-bold transition-all-smooth">{stats.totalTasks}</p>
                 </div>
-                <FileText className="h-8 w-8 text-muted-foreground" />
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.completedTasks}</p>
+                  <p className="text-2xl font-bold text-success transition-all-smooth">{stats.completedTasks}</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-green-600" />
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-success" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Value</p>
-                  <p className="text-2xl font-bold">₹{stats.totalValue.toLocaleString()}</p>
+                  <p className="text-2xl font-bold transition-all-smooth">₹{stats.totalValue.toLocaleString()}</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-muted-foreground" />
+                <div className="p-2 bg-accent/10 rounded-lg">
+                  <DollarSign className="h-6 w-6 text-accent" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Unpaid</p>
-                  <p className="text-2xl font-bold text-red-600">₹{stats.unpaidAmount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-destructive transition-all-smooth">₹{stats.unpaidAmount.toLocaleString()}</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-red-600" />
+                <div className="p-2 bg-destructive/10 rounded-lg">
+                  <DollarSign className="h-6 w-6 text-destructive" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -180,30 +188,56 @@ export default function TaskList({
 
       {/* Tasks List */}
       {filteredTasks.length === 0 ? (
-        <Card>
+        <Card className="animate-fade-in">
           <CardContent className="p-12 text-center">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{emptyStateMessage}</h3>
-            <p className="text-muted-foreground mb-4">{emptyStateDescription}</p>
-            {tasks.length === 0 && showAddButton && (
-              <Link href={addButtonLink}>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create First Task
+            <div className="animate-scale-in">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full blur-xl"></div>
+                <div className="relative p-4 bg-muted/50 rounded-full w-24 h-24 mx-auto flex items-center justify-center">
+                  <FileText className="h-12 w-12 text-muted-foreground" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">{emptyStateMessage}</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
+                {emptyStateDescription}
+              </p>
+              {tasks.length === 0 && showAddButton && (
+                <Link href={addButtonLink}>
+                  <Button size="lg" className="animate-pulse hover:animate-none">
+                    <Plus className="mr-2 h-5 w-5" />
+                    Create First Task
+                  </Button>
+                </Link>
+              )}
+              {tasks.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Reset filters
+                    const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+                    if (searchInput) searchInput.value = '';
+                  }}
+                >
+                  Clear Filters
                 </Button>
-              </Link>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredTasks.map((task) => (
-            <TaskCard 
-              key={task.id} 
-              task={task} 
-              showClient={showClient}
-              onDelete={onTaskDelete}
-            />
+          {filteredTasks.map((task, index) => (
+            <div
+              key={task.id}
+              className="animate-slide-up"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <TaskCard
+                task={task}
+                showClient={showClient}
+                onDelete={onTaskDelete}
+              />
+            </div>
           ))}
         </div>
       )}
