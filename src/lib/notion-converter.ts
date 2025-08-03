@@ -12,6 +12,9 @@ export interface ProFlowTask {
   notes?: string;
   acceptedDate?: string;
   submissionDate?: string;
+  isValid?: boolean;
+  originalIndex?: number;
+  rawData?: any;
 }
 
 /**
@@ -45,6 +48,10 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask
       parseFloat(row.rate || row.Rate || row.price || row.Price || row.cost || row.Cost || '100');
 
     console.log(`Mapped values - Project: "${projectName}", Pages: ${pages}, Rate: ${rate}`);
+
+    // Validate if this looks like a valid task
+    const isValid = isValidTask(projectName, pages, rate, row);
+    console.log(`Task validation - Valid: ${isValid}`);
 
     // Map status values
     let workStatus: 'Pending' | 'In Progress' | 'Completed' = 'Pending';
@@ -91,8 +98,67 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask
       notes,
       acceptedDate,
       submissionDate,
+      isValid,
+      originalIndex: index,
+      rawData: row,
     };
   });
+}
+
+/**
+ * Validate if a row looks like a valid task
+ */
+function isValidTask(projectName: string, pages: number, rate: number, rawRow: any): boolean {
+  // Check for obvious non-task indicators
+  const projectLower = projectName.toLowerCase();
+
+  // Skip rows that look like totals, amounts, or summaries
+  const invalidPatterns = [
+    'total', 'sum', 'amount received', 'amount paid', 'balance', 'subtotal',
+    'grand total', 'payment', 'invoice', 'receipt', 'summary', 'notes',
+    'remarks', 'footer', 'header', 'title row'
+  ];
+
+  if (invalidPatterns.some(pattern => projectLower.includes(pattern))) {
+    console.log(`Rejected: "${projectName}" matches invalid pattern`);
+    return false;
+  }
+
+  // Check if it's just a number (like "720")
+  if (/^\d+(\.\d+)?$/.test(projectName.trim())) {
+    console.log(`Rejected: "${projectName}" is just a number`);
+    return false;
+  }
+
+  // Check if project name is too short or generic
+  if (projectName.trim().length < 3) {
+    console.log(`Rejected: "${projectName}" is too short`);
+    return false;
+  }
+
+  // Check if pages and rate are reasonable
+  if (isNaN(pages) || pages <= 0 || pages > 10000) {
+    console.log(`Rejected: Invalid pages value: ${pages}`);
+    return false;
+  }
+
+  if (isNaN(rate) || rate <= 0 || rate > 100000) {
+    console.log(`Rejected: Invalid rate value: ${rate}`);
+    return false;
+  }
+
+  // Check if the row has meaningful content
+  const hasContent = Object.values(rawRow).some(value =>
+    value && typeof value === 'string' && value.trim().length > 2
+  );
+
+  if (!hasContent) {
+    console.log(`Rejected: No meaningful content in row`);
+    return false;
+  }
+
+  console.log(`Accepted: "${projectName}" passed validation`);
+  return true;
 }
 
 /**

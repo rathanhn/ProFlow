@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { addTask, getTasks, getClients } from '@/lib/firebase-service';
 import { Task, WorkStatus, PaymentStatus, Client } from '@/lib/types';
-import { Upload, FileText, Plus, Download, Copy, CloudUpload, FileSpreadsheet } from 'lucide-react';
+import { Upload, FileText, Plus, Download, Copy, CloudUpload, FileSpreadsheet, Edit3, Check, X, Eye, EyeOff } from 'lucide-react';
 import { convertNotionToProFlow, csvToJson, generateSampleJson } from '@/lib/notion-converter';
 
 interface TaskImportData {
@@ -23,6 +23,14 @@ interface TaskImportData {
   notes?: string;
   acceptedDate?: string;
   submissionDate?: string;
+  isValid?: boolean;
+  originalIndex?: number;
+  rawData?: any;
+}
+
+interface EditableTask extends TaskImportData {
+  selected: boolean;
+  id: string;
 }
 
 export default function TaskImportPage() {
@@ -33,6 +41,8 @@ export default function TaskImportPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
   const [previewTasks, setPreviewTasks] = useState<TaskImportData[]>([]);
+  const [editableTasks, setEditableTasks] = useState<EditableTask[]>([]);
+  const [showEditor, setShowEditor] = useState(false);
   const [activeTab, setActiveTab] = useState<'file' | 'json' | 'csv'>('file');
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
@@ -222,9 +232,23 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
       });
 
       setPreviewTasks(validatedTasks);
+
+      // Create editable tasks with selection state
+      const editableTasks: EditableTask[] = validatedTasks.map((task, index) => ({
+        ...task,
+        id: `task-${index}`,
+        selected: task.isValid !== false, // Auto-select valid tasks
+      }));
+
+      setEditableTasks(editableTasks);
+      setShowEditor(true);
+
+      const validCount = editableTasks.filter(t => t.selected).length;
+      const totalCount = editableTasks.length;
+
       toast({
         title: 'Preview Generated',
-        description: `${validatedTasks.length} tasks ready for import`,
+        description: `${totalCount} rows found, ${validCount} auto-selected as valid tasks`,
       });
     } catch (error) {
       toast({
@@ -233,6 +257,39 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
         variant: 'destructive',
       });
     }
+  };
+
+  // Task editor functions
+  const toggleTaskSelection = (taskId: string) => {
+    setEditableTasks(prev =>
+      prev.map(task =>
+        task.id === taskId ? { ...task, selected: !task.selected } : task
+      )
+    );
+  };
+
+  const selectAllTasks = () => {
+    setEditableTasks(prev => prev.map(task => ({ ...task, selected: true })));
+  };
+
+  const deselectAllTasks = () => {
+    setEditableTasks(prev => prev.map(task => ({ ...task, selected: false })));
+  };
+
+  const updateTask = (taskId: string, updates: Partial<EditableTask>) => {
+    setEditableTasks(prev =>
+      prev.map(task =>
+        task.id === taskId ? { ...task, ...updates } : task
+      )
+    );
+  };
+
+  const removeTask = (taskId: string) => {
+    setEditableTasks(prev => prev.filter(task => task.id !== taskId));
+  };
+
+  const getSelectedTasks = () => {
+    return editableTasks.filter(task => task.selected);
   };
 
   const handleImport = async () => {
@@ -245,10 +302,11 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
       return;
     }
 
-    if (previewTasks.length === 0) {
+    const selectedTasks = getSelectedTasks();
+    if (selectedTasks.length === 0) {
       toast({
-        title: 'No Tasks to Import',
-        description: 'Please preview tasks first',
+        title: 'No Tasks Selected',
+        description: 'Please select at least one task to import',
         variant: 'destructive',
       });
       return;
@@ -269,7 +327,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
       const existingTasks = await getTasks();
       let slNo = existingTasks.length + 1;
 
-      for (const taskData of previewTasks) {
+      for (const taskData of selectedTasks) {
         const newTask: Omit<Task, 'id'> = {
           slNo: slNo++,
           clientName: selectedClient.name,
@@ -295,7 +353,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
 
       toast({
         title: 'Import Successful!',
-        description: `${previewTasks.length} tasks imported for ${selectedClient.name}`,
+        description: `${selectedTasks.length} tasks imported for ${selectedClient.name}`,
       });
 
       router.push('/admin/tasks');
@@ -560,18 +618,212 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
           </Card>
         )}
 
-        {/* Preview */}
-        {previewTasks.length > 0 && (
+        {/* Task Editor */}
+        {showEditor && editableTasks.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Preview ({previewTasks.length} tasks)</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Review & Select Tasks ({editableTasks.filter(t => t.selected).length} of {editableTasks.length} selected)</span>
+                <div className="flex gap-2">
+                  <Button onClick={selectAllTasks} variant="outline" size="sm">
+                    <Check className="mr-1 h-3 w-3" />
+                    Select All
+                  </Button>
+                  <Button onClick={deselectAllTasks} variant="outline" size="sm">
+                    <X className="mr-1 h-3 w-3" />
+                    Deselect All
+                  </Button>
+                </div>
+              </CardTitle>
               <div className="text-sm text-muted-foreground">
-                Total Value: ₹{previewTasks.reduce((sum, task) => sum + (task.pages * task.rate), 0).toLocaleString()}
+                Review each row and select only the tasks you want to import. Invalid rows are automatically deselected.
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {previewTasks.map((task, index) => (
+                {editableTasks.map((task, index) => (
+                  <div
+                    key={task.id}
+                    className={`border rounded-lg p-4 transition-all ${
+                      task.selected
+                        ? 'border-primary bg-primary/5'
+                        : task.isValid === false
+                          ? 'border-destructive bg-destructive/5'
+                          : 'border-muted'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex items-center pt-1">
+                        <input
+                          type="checkbox"
+                          checked={task.selected}
+                          onChange={() => toggleTaskSelection(task.id)}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                      </div>
+
+                      <div className="flex-1 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={task.projectName}
+                                onChange={(e) => updateTask(task.id, { projectName: e.target.value })}
+                                className="font-medium"
+                                placeholder="Project name"
+                              />
+                              {task.isValid === false && (
+                                <span className="text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded">
+                                  Invalid
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Row #{task.originalIndex! + 1}
+                            </div>
+                          </div>
+
+                          <Button
+                            onClick={() => removeTask(task.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Pages</Label>
+                            <Input
+                              type="number"
+                              value={task.pages}
+                              onChange={(e) => updateTask(task.id, { pages: parseInt(e.target.value) || 1 })}
+                              min="1"
+                              className="h-8"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Rate</Label>
+                            <Input
+                              type="number"
+                              value={task.rate}
+                              onChange={(e) => updateTask(task.id, { rate: parseFloat(e.target.value) || 100 })}
+                              min="1"
+                              className="h-8"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Status</Label>
+                            <Select
+                              value={task.workStatus}
+                              onValueChange={(value: WorkStatus) => updateTask(task.id, { workStatus: value })}
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="In Progress">In Progress</SelectItem>
+                                <SelectItem value="Completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Total</Label>
+                            <div className="h-8 px-3 py-1 bg-muted rounded text-sm flex items-center">
+                              ₹{(task.pages * task.rate).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {task.notes && (
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Notes</Label>
+                            <Input
+                              value={task.notes}
+                              onChange={(e) => updateTask(task.id, { notes: e.target.value })}
+                              placeholder="Task notes"
+                              className="h-8"
+                            />
+                          </div>
+                        )}
+
+                        {task.rawData && (
+                          <details className="text-xs">
+                            <summary className="cursor-pointer text-muted-foreground">Show raw data</summary>
+                            <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-x-auto">
+                              {JSON.stringify(task.rawData, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 pt-4 border-t">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-sm text-muted-foreground">
+                    {editableTasks.filter(t => t.selected).length} tasks selected •
+                    Total value: ₹{editableTasks.filter(t => t.selected).reduce((sum, task) => sum + (task.pages * task.rate), 0).toLocaleString()}
+                  </div>
+                  <Button
+                    onClick={() => setShowEditor(false)}
+                    variant="outline"
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview Selected
+                  </Button>
+                </div>
+
+                <Button
+                  onClick={handleImport}
+                  disabled={isLoading || !selectedClientId || editableTasks.filter(t => t.selected).length === 0}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Import {editableTasks.filter(t => t.selected).length} Selected Tasks
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Preview */}
+        {!showEditor && previewTasks.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Preview ({getSelectedTasks().length} selected tasks)</span>
+                <Button
+                  onClick={() => setShowEditor(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  Edit Selection
+                </Button>
+              </CardTitle>
+              <div className="text-sm text-muted-foreground">
+                Total Value: ₹{getSelectedTasks().reduce((sum, task) => sum + (task.pages * task.rate), 0).toLocaleString()}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {getSelectedTasks().map((task, index) => (
                   <div key={index} className="border rounded-lg p-4 space-y-2">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -621,19 +873,19 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
               <div className="mt-6 pt-4 border-t space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="text-center p-3 bg-muted rounded">
-                    <div className="font-semibold text-lg">{previewTasks.length}</div>
-                    <div className="text-muted-foreground">Total Tasks</div>
+                    <div className="font-semibold text-lg">{getSelectedTasks().length}</div>
+                    <div className="text-muted-foreground">Selected Tasks</div>
                   </div>
                   <div className="text-center p-3 bg-muted rounded">
-                    <div className="font-semibold text-lg">{previewTasks.reduce((sum, task) => sum + task.pages, 0)}</div>
+                    <div className="font-semibold text-lg">{getSelectedTasks().reduce((sum, task) => sum + task.pages, 0)}</div>
                     <div className="text-muted-foreground">Total Pages</div>
                   </div>
                   <div className="text-center p-3 bg-muted rounded">
-                    <div className="font-semibold text-lg">₹{Math.round(previewTasks.reduce((sum, task) => sum + (task.pages * task.rate), 0) / previewTasks.length).toLocaleString()}</div>
+                    <div className="font-semibold text-lg">₹{getSelectedTasks().length > 0 ? Math.round(getSelectedTasks().reduce((sum, task) => sum + (task.pages * task.rate), 0) / getSelectedTasks().length).toLocaleString() : '0'}</div>
                     <div className="text-muted-foreground">Avg. Value</div>
                   </div>
                   <div className="text-center p-3 bg-muted rounded">
-                    <div className="font-semibold text-lg">₹{previewTasks.reduce((sum, task) => sum + (task.pages * task.rate), 0).toLocaleString()}</div>
+                    <div className="font-semibold text-lg">₹{getSelectedTasks().reduce((sum, task) => sum + (task.pages * task.rate), 0).toLocaleString()}</div>
                     <div className="text-muted-foreground">Total Value</div>
                   </div>
                 </div>
@@ -652,7 +904,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                   ) : (
                     <>
                       <Upload className="mr-2 h-4 w-4" />
-                      Import {previewTasks.length} Tasks for {clients.find(c => c.id === selectedClientId)?.name || 'Selected Client'}
+                      Import {getSelectedTasks().length} Tasks for {clients.find(c => c.id === selectedClientId)?.name || 'Selected Client'}
                     </>
                   )}
                 </Button>
