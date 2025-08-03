@@ -9,6 +9,7 @@ export interface ProFlowTask {
   pages: number;
   rate: number;
   workStatus: 'Pending' | 'In Progress' | 'Completed';
+  paymentStatus: 'Paid' | 'Unpaid' | 'Partially Paid';
   notes?: string;
   acceptedDate?: string;
   submissionDate?: string;
@@ -21,7 +22,7 @@ export interface ProFlowTask {
  * Convert Notion CSV/JSON data to ProFlow task format
  * This function helps map common Notion field names to ProFlow format
  */
-export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask[] {
+export function convertNotionToProFlow(notionData: NotionTaskRow[], defaultRate: number = 100, defaultPaymentStatus: 'Paid' | 'Unpaid' | 'Partially Paid' = 'Unpaid'): ProFlowTask[] {
   console.log('Converting Notion data:', notionData);
 
   return notionData.map((row, index) => {
@@ -45,7 +46,7 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask
       parseInt(row.pages || row.Pages || row.page_count || row['Page Count'] || row['page count'] || '1');
 
     const rate =
-      parseFloat(row.rate || row.Rate || row.price || row.Price || row.cost || row.Cost || '100');
+      parseFloat(row.rate || row.Rate || row.price || row.Price || row.cost || row.Cost || defaultRate.toString());
 
     console.log(`Mapped values - Project: "${projectName}", Pages: ${pages}, Rate: ${rate}`);
 
@@ -63,12 +64,26 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask
       workStatus = 'Completed';
     }
 
-    const notes = 
-      row.notes || 
-      row.Notes || 
-      row.description || 
-      row.Description || 
-      row.details || 
+    // Map payment status
+    let paymentStatus: 'Paid' | 'Unpaid' | 'Partially Paid' = defaultPaymentStatus;
+    const paymentValue = (row.paymentStatus || row['Payment Status'] || row.payment || row.Payment || '').toLowerCase();
+
+    if (paymentValue.includes('paid') && !paymentValue.includes('unpaid')) {
+      if (paymentValue.includes('partial') || paymentValue.includes('part')) {
+        paymentStatus = 'Partially Paid';
+      } else {
+        paymentStatus = 'Paid';
+      }
+    } else if (paymentValue.includes('unpaid')) {
+      paymentStatus = 'Unpaid';
+    }
+
+    const notes =
+      row.notes ||
+      row.Notes ||
+      row.description ||
+      row.Description ||
+      row.details ||
       '';
 
     // Date handling
@@ -93,8 +108,9 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask
     return {
       projectName,
       pages: isNaN(pages) ? 1 : pages,
-      rate: isNaN(rate) ? 100 : rate,
+      rate: isNaN(rate) ? defaultRate : rate,
       workStatus,
+      paymentStatus,
       notes,
       acceptedDate,
       submissionDate,
@@ -109,55 +125,71 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask
  * Validate if a row looks like a valid task
  */
 function isValidTask(projectName: string, pages: number, rate: number, rawRow: any): boolean {
-  // Check for obvious non-task indicators
-  const projectLower = projectName.toLowerCase();
+  // Check for empty or whitespace-only project names
+  if (!projectName || !projectName.trim()) {
+    console.log(`Rejected: Empty project name`);
+    return false;
+  }
+
+  const projectTrimmed = projectName.trim();
+  const projectLower = projectTrimmed.toLowerCase();
 
   // Skip rows that look like totals, amounts, or summaries
   const invalidPatterns = [
     'total', 'sum', 'amount received', 'amount paid', 'balance', 'subtotal',
     'grand total', 'payment', 'invoice', 'receipt', 'summary', 'notes',
-    'remarks', 'footer', 'header', 'title row'
+    'remarks', 'footer', 'header', 'title row', 'description', 'details',
+    'project name', 'task name', 'name', 'title' // Skip header-like entries
   ];
 
   if (invalidPatterns.some(pattern => projectLower.includes(pattern))) {
-    console.log(`Rejected: "${projectName}" matches invalid pattern`);
+    console.log(`Rejected: "${projectTrimmed}" matches invalid pattern`);
     return false;
   }
 
   // Check if it's just a number (like "720")
-  if (/^\d+(\.\d+)?$/.test(projectName.trim())) {
-    console.log(`Rejected: "${projectName}" is just a number`);
+  if (/^\d+(\.\d+)?$/.test(projectTrimmed)) {
+    console.log(`Rejected: "${projectTrimmed}" is just a number`);
     return false;
   }
 
-  // Check if project name is too short or generic
-  if (projectName.trim().length < 3) {
-    console.log(`Rejected: "${projectName}" is too short`);
+  // Check if it's just symbols or very short
+  if (projectTrimmed.length < 3) {
+    console.log(`Rejected: "${projectTrimmed}" is too short`);
+    return false;
+  }
+
+  // Check if it's just punctuation or special characters
+  if (/^[^\w\s]+$/.test(projectTrimmed)) {
+    console.log(`Rejected: "${projectTrimmed}" is just punctuation`);
     return false;
   }
 
   // Check if pages and rate are reasonable
   if (isNaN(pages) || pages <= 0 || pages > 10000) {
-    console.log(`Rejected: Invalid pages value: ${pages}`);
+    console.log(`Rejected: Invalid pages value: ${pages} for "${projectTrimmed}"`);
     return false;
   }
 
   if (isNaN(rate) || rate <= 0 || rate > 100000) {
-    console.log(`Rejected: Invalid rate value: ${rate}`);
+    console.log(`Rejected: Invalid rate value: ${rate} for "${projectTrimmed}"`);
     return false;
   }
 
-  // Check if the row has meaningful content
-  const hasContent = Object.values(rawRow).some(value =>
-    value && typeof value === 'string' && value.trim().length > 2
-  );
+  // Check if the row has meaningful content beyond just the project name
+  const meaningfulFields = Object.entries(rawRow).filter(([key, value]) => {
+    if (!value || typeof value !== 'string') return false;
+    const cleanValue = value.trim();
+    return cleanValue.length > 0 && cleanValue !== projectTrimmed;
+  });
 
-  if (!hasContent) {
-    console.log(`Rejected: No meaningful content in row`);
+  // Must have at least project name + one other meaningful field
+  if (meaningfulFields.length === 0) {
+    console.log(`Rejected: "${projectTrimmed}" has no additional meaningful content`);
     return false;
   }
 
-  console.log(`Accepted: "${projectName}" passed validation`);
+  console.log(`Accepted: "${projectTrimmed}" passed validation`);
   return true;
 }
 
@@ -182,22 +214,32 @@ function formatDate(dateInput: any): string {
  * Parse CSV text to JSON with better handling
  */
 export function csvToJson(csvText: string): NotionTaskRow[] {
-  const lines = csvText.trim().split('\n').filter(line => line.trim().length > 0);
-  if (lines.length < 2) return [];
+  if (!csvText.trim()) return [];
 
-  console.log('CSV Lines:', lines);
+  console.log('Raw CSV length:', csvText.length);
 
-  // Parse headers with better quote handling
-  const headers = parseCSVLine(lines[0]);
-  console.log('Headers:', headers);
+  // Use advanced CSV parsing
+  const parsedLines = parseCSVAdvanced(csvText);
 
+  if (parsedLines.length < 2) {
+    console.log('Not enough lines in CSV');
+    return [];
+  }
+
+  console.log('Parsed lines count:', parsedLines.length);
+  console.log('Headers:', parsedLines[0]);
+
+  const headers = parsedLines[0];
   const rows: NotionTaskRow[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseCSVLine(lines[i]);
+  for (let i = 1; i < parsedLines.length; i++) {
+    const values = parsedLines[i];
 
-    // Skip empty rows
-    if (values.every(v => !v.trim())) continue;
+    // Skip completely empty rows
+    if (values.every(v => !v || !v.trim())) {
+      console.log(`Skipping empty row ${i}`);
+      continue;
+    }
 
     const row: NotionTaskRow = {};
 
@@ -205,15 +247,55 @@ export function csvToJson(csvText: string): NotionTaskRow[] {
       row[header] = values[index] || '';
     });
 
-    // Only add rows that have at least one meaningful value
-    if (Object.values(row).some(value => value && value.trim().length > 0)) {
+    // Only add rows that have meaningful content
+    const hasContent = Object.values(row).some(value =>
+      value && typeof value === 'string' && value.trim().length > 0
+    );
+
+    if (hasContent) {
       console.log(`Row ${i}:`, row);
       rows.push(row);
+    } else {
+      console.log(`Skipping row ${i} - no meaningful content`);
     }
   }
 
-  console.log('Parsed rows:', rows.length);
+  console.log('Final parsed rows:', rows.length);
   return rows;
+}
+
+/**
+ * Parse CSV with proper handling of multi-line content and quotes
+ */
+function parseCSVAdvanced(csvText: string): string[][] {
+  const lines: string[] = [];
+  let currentLine = '';
+  let inQuotes = false;
+
+  // First, handle multi-line content properly
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      currentLine += char;
+    } else if (char === '\n' && !inQuotes) {
+      if (currentLine.trim()) {
+        lines.push(currentLine.trim());
+      }
+      currentLine = '';
+    } else {
+      currentLine += char;
+    }
+  }
+
+  // Add the last line if it exists
+  if (currentLine.trim()) {
+    lines.push(currentLine.trim());
+  }
+
+  // Now parse each line
+  return lines.map(line => parseCSVLine(line));
 }
 
 /**
@@ -228,17 +310,36 @@ function parseCSVLine(line: string): string[] {
     const char = line[i];
 
     if (char === '"') {
-      inQuotes = !inQuotes;
+      if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+        // Handle escaped quotes
+        current += '"';
+        i++; // Skip next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
     } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
+      result.push(cleanCellValue(current));
       current = '';
     } else {
       current += char;
     }
   }
 
-  result.push(current.trim());
+  result.push(cleanCellValue(current));
   return result;
+}
+
+/**
+ * Clean and normalize cell values
+ */
+function cleanCellValue(value: string): string {
+  return value
+    .trim()
+    .replace(/^"(.*)"$/, '$1') // Remove surrounding quotes
+    .replace(/""/g, '"') // Unescape quotes
+    .replace(/\r?\n/g, ' ') // Replace line breaks with spaces
+    .replace(/\s+/g, ' ') // Normalize multiple spaces
+    .trim();
 }
 
 /**

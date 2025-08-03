@@ -20,6 +20,7 @@ interface TaskImportData {
   pages: number;
   rate: number;
   workStatus: WorkStatus;
+  paymentStatus: PaymentStatus;
   notes?: string;
   acceptedDate?: string;
   submissionDate?: string;
@@ -45,6 +46,8 @@ export default function TaskImportPage() {
   const [showEditor, setShowEditor] = useState(false);
   const [activeTab, setActiveTab] = useState<'file' | 'json' | 'csv'>('file');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [defaultRate, setDefaultRate] = useState(100);
+  const [defaultPaymentStatus, setDefaultPaymentStatus] = useState<PaymentStatus>('Unpaid');
   const { toast } = useToast();
   const router = useRouter();
 
@@ -188,14 +191,14 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
         console.log('Raw CSV data:', csvData);
         const csvJson = csvToJson(csvData);
         console.log('Parsed CSV to JSON:', csvJson);
-        parsed = convertNotionToProFlow(csvJson);
+        parsed = convertNotionToProFlow(csvJson, defaultRate, defaultPaymentStatus);
         console.log('Converted to ProFlow format:', parsed);
       } else if (activeTab === 'file') {
         // File data should already be in csvData or jsonData
         if (csvData.trim()) {
           console.log('Processing file as CSV');
           const csvJson = csvToJson(csvData);
-          parsed = convertNotionToProFlow(csvJson);
+          parsed = convertNotionToProFlow(csvJson, defaultRate, defaultPaymentStatus);
         } else if (jsonData.trim()) {
           console.log('Processing file as JSON');
           parsed = JSON.parse(jsonData);
@@ -225,6 +228,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
           pages: Number(task.pages),
           rate: Number(task.rate),
           workStatus: (task.workStatus || 'Pending') as WorkStatus,
+          paymentStatus: (task.paymentStatus || defaultPaymentStatus) as PaymentStatus,
           notes: task.notes || '',
           acceptedDate: task.acceptedDate || new Date().toISOString().split('T')[0],
           submissionDate: task.submissionDate || new Date(new Date().setDate(new Date().getDate() + 14)).toISOString().split('T')[0]
@@ -337,7 +341,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
           pages: taskData.pages,
           rate: taskData.rate,
           workStatus: taskData.workStatus,
-          paymentStatus: 'Unpaid' as PaymentStatus,
+          paymentStatus: taskData.paymentStatus,
           submissionDate: new Date(taskData.submissionDate!).toISOString(),
           notes: taskData.notes,
           total: taskData.pages * taskData.rate,
@@ -379,12 +383,12 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
           </p>
         </div>
 
-        {/* Client Selection */}
+        {/* Client Selection & Default Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Select Client</CardTitle>
+            <CardTitle>Import Settings</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="clientSelect">Choose Client</Label>
               {isLoadingClients ? (
@@ -411,6 +415,40 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
                   No clients found. Please add clients first.
                 </p>
               )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="defaultRate">Default Rate per Page (₹)</Label>
+                <Input
+                  id="defaultRate"
+                  type="number"
+                  value={defaultRate}
+                  onChange={(e) => setDefaultRate(parseInt(e.target.value) || 100)}
+                  min="1"
+                  placeholder="100"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Used when rate is missing or invalid
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="defaultPaymentStatus">Default Payment Status</Label>
+                <Select value={defaultPaymentStatus} onValueChange={setDefaultPaymentStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Unpaid">Unpaid</SelectItem>
+                    <SelectItem value="Paid">Paid</SelectItem>
+                    <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Used when payment status is not specified
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -693,7 +731,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                           </Button>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                           <div>
                             <Label className="text-xs text-muted-foreground">Pages</Label>
                             <Input
@@ -709,13 +747,13 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                             <Input
                               type="number"
                               value={task.rate}
-                              onChange={(e) => updateTask(task.id, { rate: parseFloat(e.target.value) || 100 })}
+                              onChange={(e) => updateTask(task.id, { rate: parseFloat(e.target.value) || defaultRate })}
                               min="1"
                               className="h-8"
                             />
                           </div>
                           <div>
-                            <Label className="text-xs text-muted-foreground">Status</Label>
+                            <Label className="text-xs text-muted-foreground">Work Status</Label>
                             <Select
                               value={task.workStatus}
                               onValueChange={(value: WorkStatus) => updateTask(task.id, { workStatus: value })}
@@ -727,6 +765,22 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                                 <SelectItem value="Pending">Pending</SelectItem>
                                 <SelectItem value="In Progress">In Progress</SelectItem>
                                 <SelectItem value="Completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Payment Status</Label>
+                            <Select
+                              value={task.paymentStatus}
+                              onValueChange={(value: PaymentStatus) => updateTask(task.id, { paymentStatus: value })}
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Partially Paid">Partially Paid</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -836,7 +890,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
                       <div>
                         <div className="text-muted-foreground">Pages</div>
                         <div className="font-medium">{task.pages}</div>
@@ -846,8 +900,12 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                         <div className="font-medium">₹{task.rate}</div>
                       </div>
                       <div>
-                        <div className="text-muted-foreground">Status</div>
+                        <div className="text-muted-foreground">Work Status</div>
                         <div className="font-medium">{task.workStatus}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Payment</div>
+                        <div className="font-medium">{task.paymentStatus}</div>
                       </div>
                       <div>
                         <div className="text-muted-foreground">Due Date</div>
