@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateClientPassword } from '@/lib/firebase-client-service';
 import { KeyRound, Eye, EyeOff, LogOut, AlertTriangle } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { getAssignee, updateAssignee } from '@/lib/firebase-service';
+import { getAssignee, updateAssignee, getAssigneeByEmail } from '@/lib/firebase-service';
 import { Assignee } from '@/lib/types';
 import ImageUploader from '@/components/ImageUploader';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -42,6 +42,41 @@ export default function CreatorSettingsPage() {
     const { id } = useParams();
     const router = useRouter();
     const { toast } = useToast();
+
+    // Redirect to parameterized settings page if no ID in URL
+    useEffect(() => {
+        if (!id) {
+            // Try to get current user and redirect to their settings
+            const currentUser = clientAuth.currentUser;
+            if (currentUser && currentUser.email) {
+                // Find creator by email and redirect to their settings
+                getAssigneeByEmail(currentUser.email).then(creator => {
+                    if (creator) {
+                        router.replace(`/creator/${creator.id}/settings`);
+                    } else {
+                        router.replace('/creator/login');
+                    }
+                }).catch(() => {
+                    router.replace('/creator/login');
+                });
+            } else {
+                router.replace('/creator/login');
+            }
+            return;
+        }
+    }, [id, router]);
+
+    // Show loading while redirecting
+    if (!id) {
+        return (
+            <DashboardLayout>
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
     const [assignee, setAssignee] = useState<Assignee | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
