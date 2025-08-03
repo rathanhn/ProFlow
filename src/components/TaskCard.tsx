@@ -17,6 +17,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { Task } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface TaskCardProps {
   task: Task;

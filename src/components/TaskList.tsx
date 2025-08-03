@@ -15,6 +15,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { Task } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import TaskCard from './TaskCard';
 import Link from 'next/link';
 
