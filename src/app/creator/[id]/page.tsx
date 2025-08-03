@@ -38,6 +38,7 @@ export default function CreatorDashboardPage({ params }: { params: Promise<{ id:
   const [creator, setCreator] = useState<Assignee | null>(null);
   const [creatorTasks, setCreatorTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const haptic = useHapticFeedback();
   const router = useRouter();
 
@@ -53,6 +54,7 @@ export default function CreatorDashboardPage({ params }: { params: Promise<{ id:
     if (!creatorId) return;
 
     try {
+      setError(null);
       console.log(`[CreatorDashboard] Attempting to load creator with ID: ${creatorId}`);
       let rawCreator = await getAssignee(creatorId);
       console.log(`[CreatorDashboard] getAssignee result:`, rawCreator);
@@ -77,7 +79,8 @@ export default function CreatorDashboardPage({ params }: { params: Promise<{ id:
 
       if (!rawCreator) {
         console.error(`[CreatorDashboard] No creator found with ID: ${creatorId} or current user email`);
-        notFound();
+        setError(`Invalid creator ID: ${creatorId}`);
+        setIsLoading(false);
         return;
       }
 
@@ -89,6 +92,7 @@ export default function CreatorDashboardPage({ params }: { params: Promise<{ id:
       setCreatorTasks(JSON.parse(JSON.stringify(rawCreatorTasks)) as Task[]);
     } catch (error) {
       console.error('Failed to load data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load creator data');
       haptic.error();
     } finally {
       setIsLoading(false);
@@ -105,6 +109,29 @@ export default function CreatorDashboardPage({ params }: { params: Promise<{ id:
     haptic.androidSwipeRefresh();
     await loadData();
   };
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-destructive">Error</h2>
+            <p className="text-muted-foreground mt-2">{error}</p>
+            <Button
+              onClick={() => {
+                setError(null);
+                setIsLoading(true);
+                loadData();
+              }}
+              className="mt-4"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (isLoading || !creator) {
     return (

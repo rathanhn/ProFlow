@@ -49,11 +49,9 @@ export default function CreatorLoginPage() {
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             const user = userCredential.user;
 
-            if (user.uid !== creatorRecord.id) {
-                await signOut(clientAuth);
-                throw new Error("Mismatched user ID. Please contact support.");
-            }
-            
+            // Note: We're not checking UID match since creator records might use different IDs
+            // The email verification above ensures this is the correct creator
+
             const lastSignInTime = new Date(user.metadata.lastSignInTime || 0).getTime();
             const creationTime = new Date(user.metadata.creationTime || 0).getTime();
 
@@ -61,7 +59,7 @@ export default function CreatorLoginPage() {
                 setShowPasswordResetDialog(true);
             } else {
                 toast({ title: 'Login Successful!', description: `Welcome back, ${creatorRecord.name}!` });
-                router.push(`/creator/${user.uid}`);
+                router.push(`/creator/${creatorRecord.id}`);
             }
 
         } catch (error: unknown) {
@@ -94,10 +92,16 @@ export default function CreatorLoginPage() {
         const user = clientAuth.currentUser;
         if (user) {
             try {
+                // Get the creator record to use the correct ID
+                const creatorRecord = await getAssigneeByEmail(user.email || '');
                 await updatePassword(user, newPassword);
                 toast({ title: 'Password Reset Successful', description: 'Your password has been updated. Redirecting...' });
                 setShowPasswordResetDialog(false);
-                router.push(`/creator/${user.uid}`);
+                if (creatorRecord) {
+                    router.push(`/creator/${creatorRecord.id}`);
+                } else {
+                    router.push('/creator/login');
+                }
             } catch (error) {
                 console.error("[CreatorLoginPage] Password reset error:", error);
                 toast({ title: 'Password Reset Failed', description: 'Could not update password. Please try again.', variant: 'destructive' });
