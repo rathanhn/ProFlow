@@ -24,7 +24,19 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
     const [chartData, setChartData] = useState<ChartData | null>(null);
     const { toast } = useToast();
 
+    // Check if API key is available
+    const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+
     const handleGenerate = async () => {
+        if (!hasApiKey) {
+            toast({
+                title: 'API Key Missing',
+                description: 'Gemini API key is not configured. Please check the debug page for setup instructions.',
+                variant: 'destructive'
+            });
+            return;
+        }
+
         if (!query) {
             toast({ title: "Query is empty", description: "Please enter a query to generate a visualization.", variant: 'destructive' });
             return;
@@ -43,7 +55,16 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
             }
         } catch (error) {
             console.error("Failed to generate chart:", error);
-            toast({ title: 'Generation Failed', description: 'The AI could not generate a chart. Please try a different query.', variant: 'destructive' });
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            if (errorMessage.includes('API key') || errorMessage.includes('GEMINI_API_KEY') || errorMessage.includes('FAILED_PRECONDITION')) {
+                toast({
+                    title: 'API Key Error',
+                    description: 'Please configure your Gemini API key in the environment variables. Check the debug page for instructions.',
+                    variant: 'destructive'
+                });
+            } else {
+                toast({ title: 'Generation Failed', description: 'The AI could not generate a chart. Please try a different query.', variant: 'destructive' });
+            }
         } finally {
             setIsLoading(false);
         }
@@ -108,17 +129,22 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
             <CardContent>
                 <div className="space-y-4">
                     <Input
-                        placeholder="e.g., 'Show top clients by earnings'"
+                        placeholder={hasApiKey ? "e.g., 'Show top clients by earnings'" : "API key required - check debug page"}
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                        disabled={isLoading}
+                        disabled={isLoading || !hasApiKey}
                     />
-                    <Button onClick={handleGenerate} className="w-full" disabled={isLoading}>
+                    <Button onClick={handleGenerate} className="w-full" disabled={isLoading || !hasApiKey}>
                         {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Generating...
+                            </>
+                        ) : !hasApiKey ? (
+                            <>
+                                <BarChartIcon className="mr-2 h-4 w-4" />
+                                API Key Required
                             </>
                         ) : (
                             <>
@@ -127,6 +153,12 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                             </>
                         )}
                     </Button>
+                    {!hasApiKey && (
+                        <div className="text-sm text-muted-foreground text-center">
+                            <p>Gemini API key is required for AI insights.</p>
+                            <p>Visit the <a href="/admin/debug" className="text-primary underline">debug page</a> for setup instructions.</p>
+                        </div>
+                    )}
                     {renderChart()}
                 </div>
             </CardContent>

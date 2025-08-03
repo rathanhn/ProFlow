@@ -113,6 +113,48 @@ export default function AdminDebugPage() {
                   {process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY ? 'Set' : 'Not set'}
                 </Badge>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">GEMINI_API_KEY:</span>
+                <Badge variant={process.env.GEMINI_API_KEY ? 'default' : 'destructive'}>
+                  {process.env.GEMINI_API_KEY ? 'Set' : 'Not set'}
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">GOOGLE_API_KEY:</span>
+                <Badge variant={process.env.GOOGLE_API_KEY ? 'default' : 'destructive'}>
+                  {process.env.GOOGLE_API_KEY ? 'Set' : 'Not set'}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Features Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+              )}
+              AI Features (Gemini API)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-800 mb-2">AI Insights Feature:</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Generates charts and visualizations from natural language queries</li>
+                    <li>• Requires Google Gemini API key to function</li>
+                    <li>• Available on the Admin Dashboard</li>
+                    <li>• Status: {(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) ? '✅ Enabled' : '❌ Disabled (API key missing)'}</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -124,6 +166,15 @@ export default function AdminDebugPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">For AI Features Issues:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Add <code>GEMINI_API_KEY</code> or <code>GOOGLE_API_KEY</code> to your .env.local file</li>
+                  <li>Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-600 underline">Google AI Studio</a></li>
+                  <li>Restart the development server after adding the API key</li>
+                  <li>The AI Insights feature will be disabled if no API key is provided</li>
+                </ul>
+              </div>
               <div>
                 <h4 className="font-medium mb-2">For Image Upload Issues:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
