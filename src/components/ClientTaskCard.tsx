@@ -5,15 +5,15 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Calendar, 
-  DollarSign, 
-  FileText, 
-  Clock, 
+import {
+  Calendar,
+  FileText,
+  Clock,
   User,
   Eye,
   Download
 } from 'lucide-react';
+import { INRIcon } from '@/components/ui/inr-icon';
 import { Task } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -111,23 +111,23 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
           </div>
           
           <div className="flex items-center gap-2 min-w-0">
-            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-muted-foreground text-xs">Rate</p>
               <p className="font-medium truncate">₹{task.rate}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 min-w-0">
-            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-muted-foreground text-xs">Total</p>
               <p className="font-medium truncate">₹{task.total.toLocaleString()}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 min-w-0">
-            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-muted-foreground text-xs">Paid</p>
               <p className="font-medium truncate">₹{task.amountPaid.toLocaleString()}</p>

@@ -34,6 +34,9 @@ export default {
         'android-ripple': 'androidRipple 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
         'android-bounce': 'androidBounce 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
         'android-drawer-slide': 'androidDrawerSlide 0.25s cubic-bezier(0.4, 0.0, 0.2, 1)',
+        'slide-in-right': 'slideInRight 0.3s ease-out',
+        'slide-in-left': 'slideInLeft 0.3s ease-out',
+        'bounce': 'bounce 0.6s ease-out',
         'android-fab-scale': 'androidFabScale 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
       },
       keyframes: {

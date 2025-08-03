@@ -14,13 +14,13 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-    DollarSign,
     ListChecks,
     ArrowRight,
     FileText,
     Settings,
     CreditCard
 } from 'lucide-react';
+import { INRIcon } from '@/components/ui/inr-icon';
 import { getClient, getTasksByClientId } from '@/lib/firebase-service';
 import { Task, Client } from '@/lib/types';
 import { ClickableAvatar } from '@/components/ClickableAvatar';
@@ -146,7 +146,7 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <INRIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₹{totalSpent.toLocaleString()}</div>
@@ -156,7 +156,7 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <INRIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">₹{outstandingBalance.toLocaleString()}</div>

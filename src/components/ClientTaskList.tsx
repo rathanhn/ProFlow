@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { 
-  Search, 
-  FileText, 
+import {
+  Search,
+  FileText,
   TrendingUp,
-  DollarSign,
   Clock
 } from 'lucide-react';
+import { INRIcon } from '@/components/ui/inr-icon';
 import { Task } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import ClientTaskCard from './ClientTaskCard';
@@ -104,7 +104,7 @@ export default function ClientTaskList({
                   <p className="text-2xl font-bold transition-all-smooth">₹{stats.totalValue.toLocaleString()}</p>
                 </div>
                 <div className="p-2 bg-accent/10 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-accent" />
+                  <INRIcon className="h-6 w-6 text-accent" />
                 </div>
               </div>
             </CardContent>
@@ -131,7 +131,7 @@ export default function ClientTaskList({
                   {stats.overdueProjects > 0 ? (
                     <Clock className="h-6 w-6 text-destructive" />
                   ) : (
-                    <DollarSign className="h-6 w-6 text-warning" />
+                    <INRIcon className="h-6 w-6 text-warning" />
                   )}
                 </div>
               </div>

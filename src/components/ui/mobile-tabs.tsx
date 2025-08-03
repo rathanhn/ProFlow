@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
@@ -34,6 +34,12 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
   const router = useRouter();
   const pathname = usePathname();
   const haptic = useHapticFeedback();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [swipeState, setSwipeState] = useState({
+    startX: 0,
+    isDragging: false,
+    startTime: 0,
+  });
 
   // Determine user type based on current path
   const isAdminSection = pathname.startsWith('/admin');
@@ -135,6 +141,67 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
     router.push(tab.href);
   };
 
+  // Swipe navigation logic
+  const getCurrentTabIndex = () => {
+    const tabs = getMainTabs();
+    return tabs.findIndex(tab => isActiveTab(tab.href));
+  };
+
+  const navigateToTab = (direction: 'left' | 'right') => {
+    const tabs = getMainTabs();
+    const currentIndex = getCurrentTabIndex();
+    let newIndex = currentIndex;
+
+    if (direction === 'left' && currentIndex > 0) {
+      newIndex = currentIndex - 1;
+    } else if (direction === 'right' && currentIndex < tabs.length - 1) {
+      newIndex = currentIndex + 1;
+    }
+
+    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < tabs.length) {
+      haptic.androidSwipeRefresh();
+      router.push(tabs[newIndex].href);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setSwipeState({
+      startX: touch.clientX,
+      isDragging: true,
+      startTime: Date.now(),
+    });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!swipeState.isDragging) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - swipeState.startX;
+    const deltaTime = Date.now() - swipeState.startTime;
+    const velocity = Math.abs(deltaX) / deltaTime;
+
+    // Determine if it's a valid swipe
+    const isSignificantSwipe = Math.abs(deltaX) > 80 || velocity > 0.4;
+    const isFastSwipe = deltaTime < 400;
+
+    if (isSignificantSwipe && isFastSwipe) {
+      if (deltaX > 0) {
+        // Swipe right - go to previous tab
+        navigateToTab('left');
+      } else {
+        // Swipe left - go to next tab
+        navigateToTab('right');
+      }
+    }
+
+    setSwipeState({
+      startX: 0,
+      isDragging: false,
+      startTime: 0,
+    });
+  };
+
   const isActiveTab = (href: string) => {
     // Handle exact matches for dashboard pages
     if (href === '/admin' || href.match(/^\/client\/[^\/]+$/) || href.match(/^\/creator\/[^\/]+$/)) {
@@ -145,10 +212,14 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         'sticky-tabs safe-area-pb md:hidden', // Only show on mobile
+        swipeState.isDragging && 'select-none',
         className
       )}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="flex items-center justify-around px-2 py-2">
         {mainTabs.map((tab) => {

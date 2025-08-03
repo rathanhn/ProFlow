@@ -6,14 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Filter, 
-  FileText, 
+import {
+  Search,
+  Filter,
+  FileText,
   Plus,
-  TrendingUp,
-  DollarSign
+  TrendingUp
 } from 'lucide-react';
+import { INRIcon } from '@/components/ui/inr-icon';
 import { Task } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import TaskCard from './TaskCard';
@@ -107,7 +107,7 @@ export default function TaskList({
                   <p className="text-2xl font-bold transition-all-smooth">₹{stats.totalValue.toLocaleString()}</p>
                 </div>
                 <div className="p-2 bg-accent/10 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-accent" />
+                  <INRIcon className="h-6 w-6 text-accent" />
                 </div>
               </div>
             </CardContent>
@@ -121,7 +121,7 @@ export default function TaskList({
                   <p className="text-2xl font-bold text-destructive transition-all-smooth">₹{stats.unpaidAmount.toLocaleString()}</p>
                 </div>
                 <div className="p-2 bg-destructive/10 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-destructive" />
+                  <INRIcon className="h-6 w-6 text-destructive" />
                 </div>
               </div>
             </CardContent>
