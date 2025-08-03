@@ -3,7 +3,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
-import CreatorTasksTable from './CreatorTasksTable';
+import TaskList from '@/components/TaskList';
 import { Assignee, Task } from '@/lib/types';
 
 
@@ -30,12 +30,19 @@ export default async function CreatorTasksPage({ params }: { params: Promise<{ i
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 fab-safe-bottom">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">All Your Assigned Tasks</h1>
           <p className="text-muted-foreground">An overview of all your tasks and their current status.</p>
         </div>
-        <CreatorTasksTable tasks={creatorTasks} statusColors={statusColors} creatorId={creator.id} />
+        <TaskList
+          tasks={creatorTasks}
+          title="Your Assigned Tasks"
+          showClient={true}
+          showAddButton={false}
+          emptyStateMessage="No tasks assigned"
+          emptyStateDescription="You don't have any tasks assigned yet. New tasks will appear here when they're assigned to you."
+        />
       </div>
     </DashboardLayout>
   );
