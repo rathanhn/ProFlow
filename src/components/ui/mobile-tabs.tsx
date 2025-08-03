@@ -35,39 +35,100 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
   const pathname = usePathname();
   const haptic = useHapticFeedback();
 
-  // Define main navigation tabs for mobile
-  const mainTabs: TabItem[] = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: Home,
-      href: '/admin',
-    },
-    {
-      id: 'tasks',
-      label: 'Tasks',
-      icon: CheckSquare,
-      href: '/admin/tasks',
-    },
-    {
-      id: 'clients',
-      label: 'Clients',
-      icon: Users,
-      href: '/admin/clients',
-    },
-    {
-      id: 'transactions',
-      label: 'Payments',
-      icon: CreditCard,
-      href: '/admin/transactions',
-    },
-    {
-      id: 'more',
-      label: 'More',
-      icon: Settings,
-      href: '/admin/settings',
-    },
-  ];
+  // Determine user type based on current path
+  const isAdminSection = pathname.startsWith('/admin');
+  const isClientSection = pathname.startsWith('/client');
+  const isCreatorSection = pathname.startsWith('/creator');
+
+  // Get client ID from path for client sections
+  const clientId = isClientSection ? pathname.split('/')[2] : null;
+
+  // Define main navigation tabs for mobile based on user type
+  const getMainTabs = (): TabItem[] => {
+    if (isAdminSection) {
+      return [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: Home,
+          href: '/admin',
+        },
+        {
+          id: 'tasks',
+          label: 'Tasks',
+          icon: CheckSquare,
+          href: '/admin/tasks',
+        },
+        {
+          id: 'clients',
+          label: 'Clients',
+          icon: Users,
+          href: '/admin/clients',
+        },
+        {
+          id: 'transactions',
+          label: 'Payments',
+          icon: CreditCard,
+          href: '/admin/transactions',
+        },
+        {
+          id: 'more',
+          label: 'More',
+          icon: Settings,
+          href: '/admin/settings',
+        },
+      ];
+    } else if (isClientSection && clientId) {
+      return [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: Home,
+          href: `/client/${clientId}`,
+        },
+        {
+          id: 'projects',
+          label: 'Projects',
+          icon: CheckSquare,
+          href: `/client/${clientId}/projects`,
+        },
+        {
+          id: 'settings',
+          label: 'Settings',
+          icon: Settings,
+          href: `/client/${clientId}/settings`,
+        },
+      ];
+    } else if (isCreatorSection) {
+      const creatorId = pathname.split('/')[2];
+      return [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: Home,
+          href: `/creator/${creatorId}`,
+        },
+        {
+          id: 'settings',
+          label: 'Settings',
+          icon: Settings,
+          href: `/creator/settings`,
+        },
+      ];
+    }
+
+    // Default fallback (shouldn't happen)
+    return [
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        icon: Home,
+        href: '/admin',
+      },
+    ];
+  };
+
+  const mainTabs = getMainTabs();
 
   const handleTabPress = (tab: TabItem) => {
     haptic.androidClick();
@@ -75,8 +136,9 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
   };
 
   const isActiveTab = (href: string) => {
-    if (href === '/admin') {
-      return pathname === '/admin';
+    // Handle exact matches for dashboard pages
+    if (href === '/admin' || href.match(/^\/client\/[^\/]+$/) || href.match(/^\/creator\/[^\/]+$/)) {
+      return pathname === href;
     }
     return pathname.startsWith(href);
   };
