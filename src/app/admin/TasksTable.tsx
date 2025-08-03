@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Search, Filter, User, Calendar, CreditCard, Edit, Trash2, Eye, Plus } from 'lucide-react';
+import { MoreHorizontal, Search, Filter, User, Calendar, CreditCard, Edit, Trash2, Eye, Plus, Upload } from 'lucide-react';
 import { Task, Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
@@ -178,6 +178,11 @@ export default function TasksTable({ tasks: initialTasks, clients }: TasksTableP
               <RippleButton variant="outline" className="shrink-0 w-full sm:w-auto">
                 <Filter className="mr-2 h-4 w-4" /> Filter
               </RippleButton>
+              <Link href="/admin/tasks/import">
+                <RippleButton variant="outline" className="shrink-0 w-full sm:w-auto">
+                  <Upload className="mr-2 h-4 w-4" /> Import Tasks
+                </RippleButton>
+              </Link>
             </div>
           </CardHeader>
         <CardContent>
