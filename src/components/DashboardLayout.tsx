@@ -19,7 +19,7 @@ import { MobileTabs } from '@/components/ui/mobile-tabs';
 import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown, BarChart3, FileText, Calendar, Bell, Shield, HelpCircle } from 'lucide-react';
 import { auth, clientAuth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
@@ -238,6 +238,38 @@ const DashboardContent = ({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/analytics')}>
+                    <Link href="/admin/analytics">
+                      <BarChart3 />
+                      <span className={isCollapsed ? 'hidden' : ''}>Analytics</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/reports')}>
+                    <Link href="/admin/reports">
+                      <FileText />
+                      <span className={isCollapsed ? 'hidden' : ''}>Reports</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/calendar')}>
+                    <Link href="/admin/calendar">
+                      <Calendar />
+                      <span className={isCollapsed ? 'hidden' : ''}>Calendar</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/notifications')}>
+                    <Link href="/admin/notifications">
+                      <Bell />
+                      <span className={isCollapsed ? 'hidden' : ''}>Notifications</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/export')}>
                     <Link href="/admin/export">
                       <FileDown />
@@ -245,7 +277,23 @@ const DashboardContent = ({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/security')}>
+                    <Link href="/admin/security">
+                      <Shield />
+                      <span className={isCollapsed ? 'hidden' : ''}>Security</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
 
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/help')}>
+                    <Link href="/admin/help">
+                      <HelpCircle />
+                      <span className={isCollapsed ? 'hidden' : ''}>Help & Support</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
                     <Link href="/admin/settings">
