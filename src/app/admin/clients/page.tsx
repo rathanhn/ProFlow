@@ -38,10 +38,13 @@ import {
     Phone,
     DollarSign
 } from 'lucide-react';
-import { getClients, deleteClient } from '@/lib/firebase-service';
+import { getClients } from '@/lib/firebase-service';
 import { Client } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
+import { DeletionDialog } from '@/components/ui/deletion-dialog';
+import { ToastProvider } from '@/components/ui/toast-system';
+import { useDeletion } from '@/hooks/use-deletion';
 import React, { useState, useEffect } from 'react';
 import ClientActions from './ClientActions';
 import { SwipeActionItem, SwipeAction } from '@/components/ui/swipe-action';
@@ -53,12 +56,23 @@ import { useHapticFeedback } from '@/lib/haptic-feedback';
 import { useRouter } from 'next/navigation';
 
 
-export default function AdminClientsPage() {
+function AdminClientsPageContent() {
     const [clients, setClients] = useState<Client[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [deletionDialog, setDeletionDialog] = useState<{
+        isOpen: boolean;
+        client: Client | null;
+        deletionData: any;
+    }>({
+        isOpen: false,
+        client: null,
+        deletionData: null,
+    });
+
     const haptic = useHapticFeedback();
     const router = useRouter();
     const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
+    const { deleteClient, getClientDeletionData } = useDeletion();
 
     const loadClients = async () => {
         try {
@@ -79,6 +93,33 @@ export default function AdminClientsPage() {
     const handleRefresh = async () => {
         haptic.androidSwipeRefresh();
         await loadClients();
+    };
+
+    const handleDeleteClick = async (client: Client) => {
+        try {
+            haptic.androidClick();
+            const deletionData = await getClientDeletionData(client.id);
+            setDeletionDialog({
+                isOpen: true,
+                client,
+                deletionData,
+            });
+        } catch (error) {
+            console.error('Failed to get deletion data:', error);
+        }
+    };
+
+    const handleConfirmDelete = async (options: {
+        id: string;
+        confirmationText: string;
+    }) => {
+        await deleteClient(options);
+        setDeletionDialog({ isOpen: false, client: null, deletionData: null });
+        await loadClients(); // Refresh the list
+    };
+
+    const closeDeletionDialog = () => {
+        setDeletionDialog({ isOpen: false, client: null, deletionData: null });
     };
 
     const handleDeleteClient = async (clientId: string) => {
@@ -336,7 +377,13 @@ export default function AdminClientsPage() {
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <ClientActions client={client} action="delete" />
+                                <DropdownMenuItem
+                                    onClick={() => handleDeleteClick(client)}
+                                    className="text-red-600 focus:text-red-600"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Client
+                                </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>
@@ -365,6 +412,29 @@ export default function AdminClientsPage() {
         userName={imageData.userName}
         userEmail={imageData.userEmail}
       />
+
+      {/* Deletion Dialog */}
+      <DeletionDialog
+        isOpen={deletionDialog.isOpen}
+        onClose={closeDeletionDialog}
+        type="client"
+        data={{
+          id: deletionDialog.client?.id || '',
+          name: deletionDialog.client?.name || '',
+          email: deletionDialog.client?.email,
+          tasksCount: deletionDialog.deletionData?.tasksCount || 0,
+          transactionsCount: deletionDialog.deletionData?.transactionsCount || 0,
+        }}
+        onConfirmDelete={handleConfirmDelete}
+      />
     </DashboardLayout>
+  );
+}
+
+export default function AdminClientsPage() {
+  return (
+    <ToastProvider position="top-right">
+      <AdminClientsPageContent />
+    </ToastProvider>
   );
 }
