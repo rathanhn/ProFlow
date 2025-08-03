@@ -7,19 +7,21 @@ import CreatorDashboardClient from './CreatorDashboardClient';
 
 export default async function CreatorDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const rawCreator = await getAssignee(id);
 
+  // Fetch creator data
+  const rawCreator = await getAssignee(id);
   if (!rawCreator) {
     notFound();
   }
 
+  // Fetch creator tasks
   const creator = JSON.parse(JSON.stringify(rawCreator)) as Assignee;
   const rawCreatorTasks = await getTasksByAssigneeId(id);
   const creatorTasks = JSON.parse(JSON.stringify(rawCreatorTasks)) as Task[];
 
   return (
     <DashboardLayout>
-      <CreatorDashboardClient 
+      <CreatorDashboardClient
         initialCreator={creator}
         initialTasks={creatorTasks}
       />
