@@ -13,17 +13,18 @@ import {
   Eye, 
   Edit,
   ExternalLink,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import { Task } from '@/lib/types';
 
 interface TaskCardProps {
   task: Task;
-  getStatusColor: (status: string) => string;
-  getPaymentColor: (status: string) => string;
+  showClient?: boolean;
+  onDelete?: (taskId: string) => void;
 }
 
-export default function TaskCard({ task, getStatusColor, getPaymentColor }: TaskCardProps) {
+export default function TaskCard({ task, showClient = false, onDelete }: TaskCardProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -40,6 +41,24 @@ export default function TaskCard({ task, getStatusColor, getPaymentColor }: Task
     return diffDays;
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Completed': return 'bg-green-100 text-green-800';
+      case 'In Progress': return 'bg-blue-100 text-blue-800';
+      case 'Pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentColor = (status: string) => {
+    switch (status) {
+      case 'Paid': return 'bg-green-100 text-green-800';
+      case 'Partially Paid': return 'bg-yellow-100 text-yellow-800';
+      case 'Unpaid': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const daysRemaining = getDaysRemaining(task.submissionDate);
   const isOverdue = daysRemaining < 0;
   const isDueSoon = daysRemaining <= 3 && daysRemaining >= 0;
@@ -50,6 +69,11 @@ export default function TaskCard({ task, getStatusColor, getPaymentColor }: Task
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg mb-2">{task.projectName}</CardTitle>
+            {showClient && (
+              <p className="text-sm text-muted-foreground mb-2">
+                Client: {task.clientName}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               <Badge className={getStatusColor(task.workStatus)}>
                 {task.workStatus}
@@ -80,6 +104,20 @@ export default function TaskCard({ task, getStatusColor, getPaymentColor }: Task
                 <Edit className="h-4 w-4" />
               </Button>
             </Link>
+            {onDelete && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete this task?')) {
+                    onDelete(task.id);
+                  }
+                }}
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
