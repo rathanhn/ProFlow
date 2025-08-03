@@ -67,15 +67,15 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
   return (
     <Card className="hover-lift group animate-fade-in">
       <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors-smooth truncate">
+            <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors-smooth">
               {task.projectName}
             </CardTitle>
             {showClient && (
               <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                <User className="h-3 w-3" />
-                {task.clientName}
+                <User className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{task.clientName}</span>
               </p>
             )}
             <div className="flex flex-wrap gap-2">
@@ -99,7 +99,7 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
               )}
             </div>
           </div>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all-smooth">
+          <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all-smooth flex-shrink-0">
             <Link href={`/admin/tasks/${task.id}`}>
               <Button variant="outline" size="icon-sm" className="hover:bg-primary hover:text-primary-foreground">
                 <Eye className="h-4 w-4" />
@@ -129,36 +129,36 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Task Details Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-muted-foreground">Pages</p>
-              <p className="font-medium">{task.pages}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+          <div className="flex items-center gap-2 min-w-0">
+            <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-muted-foreground text-xs">Pages</p>
+              <p className="font-medium truncate">{task.pages}</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-muted-foreground">Rate</p>
-              <p className="font-medium">₹{task.rate}</p>
+
+          <div className="flex items-center gap-2 min-w-0">
+            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-muted-foreground text-xs">Rate</p>
+              <p className="font-medium truncate">₹{task.rate}</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-muted-foreground">Total</p>
-              <p className="font-medium">₹{task.total.toLocaleString()}</p>
+
+          <div className="flex items-center gap-2 min-w-0">
+            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-muted-foreground text-xs">Total</p>
+              <p className="font-medium truncate">₹{task.total.toLocaleString()}</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-muted-foreground">Paid</p>
-              <p className="font-medium">₹{task.amountPaid.toLocaleString()}</p>
+
+          <div className="flex items-center gap-2 min-w-0">
+            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-muted-foreground text-xs">Paid</p>
+              <p className="font-medium truncate">₹{task.amountPaid.toLocaleString()}</p>
             </div>
           </div>
         </div>

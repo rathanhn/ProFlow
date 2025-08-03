@@ -104,42 +104,42 @@ export default function AdminTransactionsPage() {
           <div className="grid gap-4 md:hidden">
               {transactions.map((transaction: Transaction) => (
                   <LongPressMenu key={transaction.id} actions={getLongPressActions(transaction)}>
-                      <Card className="cursor-pointer">
-                          <CardContent className="pt-4">
-                              <div className="flex justify-between items-start">
-                                  <div>
+                      <Card className="cursor-pointer overflow-hidden">
+                          <CardContent className="p-4">
+                              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
+                                  <div className="min-w-0 flex-1">
                                       <div className="font-semibold">
                                           <RippleButton
                                             variant="ghost"
-                                            className="p-0 h-auto font-semibold text-left justify-start hover:underline"
+                                            className="p-0 h-auto font-semibold text-left justify-start hover:underline truncate w-full"
                                             onClick={() => {
                                               haptic.androidClick();
                                               router.push(`/admin/tasks/${transaction.taskId}`);
                                             }}
                                           >
-                                            {transaction.projectName}
+                                            <span className="truncate">{transaction.projectName}</span>
                                           </RippleButton>
                                       </div>
                                       <div className="text-sm text-muted-foreground">
                                           <span>Client: </span>
                                           <RippleButton
                                             variant="ghost"
-                                            className="p-0 h-auto text-sm text-muted-foreground hover:underline ml-1"
+                                            className="p-0 h-auto text-sm text-muted-foreground hover:underline ml-1 truncate"
                                             onClick={() => {
                                               haptic.androidClick();
                                               router.push(`/admin/clients/${transaction.clientId}/edit`);
                                             }}
                                           >
-                                            {transaction.clientName}
+                                            <span className="truncate">{transaction.clientName}</span>
                                           </RippleButton>
                                       </div>
                                       <div className="text-xs text-muted-foreground pt-1">
                                           {new Date(transaction.transactionDate).toLocaleDateString()}
                                       </div>
                                   </div>
-                                  <div className="text-right">
+                                  <div className="flex flex-col items-end space-y-1 flex-shrink-0">
                                       <p className="font-bold text-lg">₹{transaction.amount.toLocaleString()}</p>
-                                      <Badge variant="outline" className="mt-1">{transaction.paymentMethod}</Badge>
+                                      <Badge variant="outline" className="text-xs">{transaction.paymentMethod}</Badge>
                                   </div>
                               </div>
                           </CardContent>

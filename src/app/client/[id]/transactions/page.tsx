@@ -45,20 +45,22 @@ export default async function ClientTransactionsPage({ params }: Props) {
         {/* Mobile View */}
         <div className="grid gap-4 md:hidden">
           {transactions.map((transaction: Transaction) => (
-            <Card key={transaction.id}>
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-start gap-4">
-                    <div>
-                        <p className="font-semibold">
-                            <Link href={`/client/${clientId}/projects/${transaction.taskId}`} className="hover:underline">{transaction.projectName}</Link>
+            <Card key={transaction.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
+                    <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate">
+                            <Link href={`/client/${clientId}/projects/${transaction.taskId}`} className="hover:underline">
+                              {transaction.projectName}
+                            </Link>
                         </p>
                         <p className="text-sm text-muted-foreground pt-1">
                             {new Date(transaction.transactionDate).toLocaleString()}
                         </p>
                     </div>
-                    <div className="text-right">
+                    <div className="flex flex-col items-end space-y-1 flex-shrink-0">
                         <p className="font-bold text-lg">₹{transaction.amount.toLocaleString()}</p>
-                        <Badge variant="outline">{transaction.paymentMethod}</Badge>
+                        <Badge variant="outline" className="text-xs">{transaction.paymentMethod}</Badge>
                     </div>
                 </div>
               </CardContent>

@@ -335,25 +335,25 @@ const DashboardContent = ({
         </SidebarFooter>
       </Sidebar>
       <div className={cn(
-        "flex flex-col flex-1 w-full lg:pl-64 overflow-x-hidden", 
+        "flex flex-col flex-1 w-full lg:pl-64 overflow-x-hidden min-w-0",
         isCollapsed && "lg:pl-16",
         "transition-all duration-300 ease-in-out"
       )}>
-        <header className="sticky-header flex items-center justify-between p-4 h-16">
+        <header className="sticky-header flex items-center justify-between p-4 h-16 min-w-0">
             {/* ProFlow Logo for Mobile */}
-            <div className="flex items-center md:hidden">
-              <Rocket className="w-6 h-6 text-primary mr-2" />
-              <h1 className="text-lg font-semibold">ProFlow</h1>
+            <div className="flex items-center md:hidden min-w-0">
+              <Rocket className="w-6 h-6 text-primary mr-2 flex-shrink-0" />
+              <h1 className="text-lg font-semibold truncate">ProFlow</h1>
             </div>
 
             {/* Desktop keeps the right-aligned content */}
-            <div className="flex items-center gap-4 md:ml-auto">
+            <div className="flex items-center gap-4 md:ml-auto flex-shrink-0">
               {user && <NotificationBell />}
             </div>
         </header>
-        <main className="flex-1 scrollable-content">
-          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-24 md:pb-8 animate-fade-in">
-            <div className="animate-slide-up">
+        <main className="flex-1 scrollable-content min-w-0">
+          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-24 md:pb-8 animate-fade-in min-w-0">
+            <div className="animate-slide-up min-w-0">
               {renderContent()}
             </div>
           </div>
