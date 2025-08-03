@@ -19,21 +19,32 @@ export interface ProFlowTask {
  * This function helps map common Notion field names to ProFlow format
  */
 export function convertNotionToProFlow(notionData: NotionTaskRow[]): ProFlowTask[] {
+  console.log('Converting Notion data:', notionData);
+
   return notionData.map((row, index) => {
+    console.log(`Processing row ${index + 1}:`, row);
+
     // Common field mappings - adjust these based on your Notion column names
-    const projectName = 
-      row.projectName || 
-      row['Project Name'] || 
-      row.project || 
-      row.title || 
-      row.name || 
+    const projectName =
+      row.projectName ||
+      row['Project Name'] ||
+      row['project name'] ||
+      row.project ||
+      row.title ||
+      row.Title ||
+      row.name ||
+      row.Name ||
+      row['Task Name'] ||
+      row['task name'] ||
       `Project ${index + 1}`;
 
-    const pages = 
-      parseInt(row.pages || row.Pages || row.page_count || row['Page Count'] || '1');
+    const pages =
+      parseInt(row.pages || row.Pages || row.page_count || row['Page Count'] || row['page count'] || '1');
 
-    const rate = 
+    const rate =
       parseFloat(row.rate || row.Rate || row.price || row.Price || row.cost || row.Cost || '100');
+
+    console.log(`Mapped values - Project: "${projectName}", Pages: ${pages}, Rate: ${rate}`);
 
     // Map status values
     let workStatus: 'Pending' | 'In Progress' | 'Completed' = 'Pending';
@@ -102,27 +113,66 @@ function formatDate(dateInput: any): string {
 }
 
 /**
- * Parse CSV text to JSON
+ * Parse CSV text to JSON with better handling
  */
 export function csvToJson(csvText: string): NotionTaskRow[] {
-  const lines = csvText.trim().split('\n');
+  const lines = csvText.trim().split('\n').filter(line => line.trim().length > 0);
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  console.log('CSV Lines:', lines);
+
+  // Parse headers with better quote handling
+  const headers = parseCSVLine(lines[0]);
+  console.log('Headers:', headers);
+
   const rows: NotionTaskRow[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+    const values = parseCSVLine(lines[i]);
+
+    // Skip empty rows
+    if (values.every(v => !v.trim())) continue;
+
     const row: NotionTaskRow = {};
-    
+
     headers.forEach((header, index) => {
       row[header] = values[index] || '';
     });
-    
-    rows.push(row);
+
+    // Only add rows that have at least one meaningful value
+    if (Object.values(row).some(value => value && value.trim().length > 0)) {
+      console.log(`Row ${i}:`, row);
+      rows.push(row);
+    }
   }
 
+  console.log('Parsed rows:', rows.length);
   return rows;
+}
+
+/**
+ * Parse a single CSV line with proper quote handling
+ */
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current.trim());
+  return result;
 }
 
 /**

@@ -175,8 +175,26 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
         if (!csvData.trim()) {
           throw new Error('Please enter CSV data');
         }
+        console.log('Raw CSV data:', csvData);
         const csvJson = csvToJson(csvData);
+        console.log('Parsed CSV to JSON:', csvJson);
         parsed = convertNotionToProFlow(csvJson);
+        console.log('Converted to ProFlow format:', parsed);
+      } else if (activeTab === 'file') {
+        // File data should already be in csvData or jsonData
+        if (csvData.trim()) {
+          console.log('Processing file as CSV');
+          const csvJson = csvToJson(csvData);
+          parsed = convertNotionToProFlow(csvJson);
+        } else if (jsonData.trim()) {
+          console.log('Processing file as JSON');
+          parsed = JSON.parse(jsonData);
+          if (!Array.isArray(parsed)) {
+            throw new Error('Data must be an array of tasks');
+          }
+        } else {
+          throw new Error('Please upload a file first');
+        }
       } else {
         if (!jsonData.trim()) {
           throw new Error('Please enter JSON data');
@@ -511,37 +529,130 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
           </CardContent>
         </Card>
 
+        {/* Debug Information */}
+        {(csvData || jsonData) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Debug Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div>
+                <strong>Active Tab:</strong> {activeTab}
+              </div>
+              <div>
+                <strong>CSV Data Length:</strong> {csvData.length} characters
+              </div>
+              <div>
+                <strong>JSON Data Length:</strong> {jsonData.length} characters
+              </div>
+              {csvData && (
+                <div>
+                  <strong>CSV Lines:</strong> {csvData.split('\n').length}
+                  <details className="mt-2">
+                    <summary className="cursor-pointer">Show first 3 lines</summary>
+                    <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-x-auto">
+                      {csvData.split('\n').slice(0, 3).join('\n')}
+                    </pre>
+                  </details>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Preview */}
         {previewTasks.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Preview ({previewTasks.length} tasks)</CardTitle>
+              <div className="text-sm text-muted-foreground">
+                Total Value: ₹{previewTasks.reduce((sum, task) => sum + (task.pages * task.rate), 0).toLocaleString()}
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {previewTasks.map((task, index) => (
-                  <div key={index} className="border rounded p-3 text-sm">
-                    <div className="font-medium">{task.projectName}</div>
-                    <div className="text-muted-foreground">
-                      {task.pages} pages × ₹{task.rate} = ₹{task.pages * task.rate} | Status: {task.workStatus}
+                  <div key={index} className="border rounded-lg p-4 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-semibold text-base">{task.projectName}</div>
+                        <div className="text-sm text-muted-foreground">Task #{index + 1}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">₹{(task.pages * task.rate).toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Total</div>
+                      </div>
                     </div>
-                    {task.notes && <div className="text-xs text-muted-foreground mt-1">{task.notes}</div>}
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <div className="text-muted-foreground">Pages</div>
+                        <div className="font-medium">{task.pages}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Rate</div>
+                        <div className="font-medium">₹{task.rate}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Status</div>
+                        <div className="font-medium">{task.workStatus}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Due Date</div>
+                        <div className="font-medium">{new Date(task.submissionDate!).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+
+                    {task.notes && (
+                      <div className="pt-2 border-t">
+                        <div className="text-muted-foreground text-xs">Notes</div>
+                        <div className="text-sm">{task.notes}</div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t">
+                      <span>Start: {new Date(task.acceptedDate!).toLocaleDateString()}</span>
+                      <span>Duration: {Math.ceil((new Date(task.submissionDate!).getTime() - new Date(task.acceptedDate!).getTime()) / (1000 * 60 * 60 * 24))} days</span>
+                    </div>
                   </div>
                 ))}
               </div>
-              
-              <div className="mt-4 pt-4 border-t">
-                <Button 
-                  onClick={handleImport} 
-                  disabled={isLoading}
+
+              <div className="mt-6 pt-4 border-t space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="text-center p-3 bg-muted rounded">
+                    <div className="font-semibold text-lg">{previewTasks.length}</div>
+                    <div className="text-muted-foreground">Total Tasks</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted rounded">
+                    <div className="font-semibold text-lg">{previewTasks.reduce((sum, task) => sum + task.pages, 0)}</div>
+                    <div className="text-muted-foreground">Total Pages</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted rounded">
+                    <div className="font-semibold text-lg">₹{Math.round(previewTasks.reduce((sum, task) => sum + (task.pages * task.rate), 0) / previewTasks.length).toLocaleString()}</div>
+                    <div className="text-muted-foreground">Avg. Value</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted rounded">
+                    <div className="font-semibold text-lg">₹{previewTasks.reduce((sum, task) => sum + (task.pages * task.rate), 0).toLocaleString()}</div>
+                    <div className="text-muted-foreground">Total Value</div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleImport}
+                  disabled={isLoading || !selectedClientId}
                   className="w-full"
+                  size="lg"
                 >
                   {isLoading ? (
-                    <>Importing...</>
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Importing...
+                    </>
                   ) : (
                     <>
                       <Upload className="mr-2 h-4 w-4" />
-                      Import {previewTasks.length} Tasks
+                      Import {previewTasks.length} Tasks for {clients.find(c => c.id === selectedClientId)?.name || 'Selected Client'}
                     </>
                   )}
                 </Button>
