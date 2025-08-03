@@ -366,37 +366,6 @@ export async function getTransactionsByClientId(clientId: string): Promise<any[]
 }
 
 
-export async function deleteAssignee(id: string) {
-    const batch = writeBatch(db);
-
-    // 1. Delete assignee document
-    const assigneeDocRef = doc(db, 'assignees', id);
-    batch.delete(assigneeDocRef);
-
-    // 2. Find all tasks assigned to the creator and un-assign them
-    const tasksQuery = query(collection(db, 'tasks'), where('assigneeId', '==', id));
-    const tasksSnapshot = await getDocs(tasksQuery);
-    tasksSnapshot.forEach(doc => {
-        batch.update(doc.ref, {
-            assigneeId: '',
-            assigneeName: ''
-        });
-    });
-
-    // 3. Find and delete associated notifications
-    const notificationsQuery = query(collection(db, 'notifications'), where('userId', '==', id));
-    const notificationsSnapshot = await getDocs(notificationsQuery);
-    notificationsSnapshot.forEach(doc => batch.delete(doc.ref));
-
-    // 4. Commit all Firestore changes
-    await batch.commit();
-
-    // 5. Delete Firebase Auth user
-    await deleteAuthUser(id);
-
-    revalidatePath('/admin/team');
-    revalidatePath('/admin/tasks');
-}
 
 
 // Notification Functions
