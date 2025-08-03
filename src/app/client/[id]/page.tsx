@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
     DollarSign,
     ListChecks,
@@ -181,19 +182,34 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
           </CardHeader>
           <CardContent>
              <div className="space-y-4">
-                {clientTasks.slice(0, 5).map(task => (
-                    <div key={task.id} className="flex justify-between items-center">
-                        <div>
-                            <p className="font-medium">{task.projectName}</p>
-                            <p className="text-sm text-muted-foreground">{task.workStatus}</p>
+                {clientTasks.slice(0, 3).map(task => (
+                    <div key={task.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="min-w-0 flex-1">
+                            <p className="font-medium truncate">{task.projectName}</p>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                {task.workStatus}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {task.paymentStatus}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              ₹{task.amountPaid.toLocaleString()} / ₹{task.total.toLocaleString()}
+                            </p>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
+                        <Button variant="outline" size="sm" asChild className="flex-shrink-0">
                             <Link href={`/client/${client.id}/projects/${task.id}`}>
-                                View
+                                View Details
                             </Link>
                         </Button>
                     </div>
                 ))}
+                {clientTasks.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No projects yet.</p>
+                  </div>
+                )}
             </div>
              <div className="mt-4 pt-4 border-t">
                 <RippleButton

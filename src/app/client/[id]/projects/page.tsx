@@ -2,16 +2,9 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { getClient, getTasksByClientId } from '@/lib/firebase-service';
 import { Task, Client } from '@/lib/types';
-import ClientProjectsTable from '../ClientProjectsTable';
+import ClientTaskList from '@/components/ClientTaskList';
 
 const statusColors: Record<string, string> = {
   Paid: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30',
@@ -37,12 +30,18 @@ export default async function ClientProjectsPage({ params }: { params: Promise<{
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 fab-safe-bottom">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">All Your Projects</h1>
           <p className="text-muted-foreground">An overview of all your projects and their current status.</p>
         </div>
-        <ClientProjectsTable tasks={clientTasks} statusColors={statusColors} clientId={client.id} />
+        <ClientTaskList
+          tasks={clientTasks}
+          clientId={client.id}
+          title="Your Projects"
+          emptyStateMessage="No projects found"
+          emptyStateDescription="You don't have any projects yet. New projects will appear here once they're assigned to you."
+        />
       </div>
     </DashboardLayout>
   );
