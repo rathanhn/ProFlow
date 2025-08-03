@@ -19,7 +19,7 @@ import { MobileTabs } from '@/components/ui/mobile-tabs';
 import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown, BarChart3, FileText, Calendar, Bell, Shield, HelpCircle } from 'lucide-react';
+import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown, BarChart3, FileText, Calendar, Bell, Shield, HelpCircle, MessageSquare } from 'lucide-react';
 import { auth, clientAuth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
@@ -286,6 +286,14 @@ const DashboardContent = ({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/feedback')}>
+                    <Link href="/admin/feedback">
+                      <MessageSquare />
+                      <span className={isCollapsed ? 'hidden' : ''}>Feedback & Reports</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/help')}>
                     <Link href="/admin/help">

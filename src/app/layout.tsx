@@ -2,6 +2,7 @@ import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/ThemeProvider';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export const metadata: Metadata = {
   title: 'ProFlow - Work Tracking App',
@@ -56,7 +57,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
-            {children}
+            <ErrorBoundary showErrorDetails={process.env.NODE_ENV === 'development'}>
+              {children}
+            </ErrorBoundary>
             <Toaster />
         </ThemeProvider>
       </body>

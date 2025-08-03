@@ -127,18 +127,18 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
     <DashboardLayout>
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="space-y-6 fab-safe-bottom">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 sm:gap-4 min-w-0">
               <ClickableAvatar
                   src={client.avatar}
                   fallback={client.name.charAt(0)}
                   userName={client.name}
                   userEmail={client.email}
                   size="xl"
-                  className="border-2 border-primary"
+                  className="border-2 border-primary flex-shrink-0"
               />
-              <div>
-                  <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
-                  <p className="text-muted-foreground">Welcome to your personal dashboard.</p>
+              <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">{client.name}</h1>
+                  <p className="text-muted-foreground text-sm sm:text-base">Welcome to your personal dashboard.</p>
               </div>
           </div>
 

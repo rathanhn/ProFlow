@@ -28,6 +28,7 @@ import { useHapticFeedback } from '@/lib/haptic-feedback';
 import { useRouter } from 'next/navigation';
 import { Eye, FileText, Plus } from 'lucide-react';
 import { LongPressMenu } from '@/components/ui/long-press';
+import ErrorReportButton from '@/components/ErrorReportButton';
 
 export default function AdminTransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -88,9 +89,18 @@ export default function AdminTransactionsPage() {
     <DashboardLayout>
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="space-y-6 fab-safe-bottom">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">All Transactions</h1>
-            <p className="text-muted-foreground">A record of all payments received.</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">All Transactions</h1>
+              <p className="text-muted-foreground">A record of all payments received.</p>
+            </div>
+            <ErrorReportButton
+              errorContext={{
+                page: 'Transactions',
+                component: 'TransactionsPage',
+                action: 'View Transactions'
+              }}
+            />
           </div>
 
           <Card className="md:hidden">
@@ -104,27 +114,27 @@ export default function AdminTransactionsPage() {
           <div className="grid gap-4 md:hidden">
               {transactions.map((transaction: Transaction) => (
                   <LongPressMenu key={transaction.id} actions={getLongPressActions(transaction)}>
-                      <Card className="cursor-pointer overflow-hidden">
-                          <CardContent className="p-4">
-                              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
-                                  <div className="min-w-0 flex-1">
+                      <Card className="cursor-pointer overflow-hidden min-w-0">
+                          <CardContent className="p-4 min-w-0">
+                              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-start sm:space-y-0 min-w-0">
+                                  <div className="min-w-0 flex-1 pr-2">
                                       <div className="font-semibold">
                                           <RippleButton
                                             variant="ghost"
-                                            className="p-0 h-auto font-semibold text-left justify-start hover:underline truncate w-full"
+                                            className="p-0 h-auto font-semibold text-left justify-start hover:underline truncate w-full max-w-full"
                                             onClick={() => {
                                               haptic.androidClick();
                                               router.push(`/admin/tasks/${transaction.taskId}`);
                                             }}
                                           >
-                                            <span className="truncate">{transaction.projectName}</span>
+                                            <span className="truncate block">{transaction.projectName}</span>
                                           </RippleButton>
                                       </div>
-                                      <div className="text-sm text-muted-foreground">
+                                      <div className="text-sm text-muted-foreground truncate">
                                           <span>Client: </span>
                                           <RippleButton
                                             variant="ghost"
-                                            className="p-0 h-auto text-sm text-muted-foreground hover:underline ml-1 truncate"
+                                            className="p-0 h-auto text-sm text-muted-foreground hover:underline ml-1 truncate inline-block max-w-[200px]"
                                             onClick={() => {
                                               haptic.androidClick();
                                               router.push(`/admin/clients/${transaction.clientId}/edit`);
@@ -137,9 +147,9 @@ export default function AdminTransactionsPage() {
                                           {new Date(transaction.transactionDate).toLocaleDateString()}
                                       </div>
                                   </div>
-                                  <div className="flex flex-col items-end space-y-1 flex-shrink-0">
-                                      <p className="font-bold text-lg">₹{transaction.amount.toLocaleString()}</p>
-                                      <Badge variant="outline" className="text-xs">{transaction.paymentMethod}</Badge>
+                                  <div className="flex flex-col items-end space-y-1 flex-shrink-0 min-w-0">
+                                      <p className="font-bold text-lg whitespace-nowrap">₹{transaction.amount.toLocaleString()}</p>
+                                      <Badge variant="outline" className="text-xs whitespace-nowrap">{transaction.paymentMethod}</Badge>
                                   </div>
                               </div>
                           </CardContent>

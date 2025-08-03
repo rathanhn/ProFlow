@@ -5,16 +5,19 @@ import { Client, Task } from '@/lib/types';
 import ClientTasksView from './ClientTasksView';
 
 interface ClientDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
   try {
+    // Await params first
+    const resolvedParams = await params;
+
     // Fetch client and all tasks
     const [rawClient, rawTasks] = await Promise.all([
-      getClient(params.id),
+      getClient(resolvedParams.id),
       getTasks()
     ]);
 
@@ -27,7 +30,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
     const allTasks = JSON.parse(JSON.stringify(rawTasks)) as Task[];
     
     // Filter tasks for this client
-    const clientTasks = allTasks.filter(task => task.clientId === params.id);
+    const clientTasks = allTasks.filter(task => task.clientId === resolvedParams.id);
 
     return (
       <DashboardLayout>
