@@ -118,7 +118,7 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
           id: 'settings',
           label: 'Settings',
           icon: Settings,
-          href: `/creator/settings`,
+          href: `/creator/${creatorId}/settings`,
         },
       ];
     }
