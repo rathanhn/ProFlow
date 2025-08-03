@@ -39,7 +39,7 @@ export default function EditClientPage() {
 
     return (
         <DashboardLayout>
-            <ClientForm client={client} />
+            <ClientForm client={client} redirectPath={`/admin/clients/${id}`} />
         </DashboardLayout>
     );
 }

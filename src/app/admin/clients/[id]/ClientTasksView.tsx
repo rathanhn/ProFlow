@@ -134,6 +134,12 @@ export default function ClientTasksView({ client, tasks }: ClientTasksViewProps)
                       <span>{client.phone}</span>
                     </div>
                   )}
+                  {client.defaultRate && (
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span>Default Rate: ₹{client.defaultRate}/page</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

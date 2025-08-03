@@ -35,7 +35,8 @@ import {
     Eye,
     Plus,
     UserPlus,
-    Phone
+    Phone,
+    DollarSign
 } from 'lucide-react';
 import { getClients, deleteClient } from '@/lib/firebase-service';
 import { Client } from '@/lib/types';
@@ -242,6 +243,14 @@ export default function AdminClientsPage() {
                                                   {client.phone || 'No phone'}
                                               </span>
                                           </div>
+                                          {client.defaultRate && (
+                                            <div className="flex items-center gap-2 pt-1">
+                                                <DollarSign className="h-3 w-3" />
+                                                <span className="text-sm text-muted-foreground">
+                                                    ₹{client.defaultRate}/page
+                                                </span>
+                                            </div>
+                                          )}
                                       </div>
                                   </div>
                               </CardHeader>
@@ -267,6 +276,7 @@ export default function AdminClientsPage() {
                         <TableRow>
                         <TableHead>Client</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Default Rate</TableHead>
                         <TableHead>Sharable Link</TableHead>
                         <TableHead><span className="sr-only">Actions</span></TableHead>
                         </TableRow>
@@ -298,6 +308,9 @@ export default function AdminClientsPage() {
                             </div>
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-muted-foreground">{client.email}</TableCell>
+                            <TableCell className="whitespace-nowrap text-muted-foreground">
+                              {client.defaultRate ? `₹${client.defaultRate}/page` : 'Not set'}
+                            </TableCell>
                             <TableCell>
                             <ClientActions client={client} action="copy" />
                             </TableCell>

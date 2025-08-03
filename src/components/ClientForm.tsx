@@ -25,14 +25,17 @@ import ImageUploader from './ImageUploader';
 const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
+  phone: z.string().optional(),
+  defaultRate: z.number().min(0, 'Default rate must be positive').optional(),
   avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
 });
 
 interface ClientFormProps {
   client?: Client;
+  redirectPath?: string;
 }
 
-export default function ClientForm({ client }: ClientFormProps) {
+export default function ClientForm({ client, redirectPath }: ClientFormProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -41,6 +44,8 @@ export default function ClientForm({ client }: ClientFormProps) {
     defaultValues: {
       name: client?.name || '',
       email: client?.email || '',
+      phone: client?.phone || '',
+      defaultRate: client?.defaultRate || undefined,
       avatar: client?.avatar || '',
     },
   });
@@ -65,7 +70,8 @@ export default function ClientForm({ client }: ClientFormProps) {
                 description: `An invitation email has been sent to "${values.name}".`,
             });
         }
-        router.push('/admin/clients');
+        const targetPath = redirectPath || '/admin/clients';
+        router.push(targetPath);
         router.refresh();
     } catch (error: unknown) {
         console.error("Failed to save client:", error);
@@ -128,6 +134,41 @@ export default function ClientForm({ client }: ClientFormProps) {
                     <Input type="email" placeholder="client@example.com" {...field} disabled={!!client} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="defaultRate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default Rate per Page (₹)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="100"
+                      {...field}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-sm text-muted-foreground">
+                    This rate will be used as default when creating new tasks for this client
+                  </p>
                 </FormItem>
               )}
             />

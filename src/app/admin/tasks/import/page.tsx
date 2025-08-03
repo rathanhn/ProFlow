@@ -72,6 +72,16 @@ export default function TaskImportPage() {
     loadClients();
   }, [toast]);
 
+  // Update default rate when client is selected
+  useEffect(() => {
+    if (selectedClientId && clients.length > 0) {
+      const selectedClient = clients.find(c => c.id === selectedClientId);
+      if (selectedClient?.defaultRate) {
+        setDefaultRate(selectedClient.defaultRate);
+      }
+    }
+  }, [selectedClientId, clients]);
+
   // Sample data format for reference
   const sampleData = `[
   {
