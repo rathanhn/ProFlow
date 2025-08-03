@@ -77,7 +77,18 @@ export default function ErrorReportButton({
     userAgent: '',
     timestamp: ''
   });
-  const { showToast } = useToast();
+  // Safe toast hook that doesn't throw if ToastProvider is not available
+  const safeShowToast = (() => {
+    try {
+      const { showToast } = useToast();
+      return showToast;
+    } catch (error) {
+      // Fallback to console.log if ToastProvider is not available
+      return (options: any) => {
+        console.log(`Toast: ${options.title || options.message}`, options);
+      };
+    }
+  })();
 
   // Auto-populate technical details when dialog opens
   const handleDialogOpen = (open: boolean) => {
@@ -103,7 +114,7 @@ export default function ErrorReportButton({
 
   const handleSubmit = async () => {
     if (!reportData.title || !reportData.description) {
-      showToast({
+      safeShowToast({
         type: 'warning',
         message: 'Please fill in the title and description',
         style: 'modern'
@@ -132,7 +143,7 @@ export default function ErrorReportButton({
       existingReports.push(newReport);
       localStorage.setItem('errorReports', JSON.stringify(existingReports));
 
-      showToast({
+      safeShowToast({
         type: 'success',
         title: 'Error Report Submitted',
         message: 'Thank you for reporting this issue. We\'ll investigate it promptly.',
@@ -156,7 +167,7 @@ export default function ErrorReportButton({
       
       setIsOpen(false);
     } catch (error) {
-      showToast({
+      safeShowToast({
         type: 'error',
         message: 'Failed to submit error report. Please try again.',
         style: 'modern'
