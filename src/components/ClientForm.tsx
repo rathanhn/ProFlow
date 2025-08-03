@@ -185,5 +185,6 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
         </Form>
       </CardContent>
     </Card>
+    </div>
   );
 }
