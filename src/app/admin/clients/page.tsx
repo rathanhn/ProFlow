@@ -210,7 +210,13 @@ export default function AdminClientsPage() {
                       className="rounded-lg"
                   >
                       <LongPressMenu actions={getLongPressActions(client)}>
-                          <Card className="cursor-pointer">
+                          <Card
+                              className="cursor-pointer hover:shadow-md transition-shadow"
+                              onClick={() => {
+                                  haptic.androidClick();
+                                  router.push(`/admin/clients/${client.id}`);
+                              }}
+                          >
                               <CardHeader>
                                   <div className="flex items-center gap-4">
                                       <Avatar
@@ -267,7 +273,14 @@ export default function AdminClientsPage() {
                     </TableHeader>
                     <TableBody>
                         {clients.map((client: Client) => (
-                        <TableRow key={client.id}>
+                        <TableRow
+                            key={client.id}
+                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => {
+                                haptic.androidClick();
+                                router.push(`/admin/clients/${client.id}`);
+                            }}
+                        >
                             <TableCell>
                             <div className="flex items-center gap-3">
                                 <Avatar
@@ -288,7 +301,7 @@ export default function AdminClientsPage() {
                             <TableCell>
                             <ClientActions client={client} action="copy" />
                             </TableCell>
-                            <TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                 <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -298,7 +311,16 @@ export default function AdminClientsPage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                 <DropdownMenuItem asChild>
-                                    <Link href={`/admin/clients/${client.id}/edit`}>Edit Client</Link>
+                                    <Link href={`/admin/clients/${client.id}`}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View Details
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/admin/clients/${client.id}/edit`}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Edit Client
+                                    </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <ClientActions client={client} action="delete" />
