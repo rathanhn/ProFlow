@@ -223,7 +223,15 @@ export default function TaskForm({ task }: TaskFormProps) {
                 });
             }
         }
-        router.push('/admin/tasks');
+
+        // Redirect based on whether we're creating or editing
+        if (task) {
+            // For editing, go back to the task detail page
+            router.push(`/admin/tasks/${task.id}`);
+        } else {
+            // For creating, go to the tasks list
+            router.push('/admin/tasks');
+        }
         router.refresh();
     } catch (error) {
         console.error("Failed to save task:", error);

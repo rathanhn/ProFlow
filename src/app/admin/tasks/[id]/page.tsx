@@ -19,19 +19,32 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Task, Client } from '@/lib/types';
 import AdminActions from './AdminActions';
 import TaskDetails from '@/components/TaskDetails';
+import { validateRouteId, sanitizeRouteParam } from '@/lib/auth-utils';
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const { id: rawId } = await params;
 
-  const rawTask = await getTask(id);
-  if (!rawTask) notFound();
+  // Validate and sanitize the route parameter
+  if (!validateRouteId(rawId)) {
+    console.warn(`Invalid task ID attempted: ${rawId}`);
+    notFound();
+  }
 
-  const task = JSON.parse(JSON.stringify(rawTask)) as Task;
+  const id = sanitizeRouteParam(rawId);
 
-  const rawClient = await getClient(task.clientId);
-  const client = rawClient
-    ? (JSON.parse(JSON.stringify(rawClient)) as Client)
-    : null;
+  try {
+    const rawTask = await getTask(id);
+    if (!rawTask) {
+      console.warn(`Task not found: ${id}`);
+      notFound();
+    }
+
+    const task = JSON.parse(JSON.stringify(rawTask)) as Task;
+
+    const rawClient = await getClient(task.clientId);
+    const client = rawClient
+      ? (JSON.parse(JSON.stringify(rawClient)) as Client)
+      : null;
 
   return (
     <DashboardLayout>
@@ -86,4 +99,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
       </div>
     </DashboardLayout>
   );
+  } catch (error) {
+    console.error(`Error loading task details ${id}:`, error);
+    notFound();
+  }
 }

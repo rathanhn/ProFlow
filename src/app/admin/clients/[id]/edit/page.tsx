@@ -1,45 +1,41 @@
 
-'use client';
-
+import React from 'react';
+import { notFound } from 'next/navigation';
 import DashboardLayout from "@/components/DashboardLayout";
 import ClientForm from "@/components/ClientForm";
 import { getClient } from "@/lib/firebase-service";
 import { Client } from "@/lib/types";
-import { notFound, useParams } from "next/navigation";
-import React from "react";
+import { validateRouteId, sanitizeRouteParam } from "@/lib/auth-utils";
 
-export default function EditClientPage() {
-    const params = useParams();
-    const id = params.id as string;
-    const [client, setClient] = React.useState<Client | null>(null);
-    const [loading, setLoading] = React.useState(true);
+export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: rawId } = await params;
 
-    React.useEffect(() => {
-        if (id) {
-            const fetchClient = async () => {
-                const clientData = await getClient(id);
-                if (!clientData) {
-                    notFound();
-                }
-                // Serialize the client data to ensure it's a plain object
-                setClient(clientData ? JSON.parse(JSON.stringify(clientData)) : null);
-                setLoading(false);
-            };
-            fetchClient();
+    // Validate and sanitize the route parameter
+    if (!validateRouteId(rawId)) {
+        console.warn(`Invalid client ID attempted: ${rawId}`);
+        notFound();
+    }
+
+    const id = sanitizeRouteParam(rawId);
+
+    try {
+        const rawClient = await getClient(id);
+
+        if (!rawClient) {
+            console.warn(`Client not found: ${id}`);
+            notFound();
         }
-    }, [id]);
 
-    if (loading) {
-        return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+        // Serialize the client data to ensure it's a plain object
+        const client = JSON.parse(JSON.stringify(rawClient)) as Client;
+
+        return (
+            <DashboardLayout>
+                <ClientForm client={client} redirectPath={`/admin/clients/${id}`} />
+            </DashboardLayout>
+        );
+    } catch (error) {
+        console.error(`Error loading client ${id}:`, error);
+        notFound();
     }
-
-    if (!client) {
-        return <DashboardLayout><div>Client not found.</div></DashboardLayout>;
-    }
-
-    return (
-        <DashboardLayout>
-            <ClientForm client={client} redirectPath={`/admin/clients/${id}`} />
-        </DashboardLayout>
-    );
 }
