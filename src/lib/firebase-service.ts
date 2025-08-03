@@ -335,11 +335,7 @@ export async function deleteTask(id: string) {
     revalidatePath('/admin/tasks');
 }
 
-export async function deleteClient(id: string): Promise<void> {
-    const clientDocRef = doc(db, 'clients', id);
-    await deleteDoc(clientDocRef);
-    revalidatePath('/admin/clients');
-}
+
 
 export async function deleteAssignee(id: string): Promise<void> {
     const assigneeDocRef = doc(db, 'assignees', id);
@@ -353,17 +349,7 @@ export async function deleteTransaction(id: string): Promise<void> {
     revalidatePath('/admin/transactions');
 }
 
-export async function getTransactionsByClientId(clientId: string): Promise<any[]> {
-    const q = query(
-        collection(db, 'transactions'),
-        where('clientId', '==', clientId)
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    }));
-}
+
 
 
 
