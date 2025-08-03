@@ -61,7 +61,7 @@ export default function CreatorLoginPage() {
                 setShowPasswordResetDialog(true);
             } else {
                 toast({ title: 'Login Successful!', description: `Welcome back, ${creatorRecord.name}!` });
-                router.push(`/creator/${creatorRecord.id}`);
+                router.push(`/creator/${user.uid}`);
             }
 
         } catch (error: unknown) {
@@ -94,16 +94,10 @@ export default function CreatorLoginPage() {
         const user = clientAuth.currentUser;
         if (user) {
             try {
-                // Get the creator record to get the correct ID
-                const creatorRecord = await getAssigneeByEmail(user.email || '');
                 await updatePassword(user, newPassword);
                 toast({ title: 'Password Reset Successful', description: 'Your password has been updated. Redirecting...' });
                 setShowPasswordResetDialog(false);
-                if (creatorRecord) {
-                    router.push(`/creator/${creatorRecord.id}`);
-                } else {
-                    router.push('/creator/login');
-                }
+                router.push(`/creator/${user.uid}`);
             } catch (error) {
                 console.error("[CreatorLoginPage] Password reset error:", error);
                 toast({ title: 'Password Reset Failed', description: 'Could not update password. Please try again.', variant: 'destructive' });

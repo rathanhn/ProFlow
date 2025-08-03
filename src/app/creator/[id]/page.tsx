@@ -22,7 +22,7 @@ import {
     Settings,
     FileText
 } from 'lucide-react';
-import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
+import { getAssignee, getTasksByAssigneeId, getAssigneeByEmail } from '@/lib/firebase-service';
 import { Assignee, Task } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,8 @@ import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { RippleButton } from '@/components/ui/ripple-effect';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
+import { onAuthStateChanged } from 'firebase/auth';
+import { clientAuth } from '@/lib/firebase';
 
 export default function CreatorDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const [creatorId, setCreatorId] = useState<string>('');
@@ -51,8 +53,30 @@ export default function CreatorDashboardPage({ params }: { params: Promise<{ id:
     if (!creatorId) return;
 
     try {
-      const rawCreator = await getAssignee(creatorId);
+      console.log(`[CreatorDashboard] Attempting to load creator with ID: ${creatorId}`);
+      let rawCreator = await getAssignee(creatorId);
+      console.log(`[CreatorDashboard] getAssignee result:`, rawCreator);
+
+      // If not found by ID, try to get current user's email and find by email
       if (!rawCreator) {
+        console.log(`[CreatorDashboard] Creator not found by ID, trying to find by current user email...`);
+        const currentUser = clientAuth.currentUser;
+        if (currentUser && currentUser.email) {
+          console.log(`[CreatorDashboard] Current user email: ${currentUser.email}`);
+          rawCreator = await getAssigneeByEmail(currentUser.email);
+          console.log(`[CreatorDashboard] getAssigneeByEmail result:`, rawCreator);
+
+          // If found by email but ID doesn't match, redirect to correct ID
+          if (rawCreator && rawCreator.id !== creatorId) {
+            console.log(`[CreatorDashboard] Found creator by email with different ID: ${rawCreator.id}, redirecting...`);
+            router.replace(`/creator/${rawCreator.id}`);
+            return;
+          }
+        }
+      }
+
+      if (!rawCreator) {
+        console.error(`[CreatorDashboard] No creator found with ID: ${creatorId} or current user email`);
         notFound();
         return;
       }
