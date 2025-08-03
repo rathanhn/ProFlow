@@ -49,7 +49,7 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
       return [
         {
           id: 'dashboard',
-          label: 'Dashboard',
+          label: 'Home',
           icon: Home,
           href: '/admin',
         },
@@ -66,16 +66,10 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
           href: '/admin/clients',
         },
         {
-          id: 'transactions',
-          label: 'Payments',
-          icon: CreditCard,
-          href: '/admin/transactions',
-        },
-        {
           id: 'more',
           label: 'More',
           icon: Settings,
-          href: '/admin/settings',
+          href: '/admin/more',
         },
       ];
     } else if (isClientSection && clientId) {
@@ -156,7 +150,7 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
         className
       )}
     >
-      <div className="flex items-center justify-around px-1 py-1">
+      <div className="flex items-center justify-around px-2 py-2">
         {mainTabs.map((tab) => {
           const isActive = isActiveTab(tab.href);
           const Icon = tab.icon;
@@ -166,16 +160,16 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
               key={tab.id}
               variant="ghost"
               className={cn(
-                'flex flex-col items-center justify-center p-2 min-w-0 flex-1 h-16 rounded-xl transition-all duration-300 group',
+                'flex flex-col items-center justify-center p-3 min-w-0 flex-1 h-16 rounded-xl transition-all duration-300 group max-w-[100px]',
                 isActive
-                  ? 'text-primary bg-primary/10 shadow-sm'
+                  ? 'text-primary bg-primary/10 shadow-sm scale-105'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
               onClick={() => handleTabPress(tab)}
             >
-              <div className="relative mb-1">
+              <div className="relative mb-1.5">
                 <Icon className={cn(
-                  'h-6 w-6 transition-all duration-300',
+                  'h-5 w-5 transition-all duration-300',
                   isActive ? 'text-primary scale-110' : 'group-hover:scale-105'
                 )} />
                 {tab.badge && tab.badge > 0 && (
@@ -185,8 +179,8 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
                 )}
               </div>
               <span className={cn(
-                'text-xs font-medium transition-all duration-300 leading-tight',
-                isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                'text-xs font-medium transition-all duration-300 leading-tight text-center',
+                isActive ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'
               )}>
                 {tab.label}
               </span>
