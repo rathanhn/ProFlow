@@ -46,7 +46,8 @@ import {
   Search,
   Download,
   Eye,
-  Trash2
+  Trash2,
+  Copy
 } from 'lucide-react';
 import { useToast, ToastProvider } from '@/components/ui/toast-system';
 import { getFeedbacks, updateFeedback, deleteFeedback } from '@/lib/firebase-service';
@@ -279,10 +280,29 @@ function AdminFeedbackPageContent() {
   // Handler functions for feedback actions
   const handleStatusUpdate = async (feedbackId: string, newStatus: string) => {
     try {
-      await updateFeedback(feedbackId, {
-        status: newStatus as any,
-        ...(newStatus === 'resolved' && { resolvedAt: new Date().toISOString(), resolvedBy: 'admin' })
-      });
+      // Check if this is a localStorage item by checking if it exists in localStorage
+      const storedErrorReports = JSON.parse(localStorage.getItem('errorReports') || '[]');
+      const isLocalStorageItem = storedErrorReports.some((report: any) => report.id === feedbackId);
+
+      if (!isLocalStorageItem) {
+        // Only update Firebase for real feedback items
+        await updateFeedback(feedbackId, {
+          status: newStatus as any,
+          ...(newStatus === 'resolved' && { resolvedAt: new Date().toISOString(), resolvedBy: 'admin' })
+        });
+      } else {
+        // For localStorage items, update the localStorage
+        const updatedReports = storedErrorReports.map((report: any) =>
+          report.id === feedbackId
+            ? {
+                ...report,
+                status: newStatus,
+                ...(newStatus === 'resolved' && { resolvedAt: new Date().toISOString(), resolvedBy: 'admin' })
+              }
+            : report
+        );
+        localStorage.setItem('errorReports', JSON.stringify(updatedReports));
+      }
 
       // Update local state
       const updatedFeedback = feedbacks.find(f => f.id === feedbackId);
@@ -327,10 +347,23 @@ function AdminFeedbackPageContent() {
 
   const handleDeleteFeedback = async (feedbackId: string) => {
     try {
-      await deleteFeedback(feedbackId);
+      // Check if this is a localStorage item by checking if it exists in localStorage
+      const storedErrorReports = JSON.parse(localStorage.getItem('errorReports') || '[]');
+      const isLocalStorageItem = storedErrorReports.some((report: any) => report.id === feedbackId);
+
+      if (!isLocalStorageItem) {
+        // Only delete from Firebase for real feedback items
+        await deleteFeedback(feedbackId);
+      } else {
+        // For localStorage items, remove from localStorage
+        const updatedReports = storedErrorReports.filter((report: any) => report.id !== feedbackId);
+        localStorage.setItem('errorReports', JSON.stringify(updatedReports));
+      }
 
       // Update local state
       setFeedbacks(prev => prev.filter(feedback => feedback.id !== feedbackId));
+      setActiveFeedbacks(prev => prev.filter(feedback => feedback.id !== feedbackId));
+      setResolvedFeedbacks(prev => prev.filter(feedback => feedback.id !== feedbackId));
       setSelectedFeedback(null);
 
       showToast({
@@ -343,6 +376,65 @@ function AdminFeedbackPageContent() {
       showToast({
         type: 'error',
         message: 'Failed to delete feedback',
+        style: 'modern'
+      });
+    }
+  };
+
+  const handleCopyErrorDetails = async (feedback: Feedback) => {
+    try {
+      const errorDetails = `
+🐛 ERROR REPORT - ${feedback.title}
+
+📋 BASIC INFORMATION:
+• Type: ${feedback.type}
+• Priority: ${feedback.priority}
+• Status: ${feedback.status}
+• Category: ${feedback.category || 'N/A'}
+• Submitted By: ${feedback.submittedBy}
+• Submitted At: ${new Date(feedback.submittedAt).toLocaleString()}
+
+📝 DESCRIPTION:
+${feedback.description.split('\n\n--- OCCURRENCE COUNT ---')[0]}
+
+🔧 TECHNICAL DETAILS:
+• URL: ${feedback.url || 'N/A'}
+• Browser: ${feedback.browserInfo || 'N/A'}
+• User Agent: ${feedback.userAgent || 'N/A'}
+
+💥 ERROR STACK TRACE:
+${feedback.errorStack || 'N/A'}
+
+${feedback.componentStack ? `🧩 COMPONENT STACK:
+${feedback.componentStack}` : ''}
+
+${feedback.title.includes('x)') ? `⚠️ OCCURRENCE COUNT:
+This error has occurred multiple times. Check the title for frequency.` : ''}
+
+🎯 RESOLUTION STEPS:
+1. Navigate to: ${feedback.url || 'the affected page'}
+2. Reproduce the error conditions
+3. Check the component mentioned in the stack trace
+4. Fix the component reference/import issue
+5. Test the fix
+6. Mark as resolved
+
+---
+Generated from ProFlow Admin Panel
+      `.trim();
+
+      await navigator.clipboard.writeText(errorDetails);
+
+      showToast({
+        type: 'success',
+        message: 'Error details copied to clipboard!',
+        style: 'modern'
+      });
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      showToast({
+        type: 'error',
+        message: 'Failed to copy details. Please copy manually.',
         style: 'modern'
       });
     }
@@ -792,24 +884,38 @@ function AdminFeedbackPageContent() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedFeedback(null)}
-                >
-                  Close
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    if (selectedFeedback) {
-                      handleDeleteFeedback(selectedFeedback.id);
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
+              <div className="flex justify-between pt-4 border-t">
+                <div className="flex gap-2">
+                  {(selectedFeedback.type === 'bug' || selectedFeedback.type === 'crash') && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleCopyErrorDetails(selectedFeedback)}
+                      className="flex items-center gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Error Details
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedFeedback(null)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (selectedFeedback) {
+                        handleDeleteFeedback(selectedFeedback.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
           )}
