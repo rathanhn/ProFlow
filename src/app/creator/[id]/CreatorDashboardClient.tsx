@@ -16,7 +16,6 @@ import {
     CheckCircle2,
     Clock,
     Plus,
-    Settings,
     FileText
 } from 'lucide-react';
 import { INRIcon } from '@/components/ui/inr-icon';
@@ -26,7 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
-import { FloatingActionButton } from '@/components/ui/floating-action-button';
+
 import { RippleButton } from '@/components/ui/ripple-effect';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
 
@@ -88,22 +87,11 @@ export default function CreatorDashboardClient({
     .sort((a, b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime())
     .slice(0, 5);
 
-  const fabActions = [
-    {
-      id: 'settings',
-      icon: Settings,
-      label: 'Settings',
-      onClick: () => {
-        haptic.androidClick();
-        router.push(`/creator/${creator.id}/settings`);
-      },
-    },
-  ];
+
 
   return (
-    <>
-      <PullToRefresh onRefresh={handleRefresh}>
-        <div className="space-y-6 fab-safe-bottom">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="space-y-6">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16 border-2 border-primary">
             <AvatarImage src={creator.avatar} />
@@ -201,15 +189,7 @@ export default function CreatorDashboardClient({
             </div>
           </CardContent>
         </Card>
-        </div>
-      </PullToRefresh>
-
-      {/* Floating Action Button */}
-      <FloatingActionButton
-        actions={fabActions}
-        position="bottom-right"
-        size="default"
-      />
-    </>
+      </div>
+    </PullToRefresh>
   );
 }
