@@ -212,16 +212,7 @@ function AdminFeedbackPageContent() {
     }
   };
 
-  const handleStatusUpdate = (feedbackId: string, newStatus: string) => {
-    setFeedbacks(prev => prev.map(feedback =>
-      feedback.id === feedbackId ? { ...feedback, status: newStatus as any } : feedback
-    ));
-    showToast({
-      type: 'success',
-      message: 'Feedback status updated successfully',
-      style: 'modern'
-    });
-  };
+
 
   const handleExportFeedback = () => {
     // In real app, this would generate and download a report

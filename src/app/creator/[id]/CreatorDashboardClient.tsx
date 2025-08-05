@@ -90,7 +90,8 @@ export default function CreatorDashboardClient({
 
   const fabActions = [
     {
-      icon: <Settings className="h-5 w-5" />,
+      id: 'settings',
+      icon: Settings,
       label: 'Settings',
       onClick: () => {
         haptic.androidClick();
@@ -100,8 +101,9 @@ export default function CreatorDashboardClient({
   ];
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-      <div className="space-y-6 fab-safe-bottom">
+    <>
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="space-y-6 fab-safe-bottom">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16 border-2 border-primary">
             <AvatarImage src={creator.avatar} />
@@ -199,7 +201,8 @@ export default function CreatorDashboardClient({
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </PullToRefresh>
 
       {/* Floating Action Button */}
       <FloatingActionButton
@@ -207,6 +210,6 @@ export default function CreatorDashboardClient({
         position="bottom-right"
         size="default"
       />
-    </PullToRefresh>
+    </>
   );
 }
