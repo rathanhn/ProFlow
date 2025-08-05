@@ -30,6 +30,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   MessageSquare,
   Star,
   AlertTriangle,
@@ -445,6 +452,194 @@ function AdminFeedbackPageContent() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Feedback Detail Dialog */}
+      <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedFeedback && getTypeIcon(selectedFeedback.type)}
+              {selectedFeedback?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Feedback Details
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedFeedback && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Type</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    {getTypeIcon(selectedFeedback.type)}
+                    <Badge variant="outline" className="capitalize">
+                      {selectedFeedback.type}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                  <div className="mt-1">
+                    <Badge
+                      variant={
+                        selectedFeedback.status === 'resolved' ? 'default' :
+                        selectedFeedback.status === 'in-progress' ? 'secondary' :
+                        selectedFeedback.status === 'pending' ? 'destructive' : 'outline'
+                      }
+                      className="capitalize"
+                    >
+                      {selectedFeedback.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Priority</Label>
+                  <div className="mt-1">
+                    <Badge
+                      variant={
+                        selectedFeedback.priority === 'critical' ? 'destructive' :
+                        selectedFeedback.priority === 'high' ? 'destructive' :
+                        selectedFeedback.priority === 'medium' ? 'secondary' : 'outline'
+                      }
+                      className="capitalize"
+                    >
+                      {selectedFeedback.priority}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">User Type</Label>
+                  <div className="mt-1">
+                    <Badge variant="outline" className="capitalize">
+                      {selectedFeedback.userType}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Description</Label>
+                <div className="mt-2 p-3 bg-muted rounded-md">
+                  <p className="text-sm whitespace-pre-wrap">{selectedFeedback.description}</p>
+                </div>
+              </div>
+
+              {/* Metadata */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Submitted By</Label>
+                  <p className="mt-1">{selectedFeedback.submittedBy}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Submitted At</Label>
+                  <p className="mt-1">{new Date(selectedFeedback.submittedAt).toLocaleString()}</p>
+                </div>
+                {selectedFeedback.category && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Category</Label>
+                    <p className="mt-1">{selectedFeedback.category}</p>
+                  </div>
+                )}
+                {selectedFeedback.rating && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Rating</Label>
+                    <div className="flex items-center gap-1 mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${
+                            star <= selectedFeedback.rating!
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                      <span className="ml-2 text-sm">({selectedFeedback.rating}/5)</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Technical Details (for error reports) */}
+              {(selectedFeedback.browserInfo || selectedFeedback.url || selectedFeedback.errorStack) && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Technical Details</Label>
+                  <div className="mt-2 space-y-2">
+                    {selectedFeedback.url && (
+                      <div>
+                        <Label className="text-xs font-medium text-muted-foreground">URL</Label>
+                        <p className="text-sm font-mono bg-muted p-2 rounded text-wrap break-all">{selectedFeedback.url}</p>
+                      </div>
+                    )}
+                    {selectedFeedback.browserInfo && (
+                      <div>
+                        <Label className="text-xs font-medium text-muted-foreground">Browser Info</Label>
+                        <p className="text-sm font-mono bg-muted p-2 rounded text-wrap break-all">{selectedFeedback.browserInfo}</p>
+                      </div>
+                    )}
+                    {selectedFeedback.errorStack && (
+                      <div>
+                        <Label className="text-xs font-medium text-muted-foreground">Error Stack</Label>
+                        <pre className="text-xs font-mono bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap">{selectedFeedback.errorStack}</pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Notes */}
+              {selectedFeedback.adminNotes && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Admin Notes</Label>
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-sm">{selectedFeedback.adminNotes}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Resolution Info */}
+              {selectedFeedback.resolvedAt && (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Resolved At</Label>
+                    <p className="mt-1">{new Date(selectedFeedback.resolvedAt).toLocaleString()}</p>
+                  </div>
+                  {selectedFeedback.resolvedBy && (
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Resolved By</Label>
+                      <p className="mt-1">{selectedFeedback.resolvedBy}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedFeedback(null)}
+                >
+                  Close
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (selectedFeedback) {
+                      handleDeleteFeedback(selectedFeedback.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
