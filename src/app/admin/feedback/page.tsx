@@ -52,6 +52,77 @@ import { useToast, ToastProvider } from '@/components/ui/toast-system';
 import { getFeedbacks, updateFeedback, deleteFeedback } from '@/lib/firebase-service';
 import { Feedback } from '@/lib/types';
 
+// Helper function to create error signature for deduplication
+const createErrorSignature = (feedback: Feedback): string => {
+  if (feedback.type === 'crash' || feedback.type === 'bug') {
+    // For errors, use title + first line of stack trace for signature
+    const stackFirstLine = feedback.errorStack?.split('\n')[0] || '';
+    return `${feedback.title}|${stackFirstLine}`.toLowerCase();
+  }
+  // For other feedback types, use title + description
+  return `${feedback.title}|${feedback.description}`.toLowerCase();
+};
+
+// Function to deduplicate and prioritize errors
+const deduplicateAndPrioritizeErrors = (feedbacks: Feedback[]): Feedback[] => {
+  const errorMap = new Map<string, { feedback: Feedback; count: number; latestDate: string }>();
+  const nonErrors: Feedback[] = [];
+
+  // Group errors by signature and count occurrences
+  feedbacks.forEach(feedback => {
+    if (feedback.type === 'crash' || feedback.type === 'bug') {
+      const signature = createErrorSignature(feedback);
+      const existing = errorMap.get(signature);
+
+      if (existing) {
+        // Update count and keep the latest occurrence
+        existing.count++;
+        if (new Date(feedback.submittedAt) > new Date(existing.latestDate)) {
+          existing.feedback = {
+            ...feedback,
+            title: `${feedback.title} (${existing.count + 1}x)`,
+            description: `${feedback.description}\n\n--- OCCURRENCE COUNT ---\nThis error has occurred ${existing.count + 1} times. Latest occurrence: ${new Date(feedback.submittedAt).toLocaleString()}`
+          };
+          existing.latestDate = feedback.submittedAt;
+        } else {
+          existing.feedback.title = `${existing.feedback.title.replace(/\(\d+x\)$/, '')}(${existing.count + 1}x)`;
+          existing.feedback.description = existing.feedback.description.replace(
+            /This error has occurred \d+ times\./,
+            `This error has occurred ${existing.count + 1} times.`
+          );
+        }
+      } else {
+        errorMap.set(signature, {
+          feedback: { ...feedback },
+          count: 1,
+          latestDate: feedback.submittedAt
+        });
+      }
+    } else {
+      nonErrors.push(feedback);
+    }
+  });
+
+  // Convert map to array and sort by priority and date
+  const deduplicatedErrors = Array.from(errorMap.values()).map(item => item.feedback);
+
+  // Priority order: critical > high > medium > low
+  const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+
+  // Sort errors by priority (highest first) then by latest date
+  deduplicatedErrors.sort((a, b) => {
+    const priorityDiff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+    if (priorityDiff !== 0) return priorityDiff;
+    return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+  });
+
+  // Sort non-errors by date (latest first)
+  nonErrors.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+
+  // Return prioritized errors first, then other feedback
+  return [...deduplicatedErrors, ...nonErrors];
+};
+
 function AdminFeedbackPageContent() {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [filteredFeedbacks, setFilteredFeedbacks] = useState<Feedback[]>([]);
@@ -71,6 +142,31 @@ function AdminFeedbackPageContent() {
 
         // Load error reports from localStorage (for backward compatibility)
         const storedErrorReports = JSON.parse(localStorage.getItem('errorReports') || '[]');
+
+        // Add test duplicate errors for demonstration (remove in production)
+        const testError = {
+          id: `test-${Date.now()}`,
+          type: 'crash',
+          title: 'Element type is invalid: expected a string but got: <Settings />',
+          description: 'Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: <Settings />. Did you accidentally export a JSX literal instead of a component?',
+          status: 'pending',
+          priority: 'high',
+          submittedBy: 'System',
+          submittedAt: new Date().toISOString(),
+          userType: 'admin',
+          category: 'Component Error',
+          browserInfo: 'Chrome 139.0.0.0',
+          url: '/creator/5Hq1jqqO5dEyRw1HV4XD',
+          errorStack: 'Error: Element type is invalid\n    at createFiberFromTypeAndProps\n    at createFiberFromElement'
+        };
+
+        // Add multiple instances of the same error to test deduplication
+        if (!storedErrorReports.some((r: any) => r.title.includes('Element type is invalid'))) {
+          storedErrorReports.push(testError);
+          storedErrorReports.push({ ...testError, id: `test-${Date.now()}-2`, submittedAt: new Date(Date.now() - 60000).toISOString() });
+          storedErrorReports.push({ ...testError, id: `test-${Date.now()}-3`, submittedAt: new Date(Date.now() - 120000).toISOString() });
+          localStorage.setItem('errorReports', JSON.stringify(storedErrorReports));
+        }
         const errorReportFeedbacks: Feedback[] = storedErrorReports.map((report: any) => ({
           id: report.id,
           type: report.type === 'crash' ? 'crash' : report.type,
@@ -92,8 +188,12 @@ function AdminFeedbackPageContent() {
 
         // Combine Firebase feedback and localStorage error reports
         const allFeedbacks = [...firebaseFeedbacks, ...errorReportFeedbacks];
-        setFeedbacks(allFeedbacks);
-        setFilteredFeedbacks(allFeedbacks);
+
+        // Deduplicate and prioritize errors
+        const processedFeedbacks = deduplicateAndPrioritizeErrors(allFeedbacks);
+
+        setFeedbacks(processedFeedbacks);
+        setFilteredFeedbacks(processedFeedbacks);
       } catch (error) {
         console.error('Error loading feedbacks:', error);
         showToast({
@@ -379,8 +479,15 @@ function AdminFeedbackPageContent() {
                       </TableCell>
                       <TableCell>
                         <div className="max-w-[200px]">
-                          <p className="font-medium truncate">{feedback.title}</p>
-                          <p className="text-sm text-muted-foreground truncate">{feedback.description}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium truncate">{feedback.title}</p>
+                            {(feedback.type === 'crash' || feedback.type === 'bug') && feedback.title.includes('x)') && (
+                              <Badge variant="destructive" className="text-xs px-1 py-0 h-5">
+                                {feedback.title.match(/\((\d+)x\)$/)?.[1] || '1'}x
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">{feedback.description.split('\n\n--- OCCURRENCE COUNT ---')[0]}</p>
                         </div>
                       </TableCell>
                       <TableCell>
