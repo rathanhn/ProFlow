@@ -125,12 +125,15 @@ const deduplicateAndPrioritizeErrors = (feedbacks: Feedback[]): Feedback[] => {
 
 function AdminFeedbackPageContent() {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [activeFeedbacks, setActiveFeedbacks] = useState<Feedback[]>([]);
+  const [resolvedFeedbacks, setResolvedFeedbacks] = useState<Feedback[]>([]);
   const [filteredFeedbacks, setFilteredFeedbacks] = useState<Feedback[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
+  const [showResolved, setShowResolved] = useState(false);
   const { showToast } = useToast();
 
   // Load real feedback data from Firebase and localStorage error reports
@@ -192,8 +195,14 @@ function AdminFeedbackPageContent() {
         // Deduplicate and prioritize errors
         const processedFeedbacks = deduplicateAndPrioritizeErrors(allFeedbacks);
 
+        // Separate active and resolved feedback
+        const active = processedFeedbacks.filter(f => f.status !== 'resolved' && f.status !== 'closed');
+        const resolved = processedFeedbacks.filter(f => f.status === 'resolved' || f.status === 'closed');
+
         setFeedbacks(processedFeedbacks);
-        setFilteredFeedbacks(processedFeedbacks);
+        setActiveFeedbacks(active);
+        setResolvedFeedbacks(resolved);
+        setFilteredFeedbacks(showResolved ? resolved : active);
       } catch (error) {
         console.error('Error loading feedbacks:', error);
         showToast({
@@ -209,7 +218,8 @@ function AdminFeedbackPageContent() {
 
   // Filter feedbacks based on search and filters
   useEffect(() => {
-    let filtered = feedbacks;
+    // Start with the appropriate list based on showResolved toggle
+    let filtered = showResolved ? resolvedFeedbacks : activeFeedbacks;
 
     if (searchQuery) {
       filtered = filtered.filter(feedback =>
@@ -232,7 +242,7 @@ function AdminFeedbackPageContent() {
     }
 
     setFilteredFeedbacks(filtered);
-  }, [feedbacks, searchQuery, statusFilter, typeFilter, priorityFilter]);
+  }, [activeFeedbacks, resolvedFeedbacks, showResolved, searchQuery, statusFilter, typeFilter, priorityFilter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -275,11 +285,30 @@ function AdminFeedbackPageContent() {
       });
 
       // Update local state
-      setFeedbacks(prev => prev.map(feedback =>
-        feedback.id === feedbackId
-          ? { ...feedback, status: newStatus as any, ...(newStatus === 'resolved' && { resolvedAt: new Date().toISOString(), resolvedBy: 'admin' }) }
-          : feedback
-      ));
+      const updatedFeedback = feedbacks.find(f => f.id === feedbackId);
+      if (updatedFeedback) {
+        const updated = {
+          ...updatedFeedback,
+          status: newStatus as any,
+          ...(newStatus === 'resolved' && { resolvedAt: new Date().toISOString(), resolvedBy: 'admin' })
+        };
+
+        // Update main feedbacks list
+        setFeedbacks(prev => prev.map(feedback =>
+          feedback.id === feedbackId ? updated : feedback
+        ));
+
+        // Move between active and resolved lists based on new status
+        if (newStatus === 'resolved' || newStatus === 'closed') {
+          // Move from active to resolved
+          setActiveFeedbacks(prev => prev.filter(f => f.id !== feedbackId));
+          setResolvedFeedbacks(prev => [...prev, updated]);
+        } else {
+          // Move from resolved to active
+          setResolvedFeedbacks(prev => prev.filter(f => f.id !== feedbackId));
+          setActiveFeedbacks(prev => [...prev, updated]);
+        }
+      }
 
       showToast({
         type: 'success',
@@ -332,9 +361,10 @@ function AdminFeedbackPageContent() {
 
   const stats = {
     total: feedbacks.length,
-    pending: feedbacks.filter(f => f.status === 'pending').length,
-    inProgress: feedbacks.filter(f => f.status === 'in-progress').length,
-    resolved: feedbacks.filter(f => f.status === 'resolved').length,
+    active: activeFeedbacks.length,
+    resolved: resolvedFeedbacks.length,
+    pending: activeFeedbacks.filter(f => f.status === 'pending').length,
+    inProgress: activeFeedbacks.filter(f => f.status === 'in-progress').length,
     avgRating: feedbacks.filter(f => f.rating).reduce((sum, f) => sum + (f.rating || 0), 0) / feedbacks.filter(f => f.rating).length || 0
   };
 
@@ -361,6 +391,12 @@ function AdminFeedbackPageContent() {
           </Card>
           <Card>
             <CardContent className="p-4">
+              <div className="text-2xl font-bold text-orange-600">{stats.active}</div>
+              <p className="text-xs text-muted-foreground">Active Issues</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
               <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
               <p className="text-xs text-muted-foreground">Pending</p>
             </CardContent>
@@ -374,15 +410,35 @@ function AdminFeedbackPageContent() {
           <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
-              <p className="text-xs text-muted-foreground">Resolved</p>
+              <p className="text-xs text-muted-foreground">Resolved/Closed</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold">{stats.avgRating.toFixed(1)}</div>
-              <p className="text-xs text-muted-foreground">Avg Rating</p>
-            </CardContent>
-          </Card>
+        </div>
+
+        {/* View Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant={!showResolved ? "default" : "outline"}
+              onClick={() => setShowResolved(false)}
+              className="flex items-center gap-2"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              Active Issues ({stats.active})
+            </Button>
+            <Button
+              variant={showResolved ? "default" : "outline"}
+              onClick={() => setShowResolved(true)}
+              className="flex items-center gap-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Resolved ({stats.resolved})
+            </Button>
+          </div>
+          <Button onClick={handleExportFeedback} variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
         </div>
 
         {/* Filters */}
@@ -437,10 +493,7 @@ function AdminFeedbackPageContent() {
                   <SelectItem value="low">Low</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={handleExportFeedback} variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+
             </div>
           </CardContent>
         </Card>
@@ -448,9 +501,24 @@ function AdminFeedbackPageContent() {
         {/* Feedback Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Feedback Items ({filteredFeedbacks.length})</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              {showResolved ? (
+                <>
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Resolved & Closed Issues ({filteredFeedbacks.length})
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-5 w-5 text-orange-600" />
+                  Active Issues ({filteredFeedbacks.length})
+                </>
+              )}
+            </CardTitle>
             <CardDescription>
-              Review and manage user feedback and reports
+              {showResolved
+                ? "View resolved and closed feedback items"
+                : "Review and manage active feedback and reports"
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
