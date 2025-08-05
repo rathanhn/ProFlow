@@ -9,13 +9,13 @@ import { LucideIcon, Plus } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const fabVariants = cva(
-  'fixed z-50 rounded-full shadow-lg transition-all duration-200 ease-out active:scale-95 hover:shadow-xl pointer-events-auto',
+  'fixed z-50 rounded-full shadow-lg transition-all duration-200 ease-out active:scale-95 hover:shadow-xl pointer-events-auto flex items-center justify-center !p-0 [&_svg]:!size-auto',
   {
     variants: {
       size: {
-        sm: 'h-12 w-12',
-        default: 'h-14 w-14',
-        lg: 'h-16 w-16',
+        sm: 'h-12 w-12 min-h-12 min-w-12',
+        default: 'h-14 w-14 min-h-14 min-w-14',
+        lg: 'h-16 w-16 min-h-16 min-w-16',
       },
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -182,13 +182,13 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
                   size="sm"
                   variant="outline"
                   className={cn(
-                    'h-12 w-12 rounded-full shadow-lg',
+                    'h-12 w-12 min-h-12 min-w-12 rounded-full shadow-lg flex items-center justify-center !p-0 [&_svg]:!size-auto',
                     action.variant === 'destructive' && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
                     action.variant === 'success' && 'bg-green-600 text-white hover:bg-green-700',
                   )}
                   onClick={() => handleActionClick(action)}
                 >
-                  <action.icon className="h-5 w-5" />
+                  <action.icon className="!h-5 !w-5 !size-auto flex-shrink-0" />
                 </Button>
 
                 {position?.includes('left') && (
@@ -209,18 +209,20 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           fabVariants({ size, variant, position }),
           !isVisible && 'translate-y-20 opacity-0',
           isExpanded && actions.length > 0 && 'rotate-45',
-          extended && 'px-6 rounded-full',
+          extended && 'px-6 rounded-full flex items-center justify-center',
+          !extended && 'p-0',
           className
         )}
         onClick={actions.length === 0 ? onClick : undefined}
         {...props}
       >
         <Icon className={cn(
-          size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-7 w-7' : 'h-5 w-5',
-          extended && label && 'mr-2'
+          size === 'sm' ? '!h-4 !w-4' : size === 'lg' ? '!h-7 !w-7' : '!h-5 !w-5',
+          extended && label && 'mr-2',
+          'flex-shrink-0 !size-auto'
         )} />
         {extended && label && (
-          <span className="font-medium">{label}</span>
+          <span className="font-medium whitespace-nowrap">{label}</span>
         )}
       </Button>
     </>
