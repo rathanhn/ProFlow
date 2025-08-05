@@ -6,7 +6,7 @@
 
 import { auth, db, createSecondaryAuth } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction } from 'firebase/firestore';
-import { Client, Task, Assignee, Notification, Transaction, PaymentMethod } from './types';
+import { Client, Task, Assignee, Notification, Transaction, PaymentMethod, Feedback } from './types';
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 
@@ -511,4 +511,83 @@ export async function getAdminByEmail(email: string) {
   if (snapshot.empty) return null;
   const docSnap = snapshot.docs[0];
   return { id: docSnap.id, ...docSnap.data() };
+}
+
+// Feedback Functions
+export async function getFeedbacks(): Promise<Feedback[]> {
+  const feedbacksCol = collection(db, 'feedbacks');
+  const feedbackSnapshot = await getDocs(query(feedbacksCol, orderBy('submittedAt', 'desc')));
+  const feedbackList = feedbackSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      submittedAt: data.submittedAt || new Date().toISOString()
+    } as Feedback;
+  });
+  return feedbackList;
+}
+
+export async function getFeedback(id: string): Promise<Feedback | null> {
+  const feedbackDocRef = doc(db, 'feedbacks', id);
+  const feedbackDoc = await getDoc(feedbackDocRef);
+  if (feedbackDoc.exists()) {
+    return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
+  }
+  return null;
+}
+
+export async function addFeedback(feedback: Omit<Feedback, 'id'>) {
+  const feedbacksCol = collection(db, 'feedbacks');
+  const docRef = await addDoc(feedbacksCol, {
+    ...feedback,
+    submittedAt: feedback.submittedAt || new Date().toISOString()
+  });
+  revalidatePath('/admin/feedback');
+  return { id: docRef.id, ...feedback };
+}
+
+export async function updateFeedback(id: string, feedback: Partial<Omit<Feedback, 'id'>>) {
+  const feedbackDocRef = doc(db, 'feedbacks', id);
+  await updateDoc(feedbackDocRef, {
+    ...feedback,
+    ...(feedback.status === 'resolved' && !feedback.resolvedAt && {
+      resolvedAt: new Date().toISOString()
+    })
+  });
+  revalidatePath('/admin/feedback');
+}
+
+export async function deleteFeedback(id: string) {
+  const feedbackDocRef = doc(db, 'feedbacks', id);
+  await deleteDoc(feedbackDocRef);
+  revalidatePath('/admin/feedback');
+}
+
+export async function getFeedbacksByClientId(clientId: string): Promise<Feedback[]> {
+  const q = query(collection(db, "feedbacks"), where("clientId", "==", clientId));
+  const feedbackSnapshot = await getDocs(q);
+  const feedbackList = feedbackSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      submittedAt: data.submittedAt || new Date().toISOString()
+    } as Feedback;
+  });
+  return feedbackList;
+}
+
+export async function getFeedbacksByCreatorId(creatorId: string): Promise<Feedback[]> {
+  const q = query(collection(db, "feedbacks"), where("creatorId", "==", creatorId));
+  const feedbackSnapshot = await getDocs(q);
+  const feedbackList = feedbackSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      submittedAt: data.submittedAt || new Date().toISOString()
+    } as Feedback;
+  });
+  return feedbackList;
 }

@@ -42,131 +42,63 @@ import {
   Trash2
 } from 'lucide-react';
 import { useToast, ToastProvider } from '@/components/ui/toast-system';
-
-interface FeedbackItem {
-  id: string;
-  type: 'bug' | 'feature' | 'improvement' | 'complaint' | 'praise';
-  title: string;
-  description: string;
-  rating?: number;
-  status: 'pending' | 'in-progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  submittedBy: string;
-  submittedAt: string;
-  clientId?: string;
-  creatorId?: string;
-  userType: 'client' | 'creator' | 'admin';
-  category: string;
-  attachments?: string[];
-  adminNotes?: string;
-}
+import { getFeedbacks, updateFeedback, deleteFeedback } from '@/lib/firebase-service';
+import { Feedback } from '@/lib/types';
 
 function AdminFeedbackPageContent() {
-  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
-  const [filteredFeedbacks, setFilteredFeedbacks] = useState<FeedbackItem[]>([]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [filteredFeedbacks, setFilteredFeedbacks] = useState<Feedback[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const { showToast } = useToast();
 
-  // Load data from localStorage and mock data - In real app, this would come from API
+  // Load real feedback data from Firebase and localStorage error reports
   useEffect(() => {
-    // Load error reports from localStorage
-    const storedErrorReports = JSON.parse(localStorage.getItem('errorReports') || '[]');
-    const errorReportFeedbacks: FeedbackItem[] = storedErrorReports.map((report: any) => ({
-      id: report.id,
-      type: report.type === 'crash' ? 'bug' : report.type,
-      title: report.title,
-      description: report.description,
-      status: report.status,
-      priority: report.priority,
-      submittedBy: report.submittedBy,
-      submittedAt: report.submittedAt,
-      userType: report.userType,
-      category: report.category || 'System Error',
-      rating: undefined
-    }));
+    const loadFeedbacks = async () => {
+      try {
+        // Load feedback from Firebase
+        const firebaseFeedbacks = await getFeedbacks();
 
-    const mockFeedbacks: FeedbackItem[] = [
-      {
-        id: '1',
-        type: 'bug',
-        title: 'Payment page not loading on mobile',
-        description: 'When I try to access the payment page on my mobile device, it shows a blank screen. This happens consistently on both Chrome and Safari.',
-        status: 'pending',
-        priority: 'high',
-        submittedBy: 'John Doe',
-        submittedAt: '2024-01-15T10:30:00Z',
-        clientId: 'client123',
-        userType: 'client',
-        category: 'Technical Issue',
-        rating: 2
-      },
-      {
-        id: '2',
-        type: 'feature',
-        title: 'Add dark mode support',
-        description: 'It would be great to have a dark mode option for better viewing in low light conditions.',
-        status: 'in-progress',
-        priority: 'medium',
-        submittedBy: 'Jane Smith',
-        submittedAt: '2024-01-14T15:45:00Z',
-        creatorId: 'creator456',
-        userType: 'creator',
-        category: 'UI/UX Enhancement',
-        rating: 4
-      },
-      {
-        id: '3',
-        type: 'praise',
-        title: 'Excellent project management features',
-        description: 'The new project tracking features are fantastic! They have really improved our workflow efficiency.',
-        status: 'resolved',
-        priority: 'low',
-        submittedBy: 'Mike Johnson',
-        submittedAt: '2024-01-13T09:20:00Z',
-        clientId: 'client789',
-        userType: 'client',
-        category: 'General Feedback',
-        rating: 5
-      },
-      {
-        id: '4',
-        type: 'improvement',
-        title: 'Better notification system needed',
-        description: 'Current notifications are too frequent and not well categorized. Need better filtering options.',
-        status: 'pending',
-        priority: 'medium',
-        submittedBy: 'Sarah Wilson',
-        submittedAt: '2024-01-12T14:10:00Z',
-        creatorId: 'creator101',
-        userType: 'creator',
-        category: 'Notifications',
-        rating: 3
-      },
-      {
-        id: '5',
-        type: 'complaint',
-        title: 'Slow loading times',
-        description: 'The dashboard takes too long to load, especially during peak hours. This affects productivity.',
-        status: 'in-progress',
-        priority: 'high',
-        submittedBy: 'David Brown',
-        submittedAt: '2024-01-11T11:30:00Z',
-        clientId: 'client202',
-        userType: 'client',
-        category: 'Performance',
-        rating: 2
+        // Load error reports from localStorage (for backward compatibility)
+        const storedErrorReports = JSON.parse(localStorage.getItem('errorReports') || '[]');
+        const errorReportFeedbacks: Feedback[] = storedErrorReports.map((report: any) => ({
+          id: report.id,
+          type: report.type === 'crash' ? 'crash' : report.type,
+          title: report.title,
+          description: report.description,
+          status: report.status,
+          priority: report.priority,
+          submittedBy: report.submittedBy,
+          submittedAt: report.submittedAt,
+          userType: report.userType,
+          category: report.category || 'System Error',
+          rating: undefined,
+          browserInfo: report.browserInfo,
+          url: report.url,
+          userAgent: report.userAgent,
+          errorStack: report.errorStack,
+          componentStack: report.componentStack
+        }));
+
+        // Combine Firebase feedback and localStorage error reports
+        const allFeedbacks = [...firebaseFeedbacks, ...errorReportFeedbacks];
+        setFeedbacks(allFeedbacks);
+        setFilteredFeedbacks(allFeedbacks);
+      } catch (error) {
+        console.error('Error loading feedbacks:', error);
+        showToast({
+          type: 'error',
+          message: 'Failed to load feedback data',
+          style: 'modern'
+        });
       }
-    ];
+    };
 
-    // Combine error reports and mock feedback
-    const allFeedbacks = [...errorReportFeedbacks, ...mockFeedbacks];
-    setFeedbacks(allFeedbacks);
-    setFilteredFeedbacks(allFeedbacks);
-  }, []);
+    loadFeedbacks();
+  }, [showToast]);
 
   // Filter feedbacks based on search and filters
   useEffect(() => {
@@ -222,7 +154,61 @@ function AdminFeedbackPageContent() {
       case 'improvement': return <CheckCircle className="h-4 w-4" />;
       case 'complaint': return <MessageSquare className="h-4 w-4" />;
       case 'praise': return <Star className="h-4 w-4" />;
+      case 'crash': return <AlertTriangle className="h-4 w-4" />;
       default: return <MessageSquare className="h-4 w-4" />;
+    }
+  };
+
+  // Handler functions for feedback actions
+  const handleStatusUpdate = async (feedbackId: string, newStatus: string) => {
+    try {
+      await updateFeedback(feedbackId, {
+        status: newStatus as any,
+        ...(newStatus === 'resolved' && { resolvedAt: new Date().toISOString(), resolvedBy: 'admin' })
+      });
+
+      // Update local state
+      setFeedbacks(prev => prev.map(feedback =>
+        feedback.id === feedbackId
+          ? { ...feedback, status: newStatus as any, ...(newStatus === 'resolved' && { resolvedAt: new Date().toISOString(), resolvedBy: 'admin' }) }
+          : feedback
+      ));
+
+      showToast({
+        type: 'success',
+        message: `Feedback status updated to ${newStatus}`,
+        style: 'modern'
+      });
+    } catch (error) {
+      console.error('Error updating feedback status:', error);
+      showToast({
+        type: 'error',
+        message: 'Failed to update feedback status',
+        style: 'modern'
+      });
+    }
+  };
+
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    try {
+      await deleteFeedback(feedbackId);
+
+      // Update local state
+      setFeedbacks(prev => prev.filter(feedback => feedback.id !== feedbackId));
+      setSelectedFeedback(null);
+
+      showToast({
+        type: 'success',
+        message: 'Feedback deleted successfully',
+        style: 'modern'
+      });
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+      showToast({
+        type: 'error',
+        message: 'Failed to delete feedback',
+        style: 'modern'
+      });
     }
   };
 

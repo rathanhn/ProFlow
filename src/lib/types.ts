@@ -67,3 +67,34 @@ export interface Transaction {
   transactionDate: string;
   notes?: string;
 }
+
+export type FeedbackType = 'bug' | 'feature' | 'improvement' | 'complaint' | 'praise' | 'crash';
+export type FeedbackStatus = 'pending' | 'in-progress' | 'resolved' | 'closed';
+export type FeedbackPriority = 'low' | 'medium' | 'high' | 'critical';
+export type UserType = 'client' | 'creator' | 'admin';
+
+export interface Feedback {
+  id: string;
+  type: FeedbackType;
+  title: string;
+  description: string;
+  status: FeedbackStatus;
+  priority: FeedbackPriority;
+  submittedBy: string;
+  submittedAt: string;
+  clientId?: string;
+  creatorId?: string;
+  userType: UserType;
+  category: string;
+  rating?: number; // 1-5 stars for satisfaction rating
+  attachments?: string[];
+  adminNotes?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  // Technical details for error reports
+  browserInfo?: string;
+  url?: string;
+  userAgent?: string;
+  errorStack?: string;
+  componentStack?: string;
+}

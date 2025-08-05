@@ -29,6 +29,7 @@ import {
   Paperclip
 } from 'lucide-react';
 import { useToast } from '@/components/ui/toast-system';
+import { addFeedback } from '@/lib/firebase-service';
 
 interface ErrorReportData {
   title: string;
@@ -125,22 +126,32 @@ export default function ErrorReportButton({
     setIsSubmitting(true);
 
     try {
-      // In a real app, this would send to your error reporting service
-      // For now, we'll simulate the API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Store in localStorage for admin panel (in real app, this would be sent to backend)
-      const existingReports = JSON.parse(localStorage.getItem('errorReports') || '[]');
       const newReport = {
-        id: Date.now().toString(),
-        ...reportData,
-        submittedAt: new Date().toISOString(),
-        status: 'pending',
+        type: reportData.category === 'Bug Report' ? 'bug' : 'improvement' as any,
+        title: reportData.title,
+        description: reportData.description,
+        status: 'pending' as any,
+        priority: reportData.priority as any,
         submittedBy: 'Current User', // In real app, get from auth context
-        userType: 'admin' // In real app, get from auth context
+        submittedAt: new Date().toISOString(),
+        userType: 'admin' as any, // In real app, get from auth context
+        category: reportData.category || 'System Error',
+        browserInfo: reportData.browserInfo,
+        url: reportData.url,
+        userAgent: reportData.userAgent,
+        errorStack: errorContext?.errorStack,
+        componentStack: errorContext?.componentStack
       };
-      
-      existingReports.push(newReport);
+
+      // Save to Firebase
+      await addFeedback(newReport);
+
+      // Also store in localStorage as backup
+      const existingReports = JSON.parse(localStorage.getItem('errorReports') || '[]');
+      existingReports.push({
+        id: Date.now().toString(),
+        ...newReport
+      });
       localStorage.setItem('errorReports', JSON.stringify(existingReports));
 
       safeShowToast({
