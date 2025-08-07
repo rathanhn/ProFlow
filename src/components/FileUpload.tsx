@@ -55,6 +55,19 @@ export default function FileUpload({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const MAX_FILE_SIZE_MB = 10;
+    const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      toast({
+        title: 'File Size Exceeded',
+        description: `Maximum file size is ${MAX_FILE_SIZE_MB}MB.`,
+        variant: 'destructive',
+      });
+      // No need to set loading state or return early with setIsLoading(false)
+      return;
+    }
+
     setIsLoading(true);
     setUploadProgress(0);
 
@@ -70,6 +83,15 @@ export default function FileUpload({
         }
     }
 
+    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
+      toast({
+        title: 'Configuration Error',
+        description: 'Cloudinary cloud name is not configured.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
     try {
       const { signature, timestamp, folder: signedFolder, use_filename, unique_filename } = await getUploadSignature({ folder });
       const formData = new FormData();

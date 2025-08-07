@@ -56,6 +56,8 @@ const formSchema = z.object({
   notes: z.string().optional(),
   projectFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   outputFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  acceptedDate: z.string().optional(),
+  submissionDate: z.string().optional(),
 });
 
 const newAssigneeSchema = z.object({
@@ -105,6 +107,8 @@ export default function TaskForm({ task }: TaskFormProps) {
       notes: task?.notes || '',
       projectFileLink: task?.projectFileLink || '',
       outputFileLink: task?.outputFileLink || '',
+      acceptedDate: task?.acceptedDate?.split('T')[0] ?? '', // Format date for input type="date"
+      submissionDate: task?.submissionDate?.split('T')[0] ?? '', // Format date for input type="date"
     },
   });
 

@@ -27,17 +27,19 @@ class HapticFeedback {
   }
 
   private checkSupport(): void {
-    // Check for Vibration API support
-    this.isSupported = 'vibrate' in navigator && typeof navigator.vibrate === 'function';
-    
-    // Additional check for mobile devices
-    if (!this.isSupported) {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-      
-      // Some mobile browsers might support vibration even if the initial check fails
-      if (isMobile && 'vibrate' in navigator) {
-        this.isSupported = true;
+    if (typeof window !== 'undefined') {
+      // Check for Vibration API support
+      this.isSupported = 'vibrate' in navigator && typeof navigator.vibrate === 'function';
+
+      // Additional check for mobile devices
+      if (!this.isSupported) {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+
+        // Some mobile browsers might support vibration even if the initial check fails
+        if (isMobile && 'vibrate' in navigator) {
+          this.isSupported = true;
+        }
       }
     }
   }
