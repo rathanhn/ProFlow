@@ -419,6 +419,35 @@ export default function TaskForm({ task }: TaskFormProps) {
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="acceptedDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Accepted Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="submissionDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Submission Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="notes"
