@@ -110,6 +110,7 @@ export default function FileUpload({
         throw new Error('Upload failed');
       };
       
+      console.log(formData);
       xhr.send(formData);
 
     } catch (error) {
