@@ -157,9 +157,20 @@ const DashboardContent = ({
     const authInstance = isAdminRoute ? auth : clientAuth;
 
     const unsubscribe = onAuthStateChanged(authInstance, (user) => {
+      // Log the relevant variables to help debug
+      console.log('Auth State Changed:');
+      console.log('  pathname:', pathname);
+      console.log('  isAdminRoute:', isAdminRoute);
+      console.log('  isClientRoute:', isClientRoute);
+      console.log('  isCreatorRoute:', isCreatorRoute);
+      console.log('  user:', user);
+      console.log('  loading:', loading);
+
       if (!user && !loading) {
+        console.log('User not logged in and not loading. Redirecting...');
         if (isAdminRoute) router.push('/admin/login');
         else if (isClientRoute) router.push('/client-login');
+        // Explicitly check if it's a creator route before redirecting to creator login
         else if (isCreatorRoute) router.push('/creator/login');
       }
     });
