@@ -32,6 +32,7 @@ export async function updateAuthUser(uid: string, data: { displayName?: string, 
      if (currentUser && currentUser.uid === uid) {
         try {
             await updateProfile(currentUser, data);
+            console.log('[Auth Update] Profile updated successfully:', data);
         } catch (error) {
             console.error("Failed to update auth profile for current admin:", error);
             throw new Error("Could not update admin auth profile.");

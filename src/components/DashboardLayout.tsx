@@ -26,6 +26,7 @@ import { Skeleton } from './ui/skeleton';
 import NotificationBell from './NotificationBell';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { getAdminByEmail } from '@/lib/firebase-service';
 
 
 const UserProfile = () => {
@@ -147,66 +148,37 @@ const DashboardContent = ({
   const pathname = usePathname();
   const router = useRouter();
   const { isCollapsed, user, loading } = useSidebar();
+  const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
   
   React.useEffect(() => {
-    const unsubscribeAdmin = onAuthStateChanged(auth, (user) => {
-        const isAdminRoute = pathname.startsWith('/admin');
-        const isClientRoute = pathname.startsWith('/client'); // Declare here
-        const isCreatorRoute = pathname.startsWith('/creator'); // Declare here
-
-        // Log the relevant variables to help debug
-        console.log('Auth State Check (Admin Auth):');
-        console.log('  pathname:', pathname);
-        console.log('  user:', user); // This user is from the admin auth instance
-        console.log('  loading:', loading);
-
-        if (isAdminRoute && !user && !loading) {
-            console.log('Admin route: User not logged in with Admin Auth. Redirecting to admin login...');
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('onAuthStateChanged (single):', user);
+      if (user) {
+        if (pathname.startsWith('/admin')) {
+          // Check Firestore for admin role
+          const adminRecord = await getAdminByEmail(user.email);
+          if (adminRecord) {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
             router.push('/admin/login');
+          }
+        } else {
+          setIsAdmin(null); // Not on admin route
         }
-    });
-
-    const unsubscribeClient = onAuthStateChanged(clientAuth, (user) => {
-        const isAdminRoute = pathname.startsWith('/admin'); // Declare here
-        const isClientRoute = pathname.startsWith('/client');
-        const isCreatorRoute = pathname.startsWith('/creator');
-
-        // Log the relevant variables to help debug
-        console.log('Auth State Check (Client/Creator Auth):');
-        console.log('  pathname:', pathname);
-        console.log('  user (from clientAuth listener):', user); // This user is from the clientAuth instance
-        console.log('  loading:', loading);
-
-        // Explicitly check if there is a user authenticated with the clientAuth instance
-        const clientCreatorUser = clientAuth.currentUser;
-        console.log('  clientAuth.currentUser:', clientCreatorUser);
-
-
-        if ((isClientRoute || isCreatorRoute) && !clientCreatorUser && !loading) {
-            console.log('Client/Creator route: No user logged in with Client/Creator Auth. Redirecting to client/creator login...');
-             // Redirect to client-login for both client and creator routes if not authenticated with clientAuth
-            router.push('/client-login'); // Assuming client-login handles both client and creator authentication
-        } else if (isAdminRoute && clientCreatorUser) {
-             // If on an admin route but authenticated with clientAuth (shouldn't happen with correct login flow)
-             console.log('Admin route: User authenticated with client/creator instance. Redirecting to admin login...');
-             router.push('/admin/login');
-        } else if ((isClientRoute || isCreatorRoute) && clientCreatorUser && clientCreatorUser.providerId !== clientAuth.currentUser?.providerId) {
-            // This case might be redundant with the check above, but kept for clarity
-             console.log('Client/Creator route: User authenticated with wrong instance. Redirecting to client/creator login...');
-             router.push('/client-login'); // Redirect to client-login for both client and creator routes
+      } else {
+        setIsAdmin(false);
+        if (pathname.startsWith('/admin')) {
+          router.push('/admin/login');
         }
+      }
     });
-
-
-    return () => {
-        unsubscribeAdmin();
-        unsubscribeClient();
-    };
-}, [pathname, router, loading]);
+    return () => unsubscribe();
+  }, [pathname, router]);
 
 
   const renderContent = () => {
-    if (loading) {
+    if (loading || (pathname.startsWith('/admin') && isAdmin === null)) {
       return (
         <div className='p-8 space-y-4'>
             <Skeleton className="h-[50px] w-1/2 rounded-xl" />
@@ -215,10 +187,13 @@ const DashboardContent = ({
         </div>
       );
     }
+    if (pathname.startsWith('/admin') && isAdmin === false) {
+      return <div className="p-8">Access Denied: You are not an admin.</div>;
+    }
     return children;
   }
 
-  const isAdminSection = pathname.startsWith('/admin');
+  const isAdminSection = pathname.startsWith('/admin') || pathname.startsWith('/profile');
   const isClientSection = pathname.startsWith('/client');
   const isCreatorSection = pathname.startsWith('/creator');
   const id = (isClientSection || isCreatorSection) ? pathname.split('/')[2] : null;
@@ -446,7 +421,7 @@ const DashboardContent = ({
             </div>
         </header>
         <main className="flex-1 scrollable-content min-w-0">
-          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-24 md:pb-8 animate-fade-in min-w-0">
+          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-32 md:pb-8 animate-fade-in min-w-0">
             <div className="animate-slide-up min-w-0">
               {renderContent()}
             </div>

@@ -98,33 +98,58 @@ export default function CreatorSettingsPage() {
                             description: 'Assignee not found.',
                             variant: 'destructive',
                         });
-                        // Optionally redirect if assignee not found
-                        // router.push('/creator/dashboard');
                     }
                 } catch (error) {
                     console.error('Error fetching assignee:', error);
                     toast({
                         title: 'Error',
-                        description: 'Failed to fetch assignee data.',
+                        description: 'Failed to load assignee data.',
                         variant: 'destructive',
                     });
                 } finally {
                     setIsLoading(false);
                 }
-            } else {
-                setIsLoading(false);
-                toast({
-                    title: 'Error',
-                    description: 'Invalid creator ID.',
-                    variant: 'destructive',
-                });
-                // Optionally redirect for invalid ID
-                // router.push('/creator/dashboard');
             }
         };
 
         fetchAssignee();
-    }, [id, toast, profileForm]);
+    }, [id, profileForm, toast]);
+
+    if (isLoading) {
+        return (
+            <DashboardLayout>
+                <div className="space-y-6">
+                    <Skeleton className="h-[30px] w-[200px]" />
+                    <Skeleton className="h-[20px] w-[300px]" />
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-[20px] w-[150px]" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Skeleton className="h-[50px] w-full" />
+                            <Skeleton className="h-[50px] w-full" />
+                            <Skeleton className="h-[50px] w-full" />
+                            <Skeleton className="h-[40px] w-[100px]" />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-[20px] w-[150px]" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex items-center space-x-4">
+                                <Skeleton className="h-12 w-12 rounded-full" />
+                                <Skeleton className="h-[40px] w-[150px]" />
+                             </div>
+                            <Skeleton className="h-[50px] w-full" />
+                            <Skeleton className="h-[100px] w-full" />
+                            <Skeleton className="h-[40px] w-[100px]" />
+                        </CardContent>
+                    </Card>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     const onPasswordSubmit = async (values: z.infer<typeof passwordFormSchema>) => {
         if (id && typeof id === 'string') {
@@ -235,42 +260,6 @@ export default function CreatorSettingsPage() {
             });
         }
     };
-
-    if (isLoading) {
-        return (
-            <DashboardLayout>
-                <div className="space-y-6">
-                    <Skeleton className="h-[30px] w-[200px]" />
-                    <Skeleton className="h-[20px] w-[300px]" />
-                    <Card>
-                        <CardHeader>
-                            <Skeleton className="h-[20px] w-[150px]" />
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Skeleton className="h-[50px] w-full" />
-                            <Skeleton className="h-[50px] w-full" />
-                            <Skeleton className="h-[50px] w-full" />
-                            <Skeleton className="h-[40px] w-[100px]" />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <Skeleton className="h-[20px] w-[150px]" />
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex items-center space-x-4">
-                                <Skeleton className="h-12 w-12 rounded-full" />
-                                <Skeleton className="h-[40px] w-[150px]" />
-                             </div>
-                            <Skeleton className="h-[50px] w-full" />
-                            <Skeleton className="h-[100px] w-full" />
-                            <Skeleton className="h-[40px] w-[100px]" />
-                        </CardContent>
-                    </Card>
-                </div>
-            </DashboardLayout>
-        );
-    }
 
     return (
             <DashboardLayout>

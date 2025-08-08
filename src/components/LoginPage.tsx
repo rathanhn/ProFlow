@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Rocket, Eye, EyeOff } from 'lucide-react';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { getAdminByEmail } from '@/lib/firebase-service';
@@ -23,9 +23,12 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await setPersistence(auth, browserSessionPersistence);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Signed in user:', userCredential.user);
       // Check for admin tag
       const adminRecord = await getAdminByEmail(email);
+      console.log('Admin record:', adminRecord);
       if (!adminRecord) {
         await signOut(auth);
         toast({

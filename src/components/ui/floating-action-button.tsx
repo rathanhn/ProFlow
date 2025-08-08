@@ -156,8 +156,8 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 
       {/* Action buttons */}
       {isExpanded && actions.length > 0 && (
-        <div className="fixed z-50" style={{
-          bottom: position?.includes('bottom') ? '7rem' : 'auto',
+        <div className="fixed z-40" style={{
+          bottom: position?.includes('bottom') ? '8rem' : 'auto', // Increased from 7rem to 8rem
           top: position?.includes('top') ? '5rem' : 'auto',
           right: position?.includes('right') ? '1.5rem' : 'auto',
           left: position?.includes('left') ? '1.5rem' : 'auto',

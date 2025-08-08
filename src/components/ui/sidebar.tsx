@@ -38,6 +38,7 @@ export const SidebarProvider = ({ children }: { children: React.ReactNode }) => 
     // Determine which auth instance to use based on the route
     const currentAuth = pathname.startsWith('/admin') ? auth : clientAuth;
     const unsubscribe = onAuthStateChanged(currentAuth, (currentUser) => {
+      console.log('[Sidebar] Auth state changed:', currentUser?.displayName, currentUser?.photoURL);
       setUser(currentUser);
       setLoading(false);
     });

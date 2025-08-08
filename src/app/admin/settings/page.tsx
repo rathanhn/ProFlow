@@ -23,7 +23,6 @@ import { KeyRound, Eye, EyeOff, User as UserIcon, LogOut, AlertTriangle } from '
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ImageUploader from '@/components/ImageUploader';
 import { useSidebar } from '@/components/ui/sidebar';
-import { updateAuthUser } from '@/lib/firebase-service';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User } from 'firebase/auth';
@@ -40,6 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { updateProfile } from 'firebase/auth';
 
 
 const passwordFormSchema = z.object({
@@ -82,7 +82,29 @@ function SettingsForm() {
     });
 
     useEffect(() => {
-        if (user) {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            console.log('[Form Init] Current auth user:', currentUser.displayName, currentUser.photoURL);
+            
+            // If the user doesn't have displayName set, set it to a default value
+            if (!currentUser.displayName) {
+                console.log('[Form Init] Setting initial displayName for admin user');
+                updateProfile(currentUser, {
+                    displayName: 'Admin',
+                    photoURL: currentUser.photoURL || ''
+                }).then(() => {
+                    console.log('[Form Init] Initial displayName set successfully');
+                }).catch((error) => {
+                    console.error('[Form Init] Failed to set initial displayName:', error);
+                });
+            }
+            
+            profileForm.reset({
+                name: currentUser.displayName || 'Admin',
+                avatar: currentUser.photoURL || '',
+            });
+        } else if (user) {
+            console.log('[Form Init] Sidebar user:', user.displayName, user.photoURL);
             profileForm.reset({
                 name: user.displayName || 'Admin',
                 avatar: user.photoURL || '',
@@ -129,18 +151,39 @@ function SettingsForm() {
     }
 
     async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
-        if (!user) {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
              toast({ title: 'Not Authenticated', description: 'You must be logged in to update your profile.', variant: 'destructive' });
              return;
         }
 
         try {
-            await updateAuthUser(user.uid, { displayName: values.name, photoURL: values.avatar });
+            console.log('[Profile Update] Starting update with values:', values);
+            console.log('[Profile Update] Current user before update:', currentUser.displayName, currentUser.photoURL);
+            
+            // Update the Firebase Auth user profile directly
+            await updateProfile(currentUser, {
+                displayName: values.name,
+                photoURL: values.avatar
+            });
+            
+            console.log('[Profile Update] Profile updated successfully');
+            
+            // Force a re-render by reloading the current user
+            await currentUser.reload();
+            
+            console.log('[Profile Update] User after reload:', currentUser.displayName, currentUser.photoURL);
+            
+            // Force the sidebar to refresh by triggering a small delay
+            setTimeout(() => {
+                const updatedUser = auth.currentUser;
+                console.log('[Profile Update] User after timeout:', updatedUser?.displayName, updatedUser?.photoURL);
+            }, 500);
+            
             toast({
                 title: 'Profile Updated!',
                 description: 'Your profile information has been saved.',
             });
-            router.refresh();
 
         } catch (error) {
             console.error("Failed to update profile:", error);

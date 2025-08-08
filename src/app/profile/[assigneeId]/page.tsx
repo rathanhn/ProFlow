@@ -1,14 +1,16 @@
 
-import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
+import React from 'react';
 import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import { ClickableAvatar } from '@/components/ClickableAvatar';
+import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
+import { Assignee, Task } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Calendar, Star, Award, Users, FileText, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import ReportCreatorButton from './ReportCreatorButton';
-import { Assignee, Task } from '@/lib/types';
 
 export default async function ProfilePage({ params }: { params: Promise<{ assigneeId: string }> }) {
     const { assigneeId } = await params;
@@ -24,97 +26,139 @@ export default async function ProfilePage({ params }: { params: Promise<{ assign
     
     return (
         <DashboardLayout>
-            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-                <div className="lg:col-span-1 space-y-6">
-                   <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex flex-col items-center text-center">
-                                <ClickableAvatar
-                                    src={assignee.avatar}
-                                    fallback={assignee.name.charAt(0)}
-                                    userName={assignee.name}
-                                    userEmail={assignee.email}
-                                    size="xl"
-                                    className="mb-4 border-2 border-primary h-24 w-24"
-                                />
-                                <h1 className="text-2xl font-bold">{assignee.name}</h1>
-                                <p className="text-muted-foreground">Creator</p>
+            <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href="/admin/team">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Creator Profile</h1>
+                        <p className="text-muted-foreground">View detailed information about this creator.</p>
+                    </div>
+                </div>
 
-                                {assignee.description && (
-                                    <p className="mt-4 text-sm text-center">{assignee.description}</p>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                     <Card>
+                <div className="grid gap-6 md:grid-cols-3">
+                    {/* Profile Card */}
+                    <Card className="md:col-span-1">
                         <CardHeader>
-                            <CardTitle>Contact Information</CardTitle>
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={assignee.avatar} />
+                                    <AvatarFallback className="text-2xl">{assignee.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-xl">{assignee.name}</CardTitle>
+                                    <CardDescription>{assignee.email}</CardDescription>
+                                </div>
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                           {assignee.email && (
-                                <Button variant="outline" className="w-full justify-start gap-2" asChild>
-                                   <a href={`mailto:${assignee.email}`}>
-                                     <Mail className="h-4 w-4" />
-                                     <span>{assignee.email}</span>
-                                   </a>
-                                </Button>
-                           )}
-                           {assignee.mobile && (
-                                <Button variant="outline" className="w-full justify-start gap-2" asChild>
-                                    <a href={`tel:${assignee.mobile}`}>
-                                       <Phone className="h-4 w-4" />
-                                       <span>{assignee.mobile}</span>
-                                    </a>
-                                </Button>
-                           )}
-                            {assignee.mobile && (
-                                <Button className="w-full justify-start gap-2" asChild>
-                                   <a href={`https://wa.me/${assignee.mobile.replace(/D/g, '')}`} target="_blank" rel="noopener noreferrer">
-                                     <MessageSquare className="h-4 w-4" />
-                                     <span>Chat on WhatsApp</span>
-                                   </a>
-                                </Button>
-                           )}
-                           <ReportCreatorButton assignee={assignee} />
-                        </CardContent>
-                    </Card>
-                </div>
-                 <div className="lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Project History</CardTitle>
-                            <CardDescription>
-                                A list of all projects assigned to {assignee.name}.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {tasks.length > 0 ? (
-                                    tasks.map(task => (
-                                        <div key={task.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                                            <div>
-                                                <p className="font-semibold">{task.projectName}</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Client: {task.clientName}
-                                                </p>
-                                            </div>
-                                             <Button variant="ghost" size="sm" asChild>
-                                                <Link href={`/admin/tasks/${task.id}`}>
-                                                    View Task
-                                                </Link>
-                                             </Button>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-muted-foreground text-center p-4">
-                                        No projects have been assigned to this creator yet.
-                                    </p>
+                            {assignee.bio && (
+                                <div>
+                                    <h4 className="font-medium text-sm text-muted-foreground mb-2">Bio</h4>
+                                    <p className="text-sm">{assignee.bio}</p>
+                                </div>
+                            )}
+                            
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-sm">
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
+                                    <span>{assignee.email}</span>
+                                </div>
+                                {assignee.phone && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Phone className="h-4 w-4 text-muted-foreground" />
+                                        <span>{assignee.phone}</span>
+                                    </div>
                                 )}
+                                {assignee.location && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                                        <span>{assignee.location}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-4">
+                                <ReportCreatorButton assignee={assignee} />
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Stats and Tasks */}
+                    <div className="md:col-span-2 space-y-6">
+                        {/* Statistics */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Statistics</CardTitle>
+                                <CardDescription>Overview of creator's performance and activity.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold">{tasks.length}</div>
+                                        <div className="text-sm text-muted-foreground">Total Tasks</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-green-600">
+                                            {tasks.filter(t => t.workStatus === 'Completed').length}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">Completed</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-blue-600">
+                                            {tasks.filter(t => t.workStatus === 'In Progress').length}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">In Progress</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-yellow-600">
+                                            {tasks.filter(t => t.workStatus === 'Pending').length}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">Pending</div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Recent Tasks */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Recent Tasks</CardTitle>
+                                <CardDescription>Latest tasks assigned to this creator.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {tasks.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {tasks.slice(0, 5).map((task) => (
+                                            <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium">{task.title}</h4>
+                                                    <p className="text-sm text-muted-foreground">{task.description}</p>
+                                                </div>
+                                                <Badge variant={
+                                                    task.workStatus === 'Completed' ? 'default' :
+                                                    task.workStatus === 'In Progress' ? 'secondary' :
+                                                    'outline'
+                                                }>
+                                                    {task.workStatus}
+                                                </Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>No tasks assigned yet</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </DashboardLayout>
-    )
+    );
 }

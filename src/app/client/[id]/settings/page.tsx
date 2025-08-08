@@ -98,15 +98,14 @@ export default function ClientSettingsPage() {
             await signOut(clientAuth);
             toast({
                 title: 'Logged Out',
-                description: 'You have been successfully logged out.'
+                description: 'You have been successfully logged out.',
             });
             router.push('/client-login');
         } catch (error) {
-            console.error('Logout error:', error);
             toast({
                 title: 'Logout Failed',
                 description: 'Could not log you out. Please try again.',
-                variant: 'destructive'
+                variant: 'destructive',
             });
         } finally {
             setIsLoggingOut(false);
@@ -136,19 +135,25 @@ export default function ClientSettingsPage() {
         }
     }
     
+    // Show loading while checking authentication
     if (loading) {
         return (
             <DashboardLayout>
                 <div className="space-y-6">
-                    <Skeleton className="h-8 w-1/3" />
-                    <Skeleton className="h-6 w-1/2" />
                     <Card>
                         <CardHeader>
-                             <Skeleton className="h-6 w-1/4" />
-                             <Skeleton className="h-4 w-1/2" />
+                            <Skeleton className="h-6 w-1/4" />
+                            <Skeleton className="h-4 w-1/2" />
                         </CardHeader>
-                        <CardContent>
-                             <Skeleton className="h-10 w-full" />
+                        <CardContent className="space-y-6">
+                            <div className="flex flex-col items-center">
+                                <Skeleton className="h-24 w-24 rounded-full" />
+                                <Skeleton className="h-10 w-32 mt-4" />
+                            </div>
+                            <Skeleton className="h-10 w-full" />
+                            <div className="flex justify-end">
+                                <Skeleton className="h-10 w-24" />
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

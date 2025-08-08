@@ -16,7 +16,8 @@ import {
     CheckCircle2,
     Clock,
     Plus,
-    FileText
+    FileText,
+    Settings
 } from 'lucide-react';
 import { INRIcon } from '@/components/ui/inr-icon';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
@@ -25,7 +26,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
-
 import { RippleButton } from '@/components/ui/ripple-effect';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
 
@@ -97,9 +97,25 @@ export default function CreatorDashboardClient({
             <AvatarImage src={creator.avatar} />
             <AvatarFallback className="text-2xl">{creator.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{creator.name}</h1>
-            <p className="text-muted-foreground">Welcome to your creator dashboard.</p>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">{creator.name}</h1>
+                <p className="text-muted-foreground">Welcome to your creator dashboard.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  haptic.androidClick();
+                  router.push(`/creator/${creator.id}/settings`);
+                }}
+                className="flex-shrink-0"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </div>
           </div>
         </div>
 

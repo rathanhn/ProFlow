@@ -32,7 +32,6 @@ export default function ClientAuthPage() {
     const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-
     useEffect(() => {
         const fetchClientData = async () => {
             const clientData = await getClient(clientId);

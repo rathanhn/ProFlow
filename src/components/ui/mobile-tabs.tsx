@@ -214,7 +214,7 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({ className }) => {
     <div
       ref={containerRef}
       className={cn(
-        'sticky-tabs safe-area-pb md:hidden', // Only show on mobile
+        'fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-area-pb md:hidden', // Fixed positioning and higher z-index
         swipeState.isDragging && 'select-none',
         className
       )}

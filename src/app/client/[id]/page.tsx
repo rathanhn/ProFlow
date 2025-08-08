@@ -137,8 +137,24 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
                   className="border-2 border-primary flex-shrink-0"
               />
               <div className="min-w-0 flex-1">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">{client.name}</h1>
-                  <p className="text-muted-foreground text-sm sm:text-base">Welcome to your personal dashboard.</p>
+                  <div className="flex items-center justify-between">
+                      <div>
+                          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">{client.name}</h1>
+                          <p className="text-muted-foreground text-sm sm:text-base">Welcome to your personal dashboard.</p>
+                      </div>
+                      <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                              haptic.androidClick();
+                              router.push(`/client/${client.id}/settings`);
+                          }}
+                          className="flex-shrink-0"
+                      >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Settings
+                      </Button>
+                  </div>
               </div>
           </div>
 
