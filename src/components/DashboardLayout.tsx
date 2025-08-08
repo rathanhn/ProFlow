@@ -149,34 +149,61 @@ const DashboardContent = ({
   const { isCollapsed, user, loading } = useSidebar();
   
   React.useEffect(() => {
-    const isAdminRoute = pathname.startsWith('/admin');
-    const isClientRoute = pathname.startsWith('/client');
-    const isCreatorRoute = pathname.startsWith('/creator');
+    const unsubscribeAdmin = onAuthStateChanged(auth, (user) => {
+        const isAdminRoute = pathname.startsWith('/admin');
+        const isClientRoute = pathname.startsWith('/client'); // Declare here
+        const isCreatorRoute = pathname.startsWith('/creator'); // Declare here
 
-    // Choose the correct auth instance based on the current path
-    const authInstance = isAdminRoute ? auth : clientAuth;
+        // Log the relevant variables to help debug
+        console.log('Auth State Check (Admin Auth):');
+        console.log('  pathname:', pathname);
+        console.log('  user:', user); // This user is from the admin auth instance
+        console.log('  loading:', loading);
 
-    const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-      // Log the relevant variables to help debug
-      console.log('Auth State Changed:');
-      console.log('  pathname:', pathname);
-      console.log('  isAdminRoute:', isAdminRoute);
-      console.log('  isClientRoute:', isClientRoute);
-      console.log('  isCreatorRoute:', isCreatorRoute);
-      console.log('  user:', user);
-      console.log('  loading:', loading);
-
-      if (!user && !loading) {
-        console.log('User not logged in and not loading. Redirecting...');
-        if (isAdminRoute) router.push('/admin/login');
-        else if (isClientRoute) router.push('/client-login');
-        // Explicitly check if it's a creator route before redirecting to creator login
-        else if (isCreatorRoute) router.push('/creator/login');
-      }
+        if (isAdminRoute && !user && !loading) {
+            console.log('Admin route: User not logged in with Admin Auth. Redirecting to admin login...');
+            router.push('/admin/login');
+        }
     });
 
-    return () => unsubscribe();
-  }, [pathname, router, loading]);
+    const unsubscribeClient = onAuthStateChanged(clientAuth, (user) => {
+        const isAdminRoute = pathname.startsWith('/admin'); // Declare here
+        const isClientRoute = pathname.startsWith('/client');
+        const isCreatorRoute = pathname.startsWith('/creator');
+
+        // Log the relevant variables to help debug
+        console.log('Auth State Check (Client/Creator Auth):');
+        console.log('  pathname:', pathname);
+        console.log('  user (from clientAuth listener):', user); // This user is from the clientAuth instance
+        console.log('  loading:', loading);
+
+        // Explicitly check if there is a user authenticated with the clientAuth instance
+        const clientCreatorUser = clientAuth.currentUser;
+        console.log('  clientAuth.currentUser:', clientCreatorUser);
+
+
+        if ((isClientRoute || isCreatorRoute) && !clientCreatorUser && !loading) {
+            console.log('Client/Creator route: No user logged in with Client/Creator Auth. Redirecting to client/creator login...');
+             // Redirect to client-login for both client and creator routes if not authenticated with clientAuth
+            router.push('/client-login'); // Assuming client-login handles both client and creator authentication
+        } else if (isAdminRoute && clientCreatorUser) {
+             // If on an admin route but authenticated with clientAuth (shouldn't happen with correct login flow)
+             console.log('Admin route: User authenticated with client/creator instance. Redirecting to admin login...');
+             router.push('/admin/login');
+        } else if ((isClientRoute || isCreatorRoute) && clientCreatorUser && clientCreatorUser.providerId !== clientAuth.currentUser?.providerId) {
+            // This case might be redundant with the check above, but kept for clarity
+             console.log('Client/Creator route: User authenticated with wrong instance. Redirecting to client/creator login...');
+             router.push('/client-login'); // Redirect to client-login for both client and creator routes
+        }
+    });
+
+
+    return () => {
+        unsubscribeAdmin();
+        unsubscribeClient();
+    };
+}, [pathname, router, loading]);
+
 
   const renderContent = () => {
     if (loading) {

@@ -42,10 +42,6 @@ export default function TeamActions({ assignee }: { assignee: Assignee }) {
                     <Edit className="h-4 w-4 text-muted-foreground" />
                     <span className="sr-only">Edit</span>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(assignee.id)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                    <span className="sr-only">Delete</span>
-                </Button>
             </div>
             {isEditDialogOpen && (
                 <EditTeamMemberForm
