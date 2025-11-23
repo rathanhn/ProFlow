@@ -25,11 +25,11 @@ async function deleteAuthUser(uid: string) {
 // We are simulating this by updating the current user if the UID matches.
 // This is not secure for a multi-user admin scenario but works for this single-admin setup.
 export async function updateAuthUser(uid: string, data: { displayName?: string, photoURL?: string }) {
-     console.log(`[Auth Update] An admin SDK would be required to securely update user ${uid}. This is a simulated action for the current user.`);
-     // This part is tricky without an admin SDK. We will assume for the admin role,
-     // we can update the currently signed-in user if the UID matches.
-     const currentUser = auth.currentUser;
-     if (currentUser && currentUser.uid === uid) {
+    console.log(`[Auth Update] An admin SDK would be required to securely update user ${uid}. This is a simulated action for the current user.`);
+    // This part is tricky without an admin SDK. We will assume for the admin role,
+    // we can update the currently signed-in user if the UID matches.
+    const currentUser = auth.currentUser;
+    if (currentUser && currentUser.uid === uid) {
         try {
             await updateProfile(currentUser, data);
             console.log('[Auth Update] Profile updated successfully:', data);
@@ -37,8 +37,8 @@ export async function updateAuthUser(uid: string, data: { displayName?: string, 
             console.error("Failed to update auth profile for current admin:", error);
             throw new Error("Could not update admin auth profile.");
         }
-     }
-     // For clients/creators, this would ideally be a Cloud Function triggered by a Firestore update.
+    }
+    // For clients/creators, this would ideally be a Cloud Function triggered by a Firestore update.
 }
 
 
@@ -73,7 +73,7 @@ export async function addClient(client: Omit<Client, 'id' | 'password'>) {
 
     const { email, ...clientData } = client;
     const secondaryAuth = createSecondaryAuth();
-    
+
     try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, tempPassword);
         const uid = userCredential.user.uid;
@@ -83,8 +83,8 @@ export async function addClient(client: Omit<Client, 'id' | 'password'>) {
             photoURL: clientData.avatar
         });
 
-        await setDoc(doc(db, "clients", uid), {email, ...clientData});
-        
+        await setDoc(doc(db, "clients", uid), { email, ...clientData });
+
         // Send password reset email to allow user to set their own password
         await sendPasswordResetEmail(secondaryAuth, email);
 
@@ -110,9 +110,9 @@ export async function updateClient(id: string, client: Partial<Omit<Client, 'id'
     if (client.avatar) updateData.photoURL = client.avatar;
 
     if (Object.keys(updateData).length > 0) {
-       await updateAuthUser(id, updateData);
+        await updateAuthUser(id, updateData);
     }
-    
+
     revalidatePath('/admin/clients');
     revalidatePath(`/admin/clients/${id}/edit`);
     revalidatePath(`/client/${id}/settings`);
@@ -134,7 +134,7 @@ export async function deleteClient(id: string) {
     const transactionsQuery = query(collection(db, 'transactions'), where('clientId', '==', id));
     const transactionsSnapshot = await getDocs(transactionsQuery);
     transactionsSnapshot.forEach(doc => batch.delete(doc.ref));
-    
+
     // 4. Find and delete associated notifications
     const notificationsQuery = query(collection(db, 'notifications'), where('userId', '==', id));
     const notificationsSnapshot = await getDocs(notificationsQuery);
@@ -148,7 +148,7 @@ export async function deleteClient(id: string) {
     // We are simulating this action. In a production environment, you would use a Cloud Function
     // triggered by the document deletion or an admin backend.
     await deleteAuthUser(id);
-    
+
     revalidatePath('/admin/clients');
     revalidatePath('/admin/tasks');
     revalidatePath('/admin/transactions');
@@ -160,7 +160,13 @@ export async function getClientByEmail(email: string): Promise<Client | null> {
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
-        const client = { id: doc.id, ...doc.data() } as Client;
+        const data = doc.data();
+        const client = {
+            id: doc.id,
+            ...(data as any),
+            // Ensure no Timestamps are passed
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : undefined
+        } as Client;
         console.log(`[firebase-service] getClientByEmail found client:`, client);
         return client;
     }
@@ -175,8 +181,8 @@ export async function getTasks(): Promise<Task[]> {
     const taskSnapshot = await getDocs(query(tasksCol, orderBy('slNo', 'desc')));
     const taskList = taskSnapshot.docs.map(doc => {
         const data = doc.data();
-        return { 
-            id: doc.id, 
+        return {
+            id: doc.id,
             ...data,
             acceptedDate: new Date(data.acceptedDate).toISOString(),
             submissionDate: new Date(data.submissionDate).toISOString(),
@@ -190,8 +196,8 @@ export async function getTasksByClientId(clientId: string): Promise<Task[]> {
     const taskSnapshot = await getDocs(q);
     const taskList = taskSnapshot.docs.map(doc => {
         const data = doc.data();
-         return { 
-            id: doc.id, 
+        return {
+            id: doc.id,
             ...data,
             acceptedDate: new Date(data.acceptedDate).toISOString(),
             submissionDate: new Date(data.submissionDate).toISOString(),
@@ -205,8 +211,8 @@ export async function getTasksByAssigneeId(assigneeId: string): Promise<Task[]> 
     const taskSnapshot = await getDocs(q);
     const taskList = taskSnapshot.docs.map(doc => {
         const data = doc.data();
-         return { 
-            id: doc.id, 
+        return {
+            id: doc.id,
             ...data,
             acceptedDate: new Date(data.acceptedDate).toISOString(),
             submissionDate: new Date(data.submissionDate).toISOString(),
@@ -238,7 +244,7 @@ export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'sl
     const taskDocRef = doc(db, 'tasks', id);
     const existingTask = await getTask(id);
     if (!existingTask) throw new Error("Task not found");
-    
+
     const total = (task.pages ?? existingTask.pages) * (task.rate ?? existingTask.rate);
 
     await updateDoc(taskDocRef, { ...task, total });
@@ -279,13 +285,13 @@ export async function addAssignee(assignee: Omit<Assignee, 'id' | 'password'>): 
     if (!assignee.email) {
         throw new Error("Email is required to create a creator.");
     }
-    
+
     // Generate a secure temporary password
     const tempPassword = Math.random().toString(36).slice(-12);
-    
+
     const { email, ...assigneeData } = assignee;
     const secondaryAuth = createSecondaryAuth();
-    
+
     try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, tempPassword);
         const uid = userCredential.user.uid;
@@ -294,9 +300,9 @@ export async function addAssignee(assignee: Omit<Assignee, 'id' | 'password'>): 
             displayName: assigneeData.name,
             photoURL: assigneeData.avatar
         });
-        
+
         await setDoc(doc(db, "assignees", uid), { email, ...assigneeData });
-        
+
         // Send password reset email to allow user to set their own password
         await sendPasswordResetEmail(secondaryAuth, email);
 
@@ -317,14 +323,14 @@ export async function addAssignee(assignee: Omit<Assignee, 'id' | 'password'>): 
 export async function updateAssignee(id: string, assignee: Partial<Omit<Assignee, 'id'>>) {
     const assigneeDocRef = doc(db, 'assignees', id);
     await updateDoc(assigneeDocRef, assignee);
-    
+
     // This is a placeholder for updating the auth user. In a real app, use Admin SDK.
     const updateData: { displayName?: string, photoURL?: string } = {};
     if (assignee.name) updateData.displayName = assignee.name;
     if (assignee.avatar) updateData.photoURL = assignee.avatar;
 
     if (Object.keys(updateData).length > 0) {
-       await updateAuthUser(id, updateData);
+        await updateAuthUser(id, updateData);
     }
 
     revalidatePath('/admin/team');
@@ -370,12 +376,12 @@ export async function createNotification(notification: Omit<Notification, 'id'>)
 
 export async function getAdminNotifications(): Promise<Notification[]> {
     const q = query(
-        collection(db, "notifications"), 
+        collection(db, "notifications"),
         where("userId", "==", "admin")
     );
     const snapshot = await getDocs(q);
     const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
-    
+
     return notifications
         .filter(n => !n.isRead)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -394,7 +400,7 @@ export async function deleteNotification(id: string) {
 export async function clearNotifications(userId: string) {
     const q = query(collection(db, "notifications"), where("userId", "==", userId));
     const snapshot = await getDocs(q);
-    
+
     if (snapshot.empty) {
         return;
     }
@@ -427,7 +433,7 @@ export async function addTransactionAndUpdateTask(
             const currentTaskData = taskDoc.data() as Task;
             const newAmountPaid = (currentTaskData.amountPaid || 0) + amountPaid;
             const remainingAmount = currentTaskData.total - newAmountPaid;
-            
+
             let newPaymentStatus = currentTaskData.paymentStatus;
             if (remainingAmount <= 0) {
                 newPaymentStatus = 'Paid';
@@ -437,7 +443,7 @@ export async function addTransactionAndUpdateTask(
                 newPaymentStatus = 'Unpaid';
             }
 
-            transaction.update(taskDocRef, { 
+            transaction.update(taskDocRef, {
                 amountPaid: newAmountPaid,
                 paymentStatus: newPaymentStatus
             });
@@ -460,11 +466,11 @@ export async function addTransactionAndUpdateTask(
         revalidatePath(`/admin/tasks/${taskId}`);
         revalidatePath('/admin/tasks/*');
         revalidatePath('/admin/transactions');
-        if(taskData){
-           revalidatePath(`/client/${taskData.clientId}`);
-           revalidatePath(`/client/${taskData.clientId}/projects`);
-           revalidatePath(`/client/${taskData.clientId}/projects/${taskId}`);
-           revalidatePath(`/client/${taskData.clientId}/transactions`);
+        if (taskData) {
+            revalidatePath(`/client/${taskData.clientId}`);
+            revalidatePath(`/client/${taskData.clientId}/projects`);
+            revalidatePath(`/client/${taskData.clientId}/projects/${taskId}`);
+            revalidatePath(`/client/${taskData.clientId}/transactions`);
         }
 
 
@@ -480,8 +486,8 @@ export async function getTransactions(): Promise<Transaction[]> {
     const transactionSnapshot = await getDocs(query(transactionsCol, orderBy('transactionDate', 'desc')));
     const transactionList = transactionSnapshot.docs.map(doc => {
         const data = doc.data();
-        return { 
-            id: doc.id, 
+        return {
+            id: doc.id,
             ...data,
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
@@ -494,101 +500,106 @@ export async function getTransactionsByClientId(clientId: string): Promise<Trans
     const transactionSnapshot = await getDocs(q);
     const transactionList = transactionSnapshot.docs.map(doc => {
         const data = doc.data();
-         return { 
-            id: doc.id, 
+        return {
+            id: doc.id,
             ...data,
             transactionDate: new Date(data.transactionDate).toISOString(),
         } as Transaction;
     });
-    
+
     transactionList.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
 
     return transactionList;
 }
 
 export async function getAdminByEmail(email: string) {
-  const q = query(collection(db, "admins"), where("email", "==", email));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) return null;
-  const docSnap = snapshot.docs[0];
-  return { id: docSnap.id, ...docSnap.data() };
+    const q = query(collection(db, "admins"), where("email", "==", email));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    const docSnap = snapshot.docs[0];
+    const data = docSnap.data();
+    return {
+        id: docSnap.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+    };
 }
 
 // Feedback Functions
 export async function getFeedbacks(): Promise<Feedback[]> {
-  const feedbacksCol = collection(db, 'feedbacks');
-  const feedbackSnapshot = await getDocs(query(feedbacksCol, orderBy('submittedAt', 'desc')));
-  const feedbackList = feedbackSnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      submittedAt: data.submittedAt || new Date().toISOString()
-    } as Feedback;
-  });
-  return feedbackList;
+    const feedbacksCol = collection(db, 'feedbacks');
+    const feedbackSnapshot = await getDocs(query(feedbacksCol, orderBy('submittedAt', 'desc')));
+    const feedbackList = feedbackSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            submittedAt: data.submittedAt || new Date().toISOString()
+        } as Feedback;
+    });
+    return feedbackList;
 }
 
 export async function getFeedback(id: string): Promise<Feedback | null> {
-  const feedbackDocRef = doc(db, 'feedbacks', id);
-  const feedbackDoc = await getDoc(feedbackDocRef);
-  if (feedbackDoc.exists()) {
-    return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
-  }
-  return null;
+    const feedbackDocRef = doc(db, 'feedbacks', id);
+    const feedbackDoc = await getDoc(feedbackDocRef);
+    if (feedbackDoc.exists()) {
+        return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
+    }
+    return null;
 }
 
 export async function addFeedback(feedback: Omit<Feedback, 'id'>) {
-  const feedbacksCol = collection(db, 'feedbacks');
-  const docRef = await addDoc(feedbacksCol, {
-    ...feedback,
-    submittedAt: feedback.submittedAt || new Date().toISOString()
-  });
-  revalidatePath('/admin/feedback');
-  return { id: docRef.id, ...feedback };
+    const feedbacksCol = collection(db, 'feedbacks');
+    const docRef = await addDoc(feedbacksCol, {
+        ...feedback,
+        submittedAt: feedback.submittedAt || new Date().toISOString()
+    });
+    revalidatePath('/admin/feedback');
+    return { id: docRef.id, ...feedback };
 }
 
 export async function updateFeedback(id: string, feedback: Partial<Omit<Feedback, 'id'>>) {
-  const feedbackDocRef = doc(db, 'feedbacks', id);
-  await updateDoc(feedbackDocRef, {
-    ...feedback,
-    ...(feedback.status === 'resolved' && !feedback.resolvedAt && {
-      resolvedAt: new Date().toISOString()
-    })
-  });
-  revalidatePath('/admin/feedback');
+    const feedbackDocRef = doc(db, 'feedbacks', id);
+    await updateDoc(feedbackDocRef, {
+        ...feedback,
+        ...(feedback.status === 'resolved' && !feedback.resolvedAt && {
+            resolvedAt: new Date().toISOString()
+        })
+    });
+    revalidatePath('/admin/feedback');
 }
 
 export async function deleteFeedback(id: string) {
-  const feedbackDocRef = doc(db, 'feedbacks', id);
-  await deleteDoc(feedbackDocRef);
-  revalidatePath('/admin/feedback');
+    const feedbackDocRef = doc(db, 'feedbacks', id);
+    await deleteDoc(feedbackDocRef);
+    revalidatePath('/admin/feedback');
 }
 
 export async function getFeedbacksByClientId(clientId: string): Promise<Feedback[]> {
-  const q = query(collection(db, "feedbacks"), where("clientId", "==", clientId));
-  const feedbackSnapshot = await getDocs(q);
-  const feedbackList = feedbackSnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      submittedAt: data.submittedAt || new Date().toISOString()
-    } as Feedback;
-  });
-  return feedbackList;
+    const q = query(collection(db, "feedbacks"), where("clientId", "==", clientId));
+    const feedbackSnapshot = await getDocs(q);
+    const feedbackList = feedbackSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            submittedAt: data.submittedAt || new Date().toISOString()
+        } as Feedback;
+    });
+    return feedbackList;
 }
 
 export async function getFeedbacksByCreatorId(creatorId: string): Promise<Feedback[]> {
-  const q = query(collection(db, "feedbacks"), where("creatorId", "==", creatorId));
-  const feedbackSnapshot = await getDocs(q);
-  const feedbackList = feedbackSnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      submittedAt: data.submittedAt || new Date().toISOString()
-    } as Feedback;
-  });
-  return feedbackList;
+    const q = query(collection(db, "feedbacks"), where("creatorId", "==", creatorId));
+    const feedbackSnapshot = await getDocs(q);
+    const feedbackList = feedbackSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            submittedAt: data.submittedAt || new Date().toISOString()
+        } as Feedback;
+    });
+    return feedbackList;
 }

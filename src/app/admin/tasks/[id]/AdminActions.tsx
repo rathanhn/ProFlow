@@ -25,7 +25,7 @@ export default function AdminActions({ task }: { task: Task }) {
                 description: "A payment reminder has been sent to the client.",
             });
         } catch (error) {
-             toast({
+            toast({
                 title: "Error",
                 description: "Could not send reminder.",
                 variant: 'destructive',
@@ -34,7 +34,7 @@ export default function AdminActions({ task }: { task: Task }) {
     };
 
     return (
-        <Card>
+        <Card className="glass-card border-white/20 dark:border-white/10">
             <CardHeader>
                 <CardTitle>Admin Actions</CardTitle>
             </CardHeader>

@@ -103,7 +103,7 @@ export default function AdminTransactionsPage() {
             />
           </div>
 
-          <Card className="md:hidden">
+          <Card className="md:hidden glass-card border-white/20 dark:border-white/10">
             <CardHeader>
               <CardTitle>Transaction History</CardTitle>
               <CardDescription>Browse through all recorded transactions.</CardDescription>
@@ -112,104 +112,104 @@ export default function AdminTransactionsPage() {
 
           {/* Mobile View with Long Press */}
           <div className="grid gap-4 md:hidden">
-              {transactions.map((transaction: Transaction) => (
-                  <LongPressMenu key={transaction.id} actions={getLongPressActions(transaction)}>
-                      <Card className="cursor-pointer overflow-hidden min-w-0">
-                          <CardContent className="p-4 min-w-0">
-                              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-start sm:space-y-0 min-w-0">
-                                  <div className="min-w-0 flex-1 pr-2">
-                                      <div className="font-semibold">
-                                          <RippleButton
-                                            variant="ghost"
-                                            className="p-0 h-auto font-semibold text-left justify-start hover:underline truncate w-full max-w-full"
-                                            onClick={() => {
-                                              haptic.androidClick();
-                                              router.push(`/admin/tasks/${transaction.taskId}`);
-                                            }}
-                                          >
-                                            <span className="truncate block">{transaction.projectName}</span>
-                                          </RippleButton>
-                                      </div>
-                                      <div className="text-sm text-muted-foreground truncate">
-                                          <span>Client: </span>
-                                          <RippleButton
-                                            variant="ghost"
-                                            className="p-0 h-auto text-sm text-muted-foreground hover:underline ml-1 truncate inline-block max-w-[200px]"
-                                            onClick={() => {
-                                              haptic.androidClick();
-                                              router.push(`/admin/clients/${transaction.clientId}/edit`);
-                                            }}
-                                          >
-                                            <span className="truncate">{transaction.clientName}</span>
-                                          </RippleButton>
-                                      </div>
-                                      <div className="text-xs text-muted-foreground pt-1">
-                                          {new Date(transaction.transactionDate).toLocaleDateString()}
-                                      </div>
-                                  </div>
-                                  <div className="flex flex-col items-end space-y-1 flex-shrink-0 min-w-0">
-                                      <p className="font-bold text-lg whitespace-nowrap">₹{transaction.amount.toLocaleString()}</p>
-                                      <Badge variant="outline" className="text-xs whitespace-nowrap">{transaction.paymentMethod}</Badge>
-                                  </div>
-                              </div>
-                          </CardContent>
-                      </Card>
-                  </LongPressMenu>
-              ))}
+            {transactions.map((transaction: Transaction) => (
+              <LongPressMenu key={transaction.id} actions={getLongPressActions(transaction)}>
+                <Card className="cursor-pointer overflow-hidden min-w-0 glass-card border-white/20 dark:border-white/10">
+                  <CardContent className="p-4 min-w-0">
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-start sm:space-y-0 min-w-0">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <div className="font-semibold">
+                          <RippleButton
+                            variant="ghost"
+                            className="p-0 h-auto font-semibold text-left justify-start hover:underline truncate w-full max-w-full"
+                            onClick={() => {
+                              haptic.androidClick();
+                              router.push(`/admin/tasks/${transaction.taskId}`);
+                            }}
+                          >
+                            <span className="truncate block">{transaction.projectName}</span>
+                          </RippleButton>
+                        </div>
+                        <div className="text-sm text-muted-foreground truncate">
+                          <span>Client: </span>
+                          <RippleButton
+                            variant="ghost"
+                            className="p-0 h-auto text-sm text-muted-foreground hover:underline ml-1 truncate inline-block max-w-[200px]"
+                            onClick={() => {
+                              haptic.androidClick();
+                              router.push(`/admin/clients/${transaction.clientId}/edit`);
+                            }}
+                          >
+                            <span className="truncate">{transaction.clientName}</span>
+                          </RippleButton>
+                        </div>
+                        <div className="text-xs text-muted-foreground pt-1">
+                          {new Date(transaction.transactionDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end space-y-1 flex-shrink-0 min-w-0">
+                        <p className="font-bold text-lg whitespace-nowrap">₹{transaction.amount.toLocaleString()}</p>
+                        <Badge variant="outline" className="text-xs whitespace-nowrap">{transaction.paymentMethod}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </LongPressMenu>
+            ))}
           </div>
 
-        {/* Desktop View */}
-        <div className="hidden md:block w-full">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Transaction History</CardTitle>
-                    <CardDescription>Browse through all recorded transactions.</CardDescription>
-                </CardHeader>
-                <CardContent>
+          {/* Desktop View */}
+          <div className="hidden md:block w-full">
+            <Card className="glass-card border-white/20 dark:border-white/10">
+              <CardHeader>
+                <CardTitle>Transaction History</CardTitle>
+                <CardDescription>Browse through all recorded transactions.</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="overflow-x-auto">
-                <Table>
+                  <Table>
                     <TableHeader>
-                    <TableRow>
+                      <TableRow>
                         <TableHead>Date</TableHead>
                         <TableHead>Client</TableHead>
                         <TableHead>Project</TableHead>
                         <TableHead>Payment Method</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
-                    </TableRow>
+                      </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {transactions.map((transaction: Transaction) => (
+                      {transactions.map((transaction: Transaction) => (
                         <TableRow key={transaction.id}>
-                        <TableCell className="whitespace-nowrap">
+                          <TableCell className="whitespace-nowrap">
                             {new Date(transaction.transactionDate).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
+                          </TableCell>
+                          <TableCell>
                             <Link href={`/admin/clients/${transaction.clientId}/edit`} className="font-medium hover:underline whitespace-nowrap">
-                                {transaction.clientName}
+                              {transaction.clientName}
                             </Link>
-                        </TableCell>
-                        <TableCell>
+                          </TableCell>
+                          <TableCell>
                             <Link href={`/admin/tasks/${transaction.taskId}`} className="font-medium hover:underline whitespace-nowrap">
-                                {transaction.projectName}
+                              {transaction.projectName}
                             </Link>
-                        </TableCell>
-                        <TableCell>
+                          </TableCell>
+                          <TableCell>
                             <Badge variant="outline">{transaction.paymentMethod}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-medium whitespace-nowrap">
+                          </TableCell>
+                          <TableCell className="text-right font-medium whitespace-nowrap">
                             ₹{transaction.amount.toLocaleString()}
-                        </TableCell>
+                          </TableCell>
                         </TableRow>
-                    ))}
+                      ))}
                     </TableBody>
-                </Table>
+                  </Table>
                 </div>
                 {transactions.length === 0 && (
-                    <div className="text-center text-muted-foreground p-8">
-                        No transactions recorded yet.
-                    </div>
+                  <div className="text-center text-muted-foreground p-8">
+                    No transactions recorded yet.
+                  </div>
                 )}
-                </CardContent>
+              </CardContent>
             </Card>
           </div>
         </div>

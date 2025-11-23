@@ -46,59 +46,59 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
       ? (JSON.parse(JSON.stringify(rawClient)) as Client)
       : null;
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/admin/tasks">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to All Tasks
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href={`/admin/tasks/${task.id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Task
-            </Link>
-          </Button>
-        </div>
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Button variant="outline" asChild>
+              <Link href="/admin/tasks">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to All Tasks
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href={`/admin/tasks/${task.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Task
+              </Link>
+            </Button>
+          </div>
 
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  {client && (
-                    <ClickableAvatar
-                      src={client.avatar}
-                      fallback={client.name.charAt(0)}
-                      userName={client.name}
-                      userEmail={client.email}
-                      size="lg"
-                      className="border"
-                    />
-                  )}
-                  <div>
-                    <CardTitle className="text-2xl">{task.projectName}</CardTitle>
-                    <CardDescription>
-                      Task ID: {task.id} &middot; For {task.clientName}
-                    </CardDescription>
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card className="glass-card border-white/20 dark:border-white/10">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    {client && (
+                      <ClickableAvatar
+                        src={client.avatar}
+                        fallback={client.name.charAt(0)}
+                        userName={client.name}
+                        userEmail={client.email}
+                        size="lg"
+                        className="border"
+                      />
+                    )}
+                    <div>
+                      <CardTitle className="text-2xl">{task.projectName}</CardTitle>
+                      <CardDescription>
+                        Task ID: {task.id} &middot; For {task.clientName}
+                      </CardDescription>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <TaskDetails task={task} />
-              </CardContent>
-            </Card>
-          </div>
-          <div className="space-y-6">
-            <AdminActions task={task} />
+                </CardHeader>
+                <CardContent>
+                  <TaskDetails task={task} />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="space-y-6">
+              <AdminActions task={task} />
+            </div>
           </div>
         </div>
-      </div>
-    </DashboardLayout>
-  );
+      </DashboardLayout>
+    );
   } catch (error) {
     console.error(`Error loading task details ${id}:`, error);
     notFound();

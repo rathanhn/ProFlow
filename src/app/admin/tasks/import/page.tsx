@@ -505,11 +505,10 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
               <div>
                 <Label>Upload CSV or JSON File</Label>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    isDragOver
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragOver
                       ? 'border-primary bg-primary/5'
                       : 'border-muted-foreground/25 hover:border-muted-foreground/50'
-                  }`}
+                    }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
@@ -692,13 +691,12 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                 {editableTasks.map((task, index) => (
                   <div
                     key={task.id}
-                    className={`border rounded-lg p-4 transition-all ${
-                      task.selected
+                    className={`border rounded-lg p-4 transition-all ${task.selected
                         ? 'border-primary bg-primary/5'
                         : task.isValid === false
                           ? 'border-destructive bg-destructive/5'
                           : 'border-muted'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex items-center pt-1">
@@ -851,7 +849,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                 >
                   {isLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white/30 mr-2"></div>
                       Importing...
                     </>
                   ) : (
@@ -966,7 +964,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                 >
                   {isLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white/30 mr-2"></div>
                       Importing...
                     </>
                   ) : (

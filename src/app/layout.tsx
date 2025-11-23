@@ -1,7 +1,9 @@
-import type {Metadata, Viewport} from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import './gradient-theme.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { AuthProvider } from '@/components/AuthProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 export const metadata: Metadata = {
@@ -52,15 +54,17 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
-            <ErrorBoundary showErrorDetails={process.env.NODE_ENV === 'development'}>
+          <ErrorBoundary showErrorDetails={process.env.NODE_ENV === 'development'}>
+            <AuthProvider>
               {children}
-            </ErrorBoundary>
-            <Toaster />
+            </AuthProvider>
+          </ErrorBoundary>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

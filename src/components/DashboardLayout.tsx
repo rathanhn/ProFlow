@@ -1,211 +1,281 @@
-
-
 'use client';
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  useSidebar
-} from '@/components/ui/sidebar';
-import { MobileTabs } from '@/components/ui/mobile-tabs';
-import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+  LayoutDashboard,
+  Users,
+  CheckSquare,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Briefcase,
+  FileText,
+  Rocket,
+  Bell,
+  Search,
+  Plus,
+  Moon,
+  Sun,
+  CreditCard,
+  User,
+  ListChecks,
+  Banknote,
+  FileDown,
+  MessageSquare,
+  HelpCircle,
+  Home,
+  BarChart3,
+  Calendar,
+  Shield,
+  UserPlus
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Home, LogOut, Rocket, Users, Settings, UserPlus, Banknote, ListChecks, FileDown, BarChart3, FileText, Calendar, Bell, Shield, HelpCircle, MessageSquare } from 'lucide-react';
-import { auth, clientAuth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { Skeleton } from './ui/skeleton';
-import NotificationBell from './NotificationBell';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { getAdminByEmail } from '@/lib/firebase-service';
+import { useAuth } from '@/components/AuthProvider';
+import { useTheme } from 'next-themes';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
 
-
-const UserProfile = () => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { toast } = useToast();
-  const { isCollapsed, user, loading } = useSidebar();
-  const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
-
-  const handleLogout = async () => {
-     const currentAuth = pathname.startsWith('/admin') ? auth : clientAuth;
-    try {
-        await signOut(currentAuth);
-        toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
-        if (pathname.startsWith('/admin')) {
-            router.push('/admin/login');
-        } else if (pathname.startsWith('/client')) {
-            router.push('/client-login');
-        } else if (pathname.startsWith('/creator')) {
-            router.push('/creator/login');
-        } else {
-            router.push('/');
-        }
-    } catch (error) {
-        toast({ title: 'Logout Failed', description: 'Could not log you out. Please try again.', variant: 'destructive' });
-    }
-  };
-
-  const getAvatarFallback = () => {
-    if (user?.email) return user.email.charAt(0).toUpperCase();
-    if (user?.displayName) return user.displayName.charAt(0).toUpperCase();
-    return 'U';
-  };
-  
-  const getDisplayName = () => {
-    if (user?.displayName) return user.displayName;
-    if (pathname.startsWith('/admin')) return 'Admin';
-    if (pathname.startsWith('/creator')) return 'Creator';
-    return user?.email || 'User';
-  }
-
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        {!isCollapsed && (
-          <div className='flex-1 space-y-1'>
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-3 w-32" />
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <>
-        <div className="flex items-center gap-3">
-          <Avatar
-            className="cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all duration-200"
-            onClick={() => {
-              // Always open viewer - use photoURL if available, otherwise create a placeholder
-              const imageUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(getDisplayName())}&size=400&background=0ea5e9&color=ffffff&bold=true`;
-              openViewer(imageUrl, getDisplayName(), user.email || undefined);
-            }}
-          >
-            <AvatarImage src={user.photoURL || undefined} alt="User avatar" />
-            <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
-          </Avatar>
-        {!isCollapsed && (
-          <>
-            <div className="flex-1 overflow-hidden">
-              <p className="font-semibold text-sm truncate">{getDisplayName()}</p>
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            </div>
-            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </>
-        )}
-        </div>
-
-        {/* Profile Image Viewer */}
-        <ProfileImageViewer
-          isOpen={isOpen}
-          onClose={closeViewer}
-          imageUrl={imageData.imageUrl}
-          userName={imageData.userName}
-          userEmail={imageData.userEmail}
-        />
-      </>
-    );
-  }
-
-  return (
-    !isCollapsed && <p className="text-sm text-muted-foreground">Not logged in</p>
-  );
-};
-
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <SidebarProvider>
-      <DashboardContent>
-        {children}
-      </DashboardContent>
-    </SidebarProvider>
-  );
+interface DashboardLayoutProps {
+  children: React.ReactNode;
 }
 
-// Create a new component to consume the sidebar context
-const DashboardContent = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { isCollapsed, user, loading } = useSidebar();
-  const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
-  
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('onAuthStateChanged (single):', user);
-      if (user) {
-        if (pathname.startsWith('/admin')) {
-          // Check Firestore for admin role
-          const adminRecord = await getAdminByEmail(user.email);
-          if (adminRecord) {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-            router.push('/admin/login');
-          }
-        } else {
-          setIsAdmin(null); // Not on admin route
-        }
-      } else {
-        setIsAdmin(false);
-        if (pathname.startsWith('/admin')) {
-          router.push('/admin/login');
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, [pathname, router]);
+  const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
-  const renderContent = () => {
-    if (loading || (pathname.startsWith('/admin') && isAdmin === null)) {
-      return (
-        <div className='p-8 space-y-4'>
-            <Skeleton className="h-[50px] w-1/2 rounded-xl" />
-            <Skeleton className="h-[150px] w-full rounded-xl" />
-            <Skeleton className="h-[300px] w-full rounded-xl" />
-        </div>
-      );
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
-    if (pathname.startsWith('/admin') && isAdmin === false) {
-      return <div className="p-8">Access Denied: You are not an admin.</div>;
-    }
-    return children;
-  }
+  };
 
-  const isAdminSection = pathname.startsWith('/admin') || pathname.startsWith('/profile');
+  // Determine user role based on path
+  const isAdminSection = pathname.startsWith('/admin');
   const isClientSection = pathname.startsWith('/client');
   const isCreatorSection = pathname.startsWith('/creator');
-  const id = (isClientSection || isCreatorSection) ? pathname.split('/')[2] : null;
-  
+
+  // Extract ID from path if present
+  const pathParts = pathname.split('/');
+  const id = pathParts.length > 2 ? pathParts[2] : null;
+
+  const SidebarMenuItem = ({ children }: { children: React.ReactNode }) => (
+    <div className="px-3 py-1">{children}</div>
+  );
+
+  const SidebarMenuButton = ({
+    asChild,
+    isActive,
+    children,
+    className
+  }: {
+    asChild?: boolean;
+    isActive?: boolean;
+    children: React.ReactNode;
+    className?: string;
+  }) => {
+    const Comp = asChild ? React.Fragment : 'button';
+    return (
+      <div className={cn(
+        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden",
+        isActive
+          ? "bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-600 dark:text-blue-400 font-medium shadow-sm border border-blue-100 dark:border-blue-900/30"
+          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+        className
+      )}>
+        {isActive && (
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-r-full" />
+        )}
+        {children}
+      </div>
+    );
+  };
+
+  const Sidebar = ({ children }: { children: React.ReactNode }) => (
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out glass-card border-r border-white/20 dark:border-white/10",
+        isCollapsed ? "w-20" : "w-64",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}
+    >
+      {children}
+    </aside>
+  );
+
+  const SidebarHeader = ({ children }: { children: React.ReactNode }) => (
+    <div className="h-16 flex items-center px-4 border-b border-white/10 dark:border-white/5">
+      {children}
+    </div>
+  );
+
+  const SidebarContent = ({ children }: { children: React.ReactNode }) => (
+    <div className="flex-1 overflow-y-auto py-4 custom-scrollbar no-scrollbar">
+      {children}
+    </div>
+  );
+
+  const SidebarFooter = ({ children }: { children: React.ReactNode }) => (
+    <div className="p-4 border-t border-white/10 dark:border-white/5 bg-white/5">
+      {children}
+    </div>
+  );
+
+  const SidebarMenu = ({ children }: { children: React.ReactNode }) => (
+    <nav className="space-y-1">{children}</nav>
+  );
+
+  const UserProfile = () => (
+    <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full ring-2 ring-white/20 hover:ring-blue-500/50 transition-all">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=random`} alt={user?.email || ''} />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56 glass-card" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">User</p>
+              <p className="text-xs leading-none text-muted-foreground">
+                {user?.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+            {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+            <span>Toggle Theme</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {!isCollapsed && (
+        <div className="flex flex-col overflow-hidden transition-all duration-300">
+          <span className="text-sm font-medium truncate">My Account</span>
+          <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const NotificationBell = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative hover:bg-secondary/50 rounded-full">
+          <Bell className="h-5 w-5" />
+          <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80 glass-card z-[100]">
+        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <div className="p-4 text-center text-muted-foreground text-sm">
+          No new notifications
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const MobileTabs = () => {
+    if (!isMobileMenuOpen) return null;
+    return (
+      <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden" onClick={toggleMobileMenu} />
+    );
+  };
+
+  const renderContent = () => children;
 
   return (
-    <div className="flex h-screen bg-muted/40 overflow-hidden">
-      <Sidebar className="hidden md:flex">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
+      {/* Mobile Header */}
+      <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
+            <Menu className="h-6 w-6" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg">
+              <Rocket className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-bold text-lg tracking-tight">ProFlow</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <UserProfile />
+        </div>
+      </header>
+
+      <Sidebar>
         <SidebarHeader>
-          <Rocket className="w-6 h-6 text-primary" />
-          {!isCollapsed && <h1 className="text-xl font-semibold">ProFlow</h1>}
+          <div className={cn("flex items-center justify-between w-full transition-all duration-300", isCollapsed ? "justify-center" : "")}>
+            {!isCollapsed && (
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg shadow-lg shadow-blue-500/20">
+                  <Rocket className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProFlow</span>
+              </div>
+            )}
+            {isCollapsed && (
+              <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg shadow-lg shadow-blue-500/20">
+                <Rocket className="w-6 h-6 text-white" />
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="hidden lg:flex hover:bg-secondary/50 rounded-full"
+            >
+              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </div>
         </SidebarHeader>
+
         <SidebarContent>
           <SidebarMenu>
             {isAdminSection && (
@@ -213,8 +283,8 @@ const DashboardContent = ({
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === '/admin'}>
                     <Link href="/admin">
-                      <Home />
-                      <span className={isCollapsed ? 'hidden' : ''}>Admin Dashboard</span>
+                      <LayoutDashboard />
+                      <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -367,6 +437,14 @@ const DashboardContent = ({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/feedback`)}>
+                    <Link href={`/client/${id}/feedback`}>
+                      <MessageSquare />
+                      <span className={isCollapsed ? 'hidden' : ''}>Send Feedback</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </>
             )}
             {isCreatorSection && user && id && (
@@ -379,7 +457,7 @@ const DashboardContent = ({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                 <SidebarMenuItem>
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/tasks`)}>
                     <Link href={`/creator/${id}/tasks`}>
                       <ListChecks />
@@ -395,6 +473,14 @@ const DashboardContent = ({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/feedback`)}>
+                    <Link href={`/creator/${id}/feedback`}>
+                      <MessageSquare />
+                      <span className={isCollapsed ? 'hidden' : ''}>Send Feedback</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </>
             )}
           </SidebarMenu>
@@ -403,35 +489,28 @@ const DashboardContent = ({
           <UserProfile />
         </SidebarFooter>
       </Sidebar>
-      <div className={cn(
-        "flex flex-col flex-1 w-full lg:pl-64 overflow-x-hidden min-w-0",
-        isCollapsed && "lg:pl-16",
-        "transition-all duration-300 ease-in-out"
-      )}>
-        <header className="sticky-header flex items-center justify-between p-4 h-16 min-w-0">
-            {/* ProFlow Logo for Mobile */}
-            <div className="flex items-center md:hidden min-w-0">
-              <Rocket className="w-6 h-6 text-primary mr-2 flex-shrink-0" />
-              <h1 className="text-lg font-semibold truncate">ProFlow</h1>
-            </div>
 
-            {/* Desktop keeps the right-aligned content */}
-            <div className="flex items-center gap-4 md:ml-auto flex-shrink-0">
-              {user && <NotificationBell />}
-            </div>
+      <div className={cn(
+        "flex flex-col flex-1 w-full lg:pl-64 overflow-x-hidden min-w-0 transition-all duration-300 ease-in-out",
+        isCollapsed && "lg:pl-20"
+      )}>
+        <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6 glass-card border-b border-white/20 dark:border-white/10">
+          <div className="flex items-center gap-4">
+            {/* Breadcrumbs or Page Title could go here */}
+          </div>
+          <div className="flex items-center gap-4">
+            <NotificationBell />
+          </div>
         </header>
-        <main className="flex-1 scrollable-content min-w-0">
-          <div className="p-4 sm:p-6 lg:p-8 mx-auto max-w-7xl content-area pb-32 md:pb-8 animate-fade-in min-w-0">
-            <div className="animate-slide-up min-w-0">
-              {renderContent()}
-            </div>
+
+        <main className="flex-1 scrollable-content p-4 sm:p-6 lg:p-8 animate-fade-in">
+          <div className="max-w-7xl mx-auto pb-32 md:pb-8">
+            {renderContent()}
           </div>
         </main>
       </div>
 
-      {/* Mobile Tab Navigation */}
       <MobileTabs />
     </div>
   );
 };
-  

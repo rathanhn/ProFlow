@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Rocket, Eye, EyeOff } from 'lucide-react';
-import { signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { Rocket, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { getAdminByEmail } from '@/lib/firebase-service';
@@ -20,10 +20,12 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
+    setIsLoading(true);
     try {
-      await setPersistence(auth, browserSessionPersistence);
+      await setPersistence(auth, browserLocalPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('Signed in user:', userCredential.user);
       // Check for admin tag
@@ -50,18 +52,20 @@ export default function LoginPage() {
         description: 'Invalid credentials. Please make sure you have created an admin user in your Firebase project.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md mx-auto shadow-2xl">
         <CardHeader className="text-center">
-            <div className="flex justify-center items-center mb-4">
-                <div className="p-3 bg-primary rounded-full">
-                    <Rocket className="w-8 h-8 text-primary-foreground" />
-                </div>
+          <div className="flex justify-center items-center mb-4">
+            <div className="p-3 bg-primary rounded-full">
+              <Rocket className="w-8 h-8 text-primary-foreground" />
             </div>
+          </div>
           <CardTitle className="text-3xl font-bold">ProFlow - Admin</CardTitle>
           <CardDescription>Sign in to the admin dashboard.</CardDescription>
         </CardHeader>
@@ -76,23 +80,30 @@ export default function LoginPage() {
               <div className="relative flex items-center">
                 <Input id="password" type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} className="pr-10" />
                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
           </div>
           <div className="mt-6 space-y-2">
-            <Button onClick={handleLogin} className="w-full">
-              Login
+            <Button onClick={handleLogin} className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                'Login'
+              )}
             </Button>
           </div>
-           <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-center text-sm">
             Are you a client?{' '}
             <Link href="/" className="underline">
               Login here

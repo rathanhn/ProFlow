@@ -30,13 +30,13 @@ import { ToastProvider } from '@/components/ui/toast-system';
 import { useDeletion } from '@/hooks/use-deletion';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
 import { Assignee } from '@/lib/types';
-import { 
-  Eye, 
-  Mail, 
-  Phone, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2 
+import {
+  Eye,
+  Mail,
+  Phone,
+  MoreHorizontal,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import TeamActions from './TeamActions';
@@ -82,7 +82,7 @@ function TeamPageClientContent({ initialAssignees }: TeamPageClientProps) {
   }) => {
     await deleteCreator(options);
     setDeletionDialog({ isOpen: false, creator: null, deletionData: null });
-    
+
     // Remove the deleted creator from the list
     setAssignees(prev => prev.filter(assignee => assignee.id !== options.id));
   };
@@ -94,14 +94,14 @@ function TeamPageClientContent({ initialAssignees }: TeamPageClientProps) {
   return (
     <>
       {/* Mobile View */}
-      <Card className="md:hidden">
+      <Card className="md:hidden glass-card border-white/20 dark:border-white/10">
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
           <CardDescription>Manage your team members and their roles.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {assignees.map((assignee) => (
-            <div key={assignee.id} className="flex items-center justify-between p-4 border rounded-lg">
+            <div key={assignee.id} className="flex items-center justify-between p-4 border rounded-lg border-white/10 bg-white/5">
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarImage src={assignee.avatar} />
@@ -132,7 +132,7 @@ function TeamPageClientContent({ initialAssignees }: TeamPageClientProps) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => handleDeleteClick(assignee)}
                     className="text-red-600 focus:text-red-600"
                   >
@@ -147,7 +147,7 @@ function TeamPageClientContent({ initialAssignees }: TeamPageClientProps) {
       </Card>
 
       {/* Desktop View */}
-      <Card className="hidden md:block">
+      <Card className="hidden md:block glass-card border-white/20 dark:border-white/10">
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
           <CardDescription>Manage your team members and their roles.</CardDescription>
@@ -187,11 +187,11 @@ function TeamPageClientContent({ initialAssignees }: TeamPageClientProps) {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{assignee.phone || 'N/A'}</span>
+                      <span>{assignee.mobile || 'N/A'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <TeamActions assignee={assignee} action="copy" />
+                    <TeamActions assignee={assignee} />
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -214,7 +214,7 @@ function TeamPageClientContent({ initialAssignees }: TeamPageClientProps) {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteClick(assignee)}
                           className="text-red-600 focus:text-red-600"
                         >

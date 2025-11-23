@@ -8,12 +8,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,22 +22,22 @@ import { updateClientPassword } from '@/lib/firebase-client-service';
 import { KeyRound, Eye, EyeOff, User as UserIcon, LogOut, AlertTriangle } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ImageUploader from '@/components/ImageUploader';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User } from 'firebase/auth';
 import { auth, clientAuth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { updateProfile } from 'firebase/auth';
 
@@ -51,15 +51,15 @@ const passwordFormSchema = z.object({
 });
 
 const profileFormSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
+    name: z.string().min(2, 'Name must be at least 2 characters.'),
+    avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
 });
 
 
 function SettingsForm() {
     const { toast } = useToast();
     const router = useRouter();
-    const { user, loading: userLoading } = useSidebar();
+    const { user, loading: userLoading } = useAuth();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -85,7 +85,7 @@ function SettingsForm() {
         const currentUser = auth.currentUser;
         if (currentUser) {
             console.log('[Form Init] Current auth user:', currentUser.displayName, currentUser.photoURL);
-            
+
             // If the user doesn't have displayName set, set it to a default value
             if (!currentUser.displayName) {
                 console.log('[Form Init] Setting initial displayName for admin user');
@@ -98,7 +98,7 @@ function SettingsForm() {
                     console.error('[Form Init] Failed to set initial displayName:', error);
                 });
             }
-            
+
             profileForm.reset({
                 name: currentUser.displayName || 'Admin',
                 avatar: currentUser.photoURL || '',
@@ -153,33 +153,33 @@ function SettingsForm() {
     async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
         const currentUser = auth.currentUser;
         if (!currentUser) {
-             toast({ title: 'Not Authenticated', description: 'You must be logged in to update your profile.', variant: 'destructive' });
-             return;
+            toast({ title: 'Not Authenticated', description: 'You must be logged in to update your profile.', variant: 'destructive' });
+            return;
         }
 
         try {
             console.log('[Profile Update] Starting update with values:', values);
             console.log('[Profile Update] Current user before update:', currentUser.displayName, currentUser.photoURL);
-            
+
             // Update the Firebase Auth user profile directly
             await updateProfile(currentUser, {
                 displayName: values.name,
                 photoURL: values.avatar
             });
-            
+
             console.log('[Profile Update] Profile updated successfully');
-            
+
             // Force a re-render by reloading the current user
             await currentUser.reload();
-            
+
             console.log('[Profile Update] User after reload:', currentUser.displayName, currentUser.photoURL);
-            
+
             // Force the sidebar to refresh by triggering a small delay
             setTimeout(() => {
                 const updatedUser = auth.currentUser;
                 console.log('[Profile Update] User after timeout:', updatedUser?.displayName, updatedUser?.photoURL);
             }, 500);
-            
+
             toast({
                 title: 'Profile Updated!',
                 description: 'Your profile information has been saved.',
@@ -190,7 +190,7 @@ function SettingsForm() {
             toast({ title: 'Error', description: 'Failed to update profile. Please try again.', variant: 'destructive' });
         }
     }
-    
+
     if (userLoading) {
         return (
             <div className="space-y-6">
@@ -210,22 +210,22 @@ function SettingsForm() {
                         </div>
                     </CardContent>
                 </Card>
-                 <Card>
+                <Card>
                     <CardHeader>
-                         <Skeleton className="h-6 w-1/4" />
-                         <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-4 w-1/2" />
                     </CardHeader>
                     <CardContent>
-                         <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
                     </CardContent>
                 </Card>
-                 <Card>
+                <Card>
                     <CardHeader>
-                         <Skeleton className="h-6 w-1/4" />
-                         <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-4 w-1/2" />
                     </CardHeader>
                     <CardContent>
-                         <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
                     </CardContent>
                 </Card>
             </div>
@@ -233,193 +233,193 @@ function SettingsForm() {
     }
 
     return (
-         <div className="space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Admin Profile</CardTitle>
-                        <CardDescription>Update your administrator name and avatar.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Form {...profileForm}>
-                            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6 max-w-md">
-                               <FormField
-                                  control={profileForm.control}
-                                  name="avatar"
-                                  render={({ field }) => (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Admin Profile</CardTitle>
+                    <CardDescription>Update your administrator name and avatar.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...profileForm}>
+                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6 max-w-md">
+                            <FormField
+                                control={profileForm.control}
+                                name="avatar"
+                                render={({ field }) => (
                                     <FormItem className="flex flex-col items-center">
-                                      <FormControl>
-                                        <ImageUploader 
-                                          value={field.value} 
-                                          onChange={field.onChange} 
-                                          fallbackText={profileForm.getValues('name')?.charAt(0) || 'A'}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
+                                        <FormControl>
+                                            <ImageUploader
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                fallbackText={profileForm.getValues('name')?.charAt(0) || 'A'}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
                                     </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                    control={profileForm.control}
-                                    name="name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Admin Name</FormLabel>
-                                            <FormControl>
-                                                <div className="relative flex items-center">
-                                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input placeholder="Enter your full name" {...field} className="pl-10"/>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 <div className="flex justify-end">
-                                    <Button type="submit" disabled={profileForm.formState.isSubmitting || userLoading}>
-                                        {profileForm.formState.isSubmitting ? "Saving..." : "Save Changes"}
-                                    </Button>
-                                </div>
-                            </form>
-                        </Form>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Appearance</CardTitle>
-                        <CardDescription>
-                            Customize the look and feel of your dashboard.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-between">
-                       <p className="text-sm font-medium">Toggle dark, light, or system theme</p>
-                       <ThemeToggle />
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Change Password</CardTitle>
-                        <CardDescription>
-                            Enter a new password for your account below.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Form {...passwordForm}>
-                            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6 max-w-md">
-                                <FormField
-                                    control={passwordForm.control}
-                                    name="newPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>New Password</FormLabel>
-                                            <FormControl>
-                                                <div className="relative flex items-center">
-                                                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input type={showNewPassword ? 'text' : 'password'} placeholder="Enter new password" {...field} className="pl-10 pr-10" />
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                                        >
-                                                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                    </Button>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={passwordForm.control}
-                                    name="confirmPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Confirm New Password</FormLabel>
-                                            <FormControl>
-                                                 <div className="relative flex items-center">
-                                                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                    <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                        >
-                                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                    </Button>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <div className="flex justify-end">
-                                    <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
-                                        {passwordForm.formState.isSubmitting ? "Updating..." : "Update Password"}
-                                    </Button>
-                                </div>
-                            </form>
-                        </Form>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-destructive/20">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-destructive">
-                            <AlertTriangle className="h-5 w-5" />
-                            Danger Zone
-                        </CardTitle>
-                        <CardDescription>
-                            Actions that will log you out of your account.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-                            <div>
-                                <h4 className="font-medium text-sm">Sign Out</h4>
-                                <p className="text-xs text-muted-foreground">
-                                    Log out of your admin account and return to the login page.
-                                </p>
+                                )}
+                            />
+                            <FormField
+                                control={profileForm.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Admin Name</FormLabel>
+                                        <FormControl>
+                                            <div className="relative flex items-center">
+                                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input placeholder="Enter your full name" {...field} className="pl-10" />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="flex justify-end">
+                                <Button type="submit" disabled={profileForm.formState.isSubmitting || userLoading}>
+                                    {profileForm.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                                </Button>
                             </div>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        disabled={isLoggingOut}
-                                        className="ml-4"
-                                    >
-                                        <LogOut className="h-4 w-4 mr-2" />
-                                        {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            You will be logged out of your admin account and redirected to the login page.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            onClick={handleLogout}
-                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                        >
-                                            Sign Out
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
 
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>
+                        Customize the look and feel of your dashboard.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Toggle dark, light, or system theme</p>
+                    <ThemeToggle />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Change Password</CardTitle>
+                    <CardDescription>
+                        Enter a new password for your account below.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...passwordForm}>
+                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6 max-w-md">
+                            <FormField
+                                control={passwordForm.control}
+                                name="newPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>New Password</FormLabel>
+                                        <FormControl>
+                                            <div className="relative flex items-center">
+                                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input type={showNewPassword ? 'text' : 'password'} placeholder="Enter new password" {...field} className="pl-10 pr-10" />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                                >
+                                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={passwordForm.control}
+                                name="confirmPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Confirm New Password</FormLabel>
+                                        <FormControl>
+                                            <div className="relative flex items-center">
+                                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                >
+                                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="flex justify-end">
+                                <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
+                                    {passwordForm.formState.isSubmitting ? "Updating..." : "Update Password"}
+                                </Button>
+                            </div>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
+
+            <Card className="border-destructive/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-destructive">
+                        <AlertTriangle className="h-5 w-5" />
+                        Danger Zone
+                    </CardTitle>
+                    <CardDescription>
+                        Actions that will log you out of your account.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                        <div>
+                            <h4 className="font-medium text-sm">Sign Out</h4>
+                            <p className="text-xs text-muted-foreground">
+                                Log out of your admin account and return to the login page.
+                            </p>
+                        </div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={isLoggingOut}
+                                    className="ml-4"
+                                >
+                                    <LogOut className="h-4 w-4 mr-2" />
+                                    {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        You will be logged out of your admin account and redirected to the login page.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={handleLogout}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                        Sign Out
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </CardContent>
+            </Card>
+
+        </div>
     )
 }
 

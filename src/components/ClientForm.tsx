@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addClient, updateClient } from '@/lib/firebase-service';
 import React from 'react';
 import ImageUploader from './ImageUploader';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
@@ -38,6 +39,7 @@ interface ClientFormProps {
 export default function ClientForm({ client, redirectPath }: ClientFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,35 +53,38 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     try {
-        const finalValues = {
-            ...values,
-            avatar: values.avatar || `https://placehold.co/128x128.png?text=${values.name.charAt(0)}`
-        };
+      const finalValues = {
+        ...values,
+        avatar: values.avatar || `https://placehold.co/128x128.png?text=${values.name.charAt(0)}`
+      };
 
-        if (client) {
-            await updateClient(client.id, finalValues);
-            toast({
-                title: 'Client Updated!',
-                description: `Client "${values.name}" has been saved.`,
-            });
-        } else {
-            await addClient(finalValues as Omit<Client, 'id'>);
-            toast({
-                title: 'Client Created!',
-                description: `An invitation email has been sent to "${values.name}".`,
-            });
-        }
-        const targetPath = redirectPath || '/admin/clients';
-        router.push(targetPath);
-        router.refresh();
-    } catch (error: unknown) {
-        console.error("Failed to save client:", error);
+      if (client) {
+        await updateClient(client.id, finalValues);
         toast({
-            title: 'Error',
-            description: error instanceof Error ? error.message : 'Failed to save client. Please try again.',
-            variant: 'destructive'
-        })
+          title: 'Client Updated!',
+          description: `Client "${values.name}" has been saved.`,
+        });
+      } else {
+        await addClient(finalValues as Omit<Client, 'id'>);
+        toast({
+          title: 'Client Created!',
+          description: `An invitation email has been sent to "${values.name}".`,
+        });
+      }
+      const targetPath = redirectPath || '/admin/clients';
+      router.push(targetPath);
+      router.refresh();
+    } catch (error: unknown) {
+      console.error("Failed to save client:", error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save client. Please try again.',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -97,94 +102,103 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-             <FormField
-              control={form.control}
-              name="avatar"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <FormLabel>Profile Picture</FormLabel>
-                  <FormControl>
-                    <ImageUploader 
-                      value={field.value} 
-                      onChange={field.onChange} 
-                      fallbackText={form.getValues('name')?.charAt(0) || 'C'}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Client Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Innovate Corp" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="client@example.com" {...field} disabled={!!client} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="defaultRate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Default Rate per Page (₹)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="100"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-sm text-muted-foreground">
-                    This rate will be used as default when creating new tasks for this client
-                  </p>
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => router.back()}>
-                Cancel
-              </Button>
-              <Button type="submit">{client ? 'Update Client' : 'Create Client'}</Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <FormLabel>Profile Picture</FormLabel>
+                    <FormControl>
+                      <ImageUploader
+                        value={field.value}
+                        onChange={field.onChange}
+                        fallbackText={form.getValues('name')?.charAt(0) || 'C'}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Innovate Corp" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="client@example.com" {...field} disabled={!!client} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="defaultRate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Rate per Page (₹)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="100"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-sm text-muted-foreground">
+                      This rate will be used as default when creating new tasks for this client
+                    </p>
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {client ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    client ? 'Update Client' : 'Create Client'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

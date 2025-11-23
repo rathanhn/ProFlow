@@ -29,16 +29,16 @@ import { useToast } from '@/hooks/use-toast';
 import { addTask, updateTask, getClients, getTasks, getAssignees, addAssignee, createNotification } from '@/lib/firebase-service';
 import React, { useState } from 'react';
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-    DialogTrigger,
-    DialogClose,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
 } from '@/components/ui/dialog';
-import { DollarSign, PlusCircle } from 'lucide-react';
+import { DollarSign, PlusCircle, Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import PaymentDialog from './PaymentDialog';
 import FileUpload from './FileUpload';
@@ -61,8 +61,8 @@ const formSchema = z.object({
 });
 
 const newAssigneeSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters."),
-    email: z.string().email("Please enter a valid email.").optional(),
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  email: z.string().email("Please enter a valid email.").optional(),
 });
 
 interface TaskFormProps {
@@ -78,21 +78,21 @@ export default function TaskForm({ task }: TaskFormProps) {
   const [newAssigneeName, setNewAssigneeName] = useState("");
   const [newAssigneeEmail, setNewAssigneeEmail] = useState("");
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchClients = React.useCallback(async () => {
-      const clientData = await getClients();
-      setClients(clientData);
+    const clientData = await getClients();
+    setClients(clientData);
   }, []);
 
   const fetchAssignees = React.useCallback(async () => {
-      const assigneeData = await getAssignees();
-      setAssignees(assigneeData);
+    const assigneeData = await getAssignees();
+    setAssignees(assigneeData);
   }, []);
 
-
   React.useEffect(() => {
-      fetchClients();
-      fetchAssignees();
+    fetchClients();
+    fetchAssignees();
   }, [fetchClients, fetchAssignees]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -107,143 +107,164 @@ export default function TaskForm({ task }: TaskFormProps) {
       notes: task?.notes || '',
       projectFileLink: task?.projectFileLink || '',
       outputFileLink: task?.outputFileLink || '',
-      acceptedDate: task?.acceptedDate?.split('T')[0] ?? '', // Format date for input type="date"
-      submissionDate: task?.submissionDate?.split('T')[0] ?? '', // Format date for input type="date"
+      acceptedDate: task?.acceptedDate?.split('T')[0] ?? '',
+      submissionDate: task?.submissionDate?.split('T')[0] ?? '',
     },
   });
 
+  // Watch for client selection to auto-set rate
+  const selectedClientName = form.watch('clientName');
+  React.useEffect(() => {
+    if (selectedClientName && !task) { // Only auto-set on new tasks
+      const client = clients.find(c => c.name === selectedClientName);
+      if (client && client.defaultRate) {
+        form.setValue('rate', client.defaultRate);
+        toast({
+          title: "Rate Updated",
+          description: `Rate set to ₹${client.defaultRate} based on client default.`,
+        });
+      }
+    }
+  }, [selectedClientName, clients, form, task, toast]);
+
+  // Watch values for live calculation
+  const pages = form.watch('pages');
+  const rate = form.watch('rate');
+  const calculatedTotal = (pages || 0) * (rate || 0);
+
   const handleAddAssignee = async () => {
     try {
-        const validation = newAssigneeSchema.safeParse({ name: newAssigneeName, email: newAssigneeEmail });
-        if (!validation.success) {
-            toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
-            return;
-        }
+      const validation = newAssigneeSchema.safeParse({ name: newAssigneeName, email: newAssigneeEmail });
+      if (!validation.success) {
+        toast({ title: "Invalid Input", description: validation.error.errors[0].message, variant: 'destructive' });
+        return;
+      }
 
-        const newAssignee = await addAssignee({ name: newAssigneeName, email: newAssigneeEmail });
-        await fetchAssignees(); // Re-fetch the list
-        form.setValue('assigneeId', newAssignee.id); // Set the newly added assignee as selected
-        toast({ title: "Creator Added", description: `${newAssignee.name} has been added to the team.` });
-        setNewAssigneeName("");
-        setNewAssigneeEmail("");
-        setAddAssigneeDialogOpen(false); // Close the dialog
+      const newAssignee = await addAssignee({ name: newAssigneeName, email: newAssigneeEmail });
+      await fetchAssignees(); // Re-fetch the list
+      form.setValue('assigneeId', newAssignee.id); // Set the newly added assignee as selected
+      toast({ title: "Creator Added", description: `${newAssignee.name} has been added to the team.` });
+      setNewAssigneeName("");
+      setNewAssigneeEmail("");
+      setAddAssigneeDialogOpen(false); // Close the dialog
     } catch (error) {
-        console.error("Failed to add assignee:", error);
-        toast({ title: 'Error', description: 'Failed to add creator.', variant: 'destructive' });
+      console.error("Failed to add assignee:", error);
+      toast({ title: 'Error', description: 'Failed to add creator.', variant: 'destructive' });
     }
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     try {
-        const client = clients.find(c => c.name === values.clientName);
-        if (!client) {
-            toast({
-                title: 'Error',
-                description: 'Selected client not found.',
-                variant: 'destructive'
-            });
-            return;
-        }
-
-        const assignee = assignees.find(a => a.id === values.assigneeId);
-
-        const finalValues = {
-            ...values,
-            assigneeId: assignee && assignee.id !== 'unassigned' ? assignee.id : '',
-            assigneeName: assignee && assignee.id !== 'unassigned' ? assignee.name : '',
-        };
-
-        if (task) {
-             const taskData = {
-                ...finalValues,
-                clientId: client.id,
-                total: values.pages * values.rate,
-                workStatus: values.workStatus as WorkStatus,
-            };
-            await updateTask(task.id, taskData);
-            toast({
-                title: 'Task Updated!',
-                description: `Project "${values.projectName}" has been saved.`,
-            });
-            
-            // Notify if assignee changed
-            if (taskData.assigneeId && taskData.assigneeId !== task.assigneeId) {
-                await createNotification({
-                    userId: taskData.assigneeId,
-                    message: `You have been assigned a new task: ${taskData.projectName}.`,
-                    link: `/creator/${taskData.assigneeId}/tasks/${task.id}`,
-                    isRead: false,
-                    createdAt: new Date().toISOString(),
-                });
-            }
-
-            // Notify client on file uploads
-            if (values.projectFileLink && values.projectFileLink !== task.projectFileLink) {
-                 await createNotification({
-                    userId: client.id,
-                    message: `A new project file was uploaded for: ${task.projectName}.`,
-                    link: `/client/${client.id}/projects/${task.id}`,
-                    isRead: false,
-                    createdAt: new Date().toISOString(),
-                });
-            }
-             if (values.outputFileLink && values.outputFileLink !== task.outputFileLink) {
-                 await createNotification({
-                    userId: client.id,
-                    message: `A new output file was uploaded for: ${task.projectName}.`,
-                    link: `/client/${client.id}/projects/${task.id}`,
-                    isRead: false,
-                    createdAt: new Date().toISOString(),
-                });
-            }
-
-
-        } else {
-            const newTaskData = {
-                ...finalValues,
-                clientId: client.id,
-                total: values.pages * values.rate,
-                workStatus: values.workStatus as WorkStatus,
-                paymentStatus: 'Unpaid' as PaymentStatus,
-                amountPaid: 0,
-                acceptedDate: new Date().toISOString(),
-                submissionDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
-                slNo: (await getTasks()).length + 1
-            }
-            const addedTask = await addTask(newTaskData as Omit<Task, 'id'>);
-            toast({
-                title: 'Task Created!',
-                description: `Project "${values.projectName}" has been added.`,
-            });
-            
-            // Notify if assigned on creation
-            if (addedTask && newTaskData.assigneeId) {
-                 await createNotification({
-                    userId: newTaskData.assigneeId,
-                    message: `You have been assigned a new task: ${newTaskData.projectName}.`,
-                    link: `/creator/${newTaskData.assigneeId}/tasks/${addedTask.id}`,
-                    isRead: false,
-                    createdAt: new Date().toISOString(),
-                });
-            }
-        }
-
-        // Redirect based on whether we're creating or editing
-        if (task) {
-            // For editing, go back to the task detail page
-            router.push(`/admin/tasks/${task.id}`);
-        } else {
-            // For creating, go to the tasks list
-            router.push('/admin/tasks');
-        }
-        router.refresh();
-    } catch (error) {
-        console.error("Failed to save task:", error);
+      const client = clients.find(c => c.name === values.clientName);
+      if (!client) {
         toast({
-            title: 'Error',
-            description: 'Failed to save task. Please try again.',
-            variant: 'destructive'
+          title: 'Error',
+          description: 'Selected client not found.',
+          variant: 'destructive'
         });
+        return;
+      }
+
+      const assignee = assignees.find(a => a.id === values.assigneeId);
+
+      const finalValues = {
+        ...values,
+        assigneeId: assignee && assignee.id !== 'unassigned' ? assignee.id : '',
+        assigneeName: assignee && assignee.id !== 'unassigned' ? assignee.name : '',
+      };
+
+      if (task) {
+        const taskData = {
+          ...finalValues,
+          clientId: client.id,
+          total: values.pages * values.rate,
+          workStatus: values.workStatus as WorkStatus,
+        };
+        await updateTask(task.id, taskData);
+        toast({
+          title: 'Task Updated!',
+          description: `Project "${values.projectName}" has been saved.`,
+        });
+
+        // Notify if assignee changed
+        if (taskData.assigneeId && taskData.assigneeId !== task.assigneeId) {
+          await createNotification({
+            userId: taskData.assigneeId,
+            message: `You have been assigned a new task: ${taskData.projectName}.`,
+            link: `/creator/${taskData.assigneeId}/tasks/${task.id}`,
+            isRead: false,
+            createdAt: new Date().toISOString(),
+          });
+        }
+
+        // Notify client on file uploads
+        if (values.projectFileLink && values.projectFileLink !== task.projectFileLink) {
+          await createNotification({
+            userId: client.id,
+            message: `A new project file was uploaded for: ${task.projectName}.`,
+            link: `/client/${client.id}/projects/${task.id}`,
+            isRead: false,
+            createdAt: new Date().toISOString(),
+          });
+        }
+        if (values.outputFileLink && values.outputFileLink !== task.outputFileLink) {
+          await createNotification({
+            userId: client.id,
+            message: `A new output file was uploaded for: ${task.projectName}.`,
+            link: `/client/${client.id}/projects/${task.id}`,
+            isRead: false,
+            createdAt: new Date().toISOString(),
+          });
+        }
+
+
+      } else {
+        const newTaskData = {
+          ...finalValues,
+          clientId: client.id,
+          total: values.pages * values.rate,
+          workStatus: values.workStatus as WorkStatus,
+          paymentStatus: 'Unpaid' as PaymentStatus,
+          amountPaid: 0,
+          acceptedDate: values.acceptedDate ? new Date(values.acceptedDate).toISOString() : new Date().toISOString(),
+          submissionDate: values.submissionDate ? new Date(values.submissionDate).toISOString() : new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
+          slNo: (await getTasks()).length + 1
+        }
+        const addedTask = await addTask(newTaskData as Omit<Task, 'id'>);
+        toast({
+          title: 'Task Created!',
+          description: `Project "${values.projectName}" has been added.`,
+        });
+
+        // Notify if assigned on creation
+        if (addedTask && newTaskData.assigneeId) {
+          await createNotification({
+            userId: newTaskData.assigneeId,
+            message: `You have been assigned a new task: ${newTaskData.projectName}.`,
+            link: `/creator/${newTaskData.assigneeId}/tasks/${addedTask.id}`,
+            isRead: false,
+            createdAt: new Date().toISOString(),
+          });
+        }
+      }
+
+      // Redirect based on whether we're creating or editing
+      if (task) {
+        // For editing, go back to the task detail page
+        router.push(`/admin/tasks/${task.id}`);
+      } else {
+        // For creating, go to the tasks list
+        router.push('/admin/tasks');
+      }
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to save task:", error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save task. Please try again.',
+        variant: 'destructive'
+      });
     }
   }
 
@@ -251,18 +272,18 @@ export default function TaskForm({ task }: TaskFormProps) {
     <>
       <Card>
         <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                <div>
-                    <CardTitle>{task ? 'Edit Task' : 'Create a New Task'}</CardTitle>
-                    <CardDescription>{task ? 'Update task details and payment status.' : 'Fill in the form to create a new task.'}</CardDescription>
-                </div>
-                 {task && (
-                    <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)} className="w-full sm:w-auto">
-                        <DollarSign className="mr-2 h-4 w-4" />
-                        Update Payment
-                    </Button>
-                )}
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div>
+              <CardTitle>{task ? 'Edit Task' : 'Create a New Task'}</CardTitle>
+              <CardDescription>{task ? 'Update task details and payment status.' : 'Fill in the form to create a new task.'}</CardDescription>
             </div>
+            {task && (
+              <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)} className="w-full sm:w-auto">
+                <DollarSign className="mr-2 h-4 w-4" />
+                Update Payment
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -330,42 +351,42 @@ export default function TaskForm({ task }: TaskFormProps) {
                           </SelectContent>
                         </Select>
                         <Dialog open={isAddAssigneeDialogOpen} onOpenChange={setAddAssigneeDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button type="button" variant="outline" size="icon">
-                                    <PlusCircle className="h-4 w-4" />
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Add New Creator</DialogTitle>
-                                    <DialogDescription>
-                                        Enter the details for the new creator. They will then be available for assignment.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="new-assignee-name">Name</Label>
-                                        <Input id="new-assignee-name" value={newAssigneeName} onChange={(e) => setNewAssigneeName(e.target.value)} placeholder="e.g. Alex" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="new-assignee-email">Email (Optional)</Label>
-                                        <Input id="new-assignee-email" type="email" value={newAssigneeEmail} onChange={(e) => setNewAssigneeEmail(e.target.value)} placeholder="alex@example.com" />
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <DialogClose asChild>
-                                        <Button type="button" variant="outline">Cancel</Button>
-                                    </DialogClose>
-                                    <Button type="button" onClick={handleAddAssignee}>Add Creator</Button>
-                                </DialogFooter>
-                            </DialogContent>
+                          <DialogTrigger asChild>
+                            <Button type="button" variant="outline" size="icon">
+                              <PlusCircle className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add New Creator</DialogTitle>
+                              <DialogDescription>
+                                Enter the details for the new creator. They will then be available for assignment.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="new-assignee-name">Name</Label>
+                                <Input id="new-assignee-name" value={newAssigneeName} onChange={(e) => setNewAssigneeName(e.target.value)} placeholder="e.g. Alex" />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="new-assignee-email">Email (Optional)</Label>
+                                <Input id="new-assignee-email" type="email" value={newAssigneeEmail} onChange={(e) => setNewAssigneeEmail(e.target.value)} placeholder="alex@example.com" />
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button type="button" variant="outline">Cancel</Button>
+                              </DialogClose>
+                              <Button type="button" onClick={handleAddAssignee}>Add Creator</Button>
+                            </DialogFooter>
+                          </DialogContent>
                         </Dialog>
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                 <FormField
+                <FormField
                   control={form.control}
                   name="workStatus"
                   render={({ field }) => (
@@ -419,6 +440,17 @@ export default function TaskForm({ task }: TaskFormProps) {
                 />
               </div>
 
+              {/* Live Total Calculation */}
+              <div className="bg-muted/50 p-4 rounded-lg border flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Estimated Total</p>
+                  <p className="text-xs text-muted-foreground">Based on {pages || 0} pages at ₹{rate || 0}/page</p>
+                </div>
+                <div className="text-2xl font-bold text-primary">
+                  ₹{calculatedTotal.toLocaleString()}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -466,65 +498,75 @@ export default function TaskForm({ task }: TaskFormProps) {
                 )}
               />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <FormField
-                        control={form.control}
-                        name="projectFileLink"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Project File</FormLabel>
-                            <FormControl>
-                                <FileUpload 
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    folder="project_files"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="projectFileLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project File</FormLabel>
+                      <FormControl>
+                        <FileUpload
+                          value={field.value}
+                          onChange={field.onChange}
+                          folder="project_files"
                         />
-                     <FormField
-                        control={form.control}
-                        name="outputFileLink"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Output File</FormLabel>
-                            <FormControl>
-                                <FileUpload 
-                                     value={field.value}
-                                     onChange={field.onChange}
-                                     folder="output_files"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="outputFileLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Output File</FormLabel>
+                      <FormControl>
+                        <FileUpload
+                          value={field.value}
+                          onChange={field.onChange}
+                          folder="output_files"
                         />
-                </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => router.back()}>
+
+                <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
                   Cancel
                 </Button>
-                <Button type="submit">{task ? 'Update Task' : 'Create Task'}</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {task ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    task ? 'Update Task' : 'Create Task'
+                  )}
+                </Button>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
       {task && (
-        <PaymentDialog 
-            task={task} 
-            isOpen={isPaymentDialogOpen} 
-            onClose={() => {
-                setPaymentDialogOpen(false);
-                router.refresh(); // Refresh data on the edit page
-            }}
+        <PaymentDialog
+          task={task}
+          isOpen={isPaymentDialogOpen}
+          onClose={() => {
+            setPaymentDialogOpen(false);
+            router.refresh(); // Refresh data on the edit page
+          }}
         />
       )}
     </>
   );
 }
 
-    
+

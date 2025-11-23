@@ -2,12 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+html,
+body {
   font-family: 'Inter', sans-serif;
-  height: 100%;
+  min-height: 100vh;
   overflow-x: hidden;
-  overflow-y: hidden; /* Let the main container handle scrolling */
+  /* Scrolling enabled */
   scroll-behavior: smooth;
+  /* Gradient background for better contrast */
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-attachment: fixed;
+}
+
+.dark body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  background-attachment: fixed;
 }
 
 /* Ensure proper scrolling on mobile */
@@ -54,7 +63,8 @@ body {
 /* Ensure content is scrollable and doesn't get hidden behind FAB */
 .fab-safe-bottom {
   padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
-  min-height: 100vh; /* Ensure content takes full height */
+  min-height: 100vh;
+  /* Ensure content takes full height */
 }
 
 /* Prevent scroll issues on mobile */
@@ -66,7 +76,8 @@ body {
 .touch-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  touch-action: pan-y; /* Allow vertical scrolling */
+  touch-action: pan-y;
+  /* Allow vertical scrolling */
 }
 
 /* Main scrollable container - only this should have overflow */
@@ -96,7 +107,8 @@ body {
 }
 
 /* Ensure all interactive elements are touchable */
-.card-content, .table-container {
+.card-content,
+.table-container {
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   pointer-events: auto;
@@ -109,7 +121,7 @@ body {
   pointer-events: none;
 }
 
-.fab-container > * {
+.fab-container>* {
   pointer-events: auto;
 }
 
@@ -180,6 +192,7 @@ body {
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   }
+
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
@@ -212,13 +225,19 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   /* Enhanced typography */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 
@@ -339,6 +358,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -349,6 +369,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -360,6 +381,7 @@ body {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -371,6 +393,7 @@ body {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -382,6 +405,7 @@ body {
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -393,6 +417,7 @@ body {
     opacity: 0;
     transform: translateX(-100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -404,14 +429,17 @@ body {
     opacity: 0;
     transform: scale(0.3);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.05);
   }
+
   70% {
     opacity: 1;
     transform: scale(0.9);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);

@@ -60,7 +60,7 @@ export default function AdminAnalyticsPage() {
   const loadAnalytics = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch all data
       const [clients, tasks, transactions] = await Promise.all([
         getClients(),
@@ -75,30 +75,30 @@ export default function AdminAnalyticsPage() {
 
       // Revenue calculations
       const totalRevenue = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-      const monthlyTransactions = transactions.filter(t => 
+      const monthlyTransactions = transactions.filter(t =>
         new Date(t.transactionDate) >= thirtyDaysAgo
       );
       const monthlyRevenue = monthlyTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-      
+
       const previousMonthTransactions = transactions.filter(t => {
         const date = new Date(t.transactionDate);
         return date >= sixtyDaysAgo && date < thirtyDaysAgo;
       });
       const previousMonthRevenue = previousMonthTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-      
-      const monthlyGrowth = previousMonthRevenue > 0 
-        ? ((monthlyRevenue - previousMonthRevenue) / previousMonthRevenue) * 100 
+
+      const monthlyGrowth = previousMonthRevenue > 0
+        ? ((monthlyRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
         : 0;
 
       // Task calculations
       const totalTasks = tasks.length;
-      const completedTasks = tasks.filter(t => t.workStatus === 'completed').length;
-      const activeTasks = tasks.filter(t => 
-        ['pending', 'in-progress', 'under-review'].includes(t.workStatus)
+      const completedTasks = tasks.filter(t => t.workStatus === 'Completed').length;
+      const activeTasks = tasks.filter(t =>
+        ['Pending', 'In Progress'].includes(t.workStatus)
       ).length;
-      
+
       const overdueTasks = tasks.filter(t => {
-        if (t.workStatus === 'completed') return false;
+        if (t.workStatus === 'Completed') return false;
         return new Date(t.submissionDate) < now;
       }).length;
 
@@ -108,9 +108,9 @@ export default function AdminAnalyticsPage() {
       // Client calculations
       const totalClients = clients.length;
       const activeClients = clients.filter(client => {
-        return tasks.some(task => 
-          task.clientId === client.id && 
-          ['pending', 'in-progress', 'under-review'].includes(task.workStatus)
+        return tasks.some(task =>
+          task.clientId === client.id &&
+          ['Pending', 'In Progress'].includes(task.workStatus)
         );
       }).length;
 
@@ -217,7 +217,7 @@ export default function AdminAnalyticsPage() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className="glass-card border-white/20 dark:border-white/10">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -229,7 +229,7 @@ export default function AdminAnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-white/20 dark:border-white/10">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -251,7 +251,7 @@ export default function AdminAnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-white/20 dark:border-white/10">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -266,7 +266,7 @@ export default function AdminAnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-white/20 dark:border-white/10">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -284,7 +284,7 @@ export default function AdminAnalyticsPage() {
 
         {/* Detailed Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+          <Card className="glass-card border-white/20 dark:border-white/10">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5" />
@@ -326,7 +326,7 @@ export default function AdminAnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-white/20 dark:border-white/10">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />

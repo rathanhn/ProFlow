@@ -1,4 +1,4 @@
-import type {Config} from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 
 export default {
   darkMode: ['class'],
@@ -21,6 +21,70 @@ export default {
         headline: ['Inter', 'sans-serif'],
         code: ['monospace'],
       },
+      colors: {
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        chart: {
+          '1': 'hsl(var(--chart-1))',
+          '2': 'hsl(var(--chart-2))',
+          '3': 'hsl(var(--chart-3))',
+          '4': 'hsl(var(--chart-4))',
+          '5': 'hsl(var(--chart-5))',
+        },
+        gemini: {
+          primary: 'var(--gemini-primary)',
+          secondary: 'var(--gemini-secondary)',
+          accent: 'var(--gemini-accent)',
+          background: 'var(--gemini-background)',
+        },
+      },
+      backgroundImage: {
+        'gemini-gradient': 'var(--gemini-gradient)',
+        'gemini-mesh': 'var(--gemini-mesh)',
+        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
+      transitionTimingFunction: {
+        'android-standard': 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+        'android-decelerate': 'cubic-bezier(0.0, 0.0, 0.2, 1)',
+        'android-accelerate': 'cubic-bezier(0.4, 0.0, 1, 1)',
+        'android-sharp': 'cubic-bezier(0.4, 0.0, 0.6, 1)',
+      },
       animation: {
         // Android-style animations
         'android-fade-in': 'androidFadeIn 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
@@ -38,6 +102,11 @@ export default {
         'slide-in-left': 'slideInLeft 0.3s ease-out',
         'bounce': 'bounce 0.6s ease-out',
         'android-fab-scale': 'androidFabScale 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)',
+        'shimmer': 'shimmer 2s linear infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+        'float': 'float 6s ease-in-out infinite',
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
       },
       keyframes: {
         androidFadeIn: {
@@ -91,61 +160,18 @@ export default {
           '50%': { transform: 'scale(1.2)' },
           '100%': { transform: 'scale(1)' },
         },
-      },
-      transitionTimingFunction: {
-        'android-standard': 'cubic-bezier(0.4, 0.0, 0.2, 1)',
-        'android-decelerate': 'cubic-bezier(0.0, 0.0, 0.2, 1)',
-        'android-accelerate': 'cubic-bezier(0.4, 0.0, 1, 1)',
-        'android-sharp': 'cubic-bezier(0.4, 0.0, 0.6, 1)',
-      },
-      colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+        shimmer: {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
         },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+        glow: {
+          '0%': { boxShadow: '0 0 5px var(--gemini-accent), 0 0 10px var(--gemini-accent)' },
+          '100%': { boxShadow: '0 0 20px var(--gemini-accent), 0 0 30px var(--gemini-accent)' },
         },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
-      },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
-      keyframes: {
         'accordion-down': {
           from: {
             height: '0',
@@ -163,11 +189,7 @@ export default {
           },
         },
       },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-      },
     },
   },
   plugins: [require('tailwindcss-animate')],
-} satisfies Config;
+};
