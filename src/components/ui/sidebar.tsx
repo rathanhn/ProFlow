@@ -167,10 +167,10 @@ export const Sidebar = ({ children, className }: { children: React.ReactNode, cl
     <>
       {/* Desktop Sidebar */}
       <aside className={cn(
-          "hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-50 border-r bg-background transition-all duration-300 ease-in-out",
-          isCollapsed ? "w-16" : "w-64",
-          className
-        )}>
+        "hidden lg:flex lg:flex-col fixed inset-y-0 left-0 z-50 border-r bg-background transition-all duration-300 ease-in-out",
+        isCollapsed ? "w-16" : "w-64",
+        className
+      )}>
         {children}
       </aside>
 
@@ -182,7 +182,7 @@ export const Sidebar = ({ children, className }: { children: React.ReactNode, cl
           className={cn("w-64 p-0 flex flex-col touch-pan-y", className)}
         >
           <SheetHeader className="sr-only">
-             <SheetTitle>Sidebar Menu</SheetTitle>
+            <SheetTitle>Sidebar Menu</SheetTitle>
           </SheetHeader>
           {children}
         </SheetContent>
@@ -195,25 +195,25 @@ export const SidebarHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
-    const { isCollapsed } = useSidebar();
-    return (
-        <div
-            ref={ref}
-            className={cn("p-4 border-b flex items-center h-16 shrink-0", isCollapsed ? 'justify-center' : 'justify-between', className)}
-            {...props}
-        >
-            <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
-                {children}
-            </div>
-             <div className={cn(isCollapsed && 'hidden')}>
-                 <SidebarCollapseButton />
-             </div>
-             <div className={cn(!isCollapsed && 'hidden')}>
-                  <SidebarCollapseButton />
-             </div>
+  const { isCollapsed } = useSidebar();
+  return (
+    <div
+      ref={ref}
+      className={cn("p-4 border-b flex items-center h-16 shrink-0", isCollapsed ? 'justify-center' : 'justify-between', className)}
+      {...props}
+    >
+      <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
+        {children}
+      </div>
+      <div className={cn(isCollapsed && 'hidden')}>
+        <SidebarCollapseButton />
+      </div>
+      <div className={cn(!isCollapsed && 'hidden')}>
+        <SidebarCollapseButton />
+      </div>
 
-        </div>
-    )
+    </div>
+  )
 })
 SidebarHeader.displayName = "SidebarHeader"
 
@@ -233,14 +233,14 @@ export const SidebarMenu = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-    const { isCollapsed } = useSidebar();
-    return (
-        <nav
-            ref={ref}
-            className={cn("flex-1 px-2 py-4 space-y-1", isCollapsed && "px-1", className)}
-            {...props}
-        />
-    )
+  const { isCollapsed } = useSidebar();
+  return (
+    <nav
+      ref={ref}
+      className={cn("flex-1 px-2 py-4 space-y-1", isCollapsed && "px-1", className)}
+      {...props}
+    />
+  )
 })
 SidebarMenu.displayName = "SidebarMenu"
 
@@ -261,25 +261,25 @@ export const SidebarMenuButton = React.forwardRef<
   HTMLAnchorElement,
   React.AnchorHTMLAttributes<HTMLAnchorElement> & { isActive?: boolean, asChild?: boolean }
 >(({ className, isActive, asChild = false, children, ...props }, ref) => {
-    const { isCollapsed } = useSidebar();
-    const Comp = asChild ? Slot : "a"
-    
-    return (
-        <Comp
-        ref={ref}
-        className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-            isCollapsed && "justify-center",
-            isActive
-            ? "bg-primary text-primary-foreground"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            className
-        )}
-        {...props}
-        >
-          {children}
-        </Comp>
-    )
+  const { isCollapsed } = useSidebar();
+  const Comp = asChild ? Slot : "a"
+
+  return (
+    <Comp
+      ref={ref}
+      className={cn(
+        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        isCollapsed && "justify-center",
+        isActive
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Comp>
+  )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
@@ -287,39 +287,39 @@ export const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-    const { isCollapsed } = useSidebar();
-    return (
-        <div
-            ref={ref}
-            className={cn("p-4 border-t mt-auto shrink-0", isCollapsed && "p-2", className)}
-            {...props}
-        />
-    )
+  const { isCollapsed } = useSidebar();
+  return (
+    <div
+      ref={ref}
+      className={cn("p-4 border-t mt-auto shrink-0", isCollapsed && "p-2", className)}
+      {...props}
+    />
+  )
 })
 SidebarFooter.displayName = "SidebarFooter"
 
 export const SidebarTrigger = () => {
-    const { setIsOpen } = useSidebar()
-    return (
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsOpen(true)}>
-            <Menu className="h-6 w-6" />
-            <span className="sr-only">Open sidebar</span>
-        </Button>
-    )
+  const { setIsOpen } = useSidebar()
+  return (
+    <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsOpen(true)}>
+      <Menu className="h-6 w-6" />
+      <span className="sr-only">Open sidebar</span>
+    </Button>
+  )
 }
 
 export const SidebarCollapseButton = () => {
-    const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
-    return (
-        <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hidden lg:inline-flex"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-            <Menu className="h-6 w-6" />
-            <span className="sr-only">Toggle sidebar</span>
-        </Button>
-    )
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="hidden lg:inline-flex"
+      onClick={() => setIsCollapsed(!isCollapsed)}
+    >
+      <Menu className="h-6 w-6" />
+      <span className="sr-only">Toggle sidebar</span>
+    </Button>
+  )
 }
