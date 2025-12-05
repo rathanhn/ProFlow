@@ -10,7 +10,8 @@ self.addEventListener('activate', (event) => {
 });
 
 // Simple pass-through fetch handler to ensure the SW has a fetch event.
-self.addEventListener('fetch', () => {
-  // Intentionally no caching; extend with Cache API if offline support is desired.
+self.addEventListener('fetch', (event) => {
+  // Explicitly proxy to network to avoid no-op warning; extend for caching if needed.
+  event.respondWith(fetch(event.request));
 });
 
