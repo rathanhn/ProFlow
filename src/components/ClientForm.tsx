@@ -2,7 +2,7 @@
 'use client';
 
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,17 @@ import React from 'react';
 import ImageUploader from './ImageUploader';
 import { Loader2 } from 'lucide-react';
 
+const rateSchema = z.object({
+  label: z.string().min(1, 'Label is required'),
+  rate: z.number().positive('Rate must be greater than 0'),
+});
+
 const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
   phone: z.string().optional(),
   defaultRate: z.number().min(0, 'Default rate must be positive').optional(),
+  defaultRates: z.array(rateSchema).optional(),
   avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
 });
 
@@ -48,8 +54,22 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
       email: client?.email || '',
       phone: client?.phone || '',
       defaultRate: client?.defaultRate || undefined,
+      defaultRates: client?.defaultRates && client.defaultRates.length > 0
+        ? client.defaultRates
+        : client?.defaultRate
+          ? [{ label: 'Default', rate: client.defaultRate }]
+          : [],
       avatar: client?.avatar || '',
     },
+  });
+
+  const {
+    fields: rateFields,
+    append: appendRate,
+    remove: removeRate,
+  } = useFieldArray({
+    control: form.control,
+    name: 'defaultRates',
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -57,6 +77,8 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
     try {
       const finalValues = {
         ...values,
+        // keep legacy defaultRate for backward compatibility (use first rate if not provided)
+        defaultRate: values.defaultRate ?? values.defaultRates?.[0]?.rate,
         avatar: values.avatar || `https://placehold.co/128x128.png?text=${values.name.charAt(0)}`
       };
 
@@ -175,11 +197,64 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
                     </FormControl>
                     <FormMessage />
                     <p className="text-sm text-muted-foreground">
-                      This rate will be used as default when creating new tasks for this client
+                      Legacy default rate. If multiple rates are set below, the first rate is used as fallback.
                     </p>
                   </FormItem>
                 )}
               />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base">Default Rates (multiple)</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendRate({ label: '', rate: 0 })}
+                  >
+                    Add Rate
+                  </Button>
+                </div>
+                {rateFields.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No default rates yet. Add entries like “A4 sheet - 100”.</p>
+                )}
+                <div className="space-y-2">
+                  {rateFields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-12 gap-2 items-start">
+                      <div className="col-span-6">
+                        <Input
+                          placeholder="Label (e.g., A4 sheet)"
+                          value={form.watch(`defaultRates.${index}.label`) ?? ''}
+                          onChange={(e) => form.setValue(`defaultRates.${index}.label`, e.target.value)}
+                        />
+                      </div>
+                      <div className="col-span-4">
+                        <Input
+                          type="number"
+                          placeholder="Rate"
+                          value={form.watch(`defaultRates.${index}.rate`) ?? ''}
+                          onChange={(e) =>
+                            form.setValue(
+                              `defaultRates.${index}.rate`,
+                              e.target.value ? parseFloat(e.target.value) : (undefined as any)
+                            )
+                          }
+                        />
+                      </div>
+                      <div className="col-span-2 flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeRate(index)}
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <FormMessage />
+              </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
                   Cancel

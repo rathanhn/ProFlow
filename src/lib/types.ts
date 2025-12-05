@@ -25,13 +25,19 @@ export interface Task {
   outputFileLink?: string;
 }
 
+export interface ClientRate {
+  label: string;
+  rate: number;
+}
+
 export interface Client {
   id: string;
   name: string;
   email: string;
   avatar: string;
   phone?: string;
-  defaultRate?: number;
+  defaultRate?: number; // legacy single rate
+  defaultRates?: ClientRate[]; // new multi-rate support
   password?: string;
 }
 

@@ -114,18 +114,31 @@ export default function TaskForm({ task }: TaskFormProps) {
 
   // Watch for client selection to auto-set rate
   const selectedClientName = form.watch('clientName');
+  const selectedClient = React.useMemo(
+    () => clients.find(c => c.name === selectedClientName),
+    [clients, selectedClientName]
+  );
+  const clientRates = React.useMemo(() => {
+    if (selectedClient?.defaultRates && selectedClient.defaultRates.length > 0) {
+      return selectedClient.defaultRates;
+    }
+    if (selectedClient?.defaultRate) {
+      return [{ label: 'Default rate', rate: selectedClient.defaultRate }];
+    }
+    return [];
+  }, [selectedClient]);
   React.useEffect(() => {
-    if (selectedClientName && !task) { // Only auto-set on new tasks
-      const client = clients.find(c => c.name === selectedClientName);
-      if (client && client.defaultRate) {
-        form.setValue('rate', client.defaultRate);
+    if (selectedClient && !task) { // Only auto-set on new tasks
+      if (clientRates.length > 0) {
+        const rateToUse = clientRates[0].rate;
+        form.setValue('rate', rateToUse);
         toast({
           title: "Rate Updated",
-          description: `Rate set to ₹${client.defaultRate} based on client default.`,
+          description: `Rate set to ₹${rateToUse} from client defaults.`,
         });
       }
     }
-  }, [selectedClientName, clients, form, task, toast]);
+  }, [selectedClient, clientRates, form, task, toast]);
 
   // Watch values for live calculation
   const pages = form.watch('pages');
@@ -428,15 +441,50 @@ export default function TaskForm({ task }: TaskFormProps) {
                 <FormField
                   control={form.control}
                   name="rate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rate per Page (₹)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const matchedRate = clientRates.find(r => r.rate === field.value);
+                    const selectValue = matchedRate ? matchedRate.label : 'custom';
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Rate per Page (₹)</FormLabel>
+                        <div className="space-y-2">
+                          <Select
+                            value={selectValue}
+                            onValueChange={(val) => {
+                              if (val === 'custom') return;
+                              const found = clientRates.find(r => r.label === val);
+                              if (found) {
+                                field.onChange(found.rate);
+                                return;
+                              }
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a rate" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {clientRates.map((rate) => (
+                                <SelectItem key={rate.label} value={rate.label}>
+                                  {rate.label} — ₹{rate.rate}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="custom">Custom rate</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            type="number"
+                            value={field.value}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                            placeholder="Enter custom rate"
+                          />
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
 
