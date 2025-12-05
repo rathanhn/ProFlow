@@ -2,7 +2,13 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, Auth, initializeAuth, browserSessionPersistence } from "firebase/auth";
+import {
+  getAuth,
+  Auth,
+  initializeAuth,
+  browserLocalPersistence,
+  indexedDBLocalPersistence,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBqhCw9LHugRvO9_qSXgn3B7_nwS6K-s-Q",
@@ -22,8 +28,26 @@ if (!getApps().length) {
 }
 
 const db = getFirestore(app);
-const auth: Auth = getAuth(app); 
-const clientAuth: Auth = getAuth(app); 
+
+// Explicitly initialize auth with durable (local) persistence on the client.
+// On the server we fall back to getAuth to avoid touching browser-only APIs.
+let auth: Auth;
+if (typeof window !== "undefined") {
+  // initializeAuth must only run once per app; guard with getApps above.
+  try {
+    auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    });
+  } catch {
+    // If auth was already initialized (e.g., hot reload), reuse it.
+    auth = getAuth(app);
+  }
+} else {
+  auth = getAuth(app);
+}
+
+// Admin and client portals currently share the same Firebase project.
+const clientAuth: Auth = auth;
 
 
 // This is a workaround for the server-side user creation issue.

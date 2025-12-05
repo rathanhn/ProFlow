@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <nav className="space-y-1">{children}</nav>
   );
 
-  const UserProfile = () => (
+  const UserProfile = ({ compact = false }: { compact?: boolean }) => (
     <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -192,7 +192,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      {!isCollapsed && (
+      {!isCollapsed && !compact && (
         <div className="flex flex-col overflow-hidden transition-all duration-300">
           <span className="text-sm font-medium truncate">My Account</span>
           <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
@@ -245,7 +245,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell />
-          <UserProfile />
+          <UserProfile compact />
         </div>
       </header>
 
