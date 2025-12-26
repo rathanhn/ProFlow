@@ -12,17 +12,20 @@ import {
   Plus,
   Mail,
   Phone,
-  DollarSign
+  DollarSign,
+  Printer
 } from 'lucide-react';
-import { Client, Task } from '@/lib/types';
+import { Client, Task, Assignee } from '@/lib/types';
 import TaskList from '@/components/TaskList';
+import ExportDialog from '@/components/ExportDialog';
 
 interface ClientTasksViewProps {
   client: Client;
   tasks: Task[];
+  assignees?: Assignee[];
 }
 
-export default function ClientTasksView({ client, tasks }: ClientTasksViewProps) {
+export default function ClientTasksView({ client, tasks, assignees = [] }: ClientTasksViewProps) {
   const router = useRouter();
 
   return (
@@ -43,6 +46,10 @@ export default function ClientTasksView({ client, tasks }: ClientTasksViewProps)
           </div>
         </div>
         <div className="flex gap-2">
+          <ExportDialog
+            baseUrl={`/admin/clients/${client.id}/report`}
+            assignees={assignees}
+          />
           <Link href={`/admin/clients/${client.id}/edit`}>
             <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />

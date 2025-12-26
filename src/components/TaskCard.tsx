@@ -14,7 +14,8 @@ import {
   ExternalLink,
   Clock,
   Trash2,
-  MoreVertical
+  MoreVertical,
+  CheckSquare
 } from 'lucide-react';
 import { Task } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -25,13 +26,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// Imports
+import { updateTask, getClient } from '@/lib/firebase-service';
+import { useRouter, usePathname } from 'next/navigation';
+import { PaymentTerms } from '@/lib/types';
+
 interface TaskCardProps {
   task: Task;
   showClient?: boolean;
   onDelete?: (taskId: string) => void;
+  onUpdate?: () => void;
 }
 
-export default function TaskCard({ task, showClient = false, onDelete }: TaskCardProps) {
+export default function TaskCard({ task, showClient = false, onDelete, onUpdate }: TaskCardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [localTask, setLocalTask] = React.useState(task);
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  React.useEffect(() => {
+    setLocalTask(task);
+  }, [task]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -66,7 +82,76 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
     }
   };
 
-  const daysRemaining = getDaysRemaining(task.submissionDate);
+  const handleMarkCompleted = async () => {
+    if (localTask.workStatus === 'Completed') return;
+    setIsUpdating(true);
+    try {
+      const client = await getClient(task.clientId);
+      let paymentDueDate = new Date().toISOString();
+
+      if (client?.paymentTerms) {
+        const d = new Date();
+        switch (client.paymentTerms) {
+          case 'Net 15': d.setDate(d.getDate() + 15); break;
+          case 'Net 30': d.setDate(d.getDate() + 30); break;
+          case 'Due End of Month':
+            // Set to last day of current month
+            d.setMonth(d.getMonth() + 1);
+            d.setDate(0);
+            break;
+          case 'Due on Receipt': break; // Today
+          case 'Net 5':
+          default: d.setDate(d.getDate() + 5); break;
+        }
+        paymentDueDate = d.toISOString();
+      } else {
+        // Default to Net 5 if not set
+        const d = new Date();
+        d.setDate(d.getDate() + 5);
+        paymentDueDate = d.toISOString();
+      }
+
+      await updateTask(task.id, {
+        workStatus: 'Completed',
+        paymentDueDate
+      });
+      setLocalTask(prev => ({
+        ...prev,
+        workStatus: 'Completed',
+        paymentDueDate
+      }));
+      router.refresh();
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handlePaymentReceived = async () => {
+    if (localTask.paymentStatus === 'Paid') return;
+    setIsUpdating(true);
+    try {
+      await updateTask(task.id, {
+        paymentStatus: 'Paid',
+        amountPaid: localTask.total // Set amountPaid to total
+      });
+      setLocalTask(prev => ({
+        ...prev,
+        paymentStatus: 'Paid',
+        amountPaid: localTask.total
+      }));
+      router.refresh();
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Failed to update payment status:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const daysRemaining = getDaysRemaining(localTask.submissionDate);
   const isOverdue = daysRemaining < 0;
   const isDueSoon = daysRemaining <= 3 && daysRemaining >= 0;
 
@@ -80,8 +165,8 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between sm:hidden mb-2">
               <div className="flex gap-2">
-                <Badge className={cn(getStatusColor(task.workStatus), "border px-2 py-0.5 text-xs font-medium")}>
-                  {task.workStatus}
+                <Badge className={cn(getStatusColor(localTask.workStatus), "border px-2 py-0.5 text-xs font-medium")}>
+                  {localTask.workStatus}
                 </Badge>
               </div>
               {/* Mobile Actions Dropdown */}
@@ -93,20 +178,26 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href={`/admin/tasks/${task.id}`} className="flex items-center">
-                      <Eye className="mr-2 h-4 w-4" /> View Details
+                    <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`} className="flex items-center">
+                      <Edit className="mr-2 h-4 w-4" /> Edit Task
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href={`/admin/tasks/${task.id}/edit`} className="flex items-center">
+                    <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`} className="flex items-center">
                       <Edit className="mr-2 h-4 w-4" /> Edit Task
                     </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleMarkCompleted} disabled={isUpdating}>
+                    <CheckSquare className="mr-2 h-4 w-4" /> Mark Completed
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handlePaymentReceived} disabled={isUpdating}>
+                    <DollarSign className="mr-2 h-4 w-4" /> Mark Paid
                   </DropdownMenuItem>
                   {onDelete && (
                     <DropdownMenuItem
                       onClick={() => {
                         if (confirm('Are you sure you want to delete this task?')) {
-                          onDelete(task.id);
+                          onDelete(localTask.id);
                         }
                       }}
                       className="text-red-600 focus:text-red-600"
@@ -119,24 +210,24 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
             </div>
 
             <h3 className="text-xl font-bold mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
-              {task.projectName}
+              {localTask.projectName}
             </h3>
 
             {showClient && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                 <div className="flex items-center gap-1 bg-secondary/50 px-2 py-1 rounded-md">
                   <User className="h-3 w-3" />
-                  <span className="truncate font-medium">{task.clientName}</span>
+                  <span className="truncate font-medium">{localTask.clientName}</span>
                 </div>
               </div>
             )}
 
             <div className="hidden sm:flex flex-wrap gap-2 mt-2">
-              <Badge className={cn(getStatusColor(task.workStatus), "border px-2.5 py-0.5 text-xs font-medium shadow-sm")}>
-                {task.workStatus}
+              <Badge className={cn(getStatusColor(localTask.workStatus), "border px-2.5 py-0.5 text-xs font-medium shadow-sm")}>
+                {localTask.workStatus}
               </Badge>
-              <Badge className={cn(getPaymentColor(task.paymentStatus), "border px-2.5 py-0.5 text-xs font-medium shadow-sm")}>
-                {task.paymentStatus}
+              <Badge className={cn(getPaymentColor(localTask.paymentStatus), "border px-2.5 py-0.5 text-xs font-medium shadow-sm")}>
+                {localTask.paymentStatus}
               </Badge>
               {isOverdue && (
                 <Badge className="bg-red-100 text-red-800 border-red-200 animate-pulse">
@@ -155,12 +246,12 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
 
           {/* Desktop Actions */}
           <div className="hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
-            <Link href={`/admin/tasks/${task.id}`}>
+            <Link href={`/admin/tasks/${localTask.id}`}>
               <Button variant="outline" size="icon" className="h-9 w-9 rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors">
                 <Eye className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href={`/admin/tasks/${task.id}/edit`}>
+            <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`}>
               <Button variant="outline" size="icon" className="h-9 w-9 rounded-full hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition-colors">
                 <Edit className="h-4 w-4" />
               </Button>
@@ -171,7 +262,7 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
                 size="icon"
                 onClick={() => {
                   if (confirm('Are you sure you want to delete this task?')) {
-                    onDelete(task.id);
+                    onDelete(localTask.id);
                   }
                 }}
                 className="h-9 w-9 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
@@ -180,23 +271,28 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
               </Button>
             )}
             {/* Quick Update Buttons */}
-            <div className="flex gap-2 mt-2">
-              <Button
-                className="btn-gradient"
-                onClick={() => {
-                  // TODO: implement mark completed
-                }}
-              >
-                Completed
-              </Button>
-              <Button
-                className="btn-gradient"
-                onClick={() => {
-                  // TODO: implement payment received
-                }}
-              >
-                Payment Received
-              </Button>
+            <div className="flex gap-2">
+              {localTask.workStatus !== 'Completed' && (
+                <Button
+                  size="sm"
+                  className="btn-gradient text-xs h-9"
+                  onClick={handleMarkCompleted}
+                  disabled={isUpdating}
+                >
+                  Completed
+                </Button>
+              )}
+              {localTask.paymentStatus !== 'Paid' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-9 border-green-500 text-green-600 hover:bg-green-50"
+                  onClick={handlePaymentReceived}
+                  disabled={isUpdating}
+                >
+                  Paid
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -206,20 +302,20 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <FileText className="h-3 w-3" /> Pages
             </p>
-            <p className="font-semibold text-foreground">{task.pages}</p>
+            <p className="font-semibold text-foreground">{localTask.pages}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <DollarSign className="h-3 w-3" /> Rate
             </p>
-            <p className="font-semibold text-foreground">₹{task.rate}</p>
+            <p className="font-semibold text-foreground">₹{localTask.rate}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <DollarSign className="h-3 w-3" /> Total
             </p>
             <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              ₹{task.total.toLocaleString()}
+              ₹{localTask.total.toLocaleString()}
             </p>
           </div>
           <div className="space-y-1">
@@ -228,9 +324,9 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
             </p>
             <p className={cn(
               "font-semibold",
-              task.amountPaid >= task.total ? "text-green-600" : "text-foreground"
+              localTask.amountPaid >= localTask.total ? "text-green-600" : "text-foreground"
             )}>
-              ₹{task.amountPaid.toLocaleString()}
+              ₹{localTask.amountPaid.toLocaleString()}
             </p>
           </div>
         </div>
@@ -243,63 +339,67 @@ export default function TaskCard({ task, showClient = false, onDelete }: TaskCar
               "font-medium",
               isOverdue ? "text-red-600" : isDueSoon ? "text-orange-600" : "text-foreground"
             )}>
-              {formatDate(task.submissionDate)}
+              {formatDate(localTask.submissionDate)}
             </span>
           </div>
 
-          {task.assigneeName && (
+          {localTask.assigneeName && (
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 px-3 py-1.5 rounded-full">
               <User className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground text-xs">Assigned:</span>
-              <span className="font-medium text-foreground">{task.assigneeName}</span>
+              <span className="font-medium text-foreground">{localTask.assigneeName}</span>
             </div>
           )}
         </div>
 
         {/* Progress Bar */}
-        {task.total > 0 && (
+        {localTask.total > 0 && (
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Payment Progress</span>
               <span className="font-medium text-foreground">
-                {((task.amountPaid / task.total) * 100).toFixed(0)}%
+                {((localTask.amountPaid / localTask.total) * 100).toFixed(0)}%
               </span>
             </div>
             <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 overflow-hidden">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-500",
-                  task.amountPaid >= task.total
+                  localTask.amountPaid >= localTask.total
                     ? "bg-gradient-to-r from-green-500 to-emerald-500"
                     : "bg-gradient-to-r from-blue-500 to-purple-500"
                 )}
-                style={{ width: `${Math.min((task.amountPaid / task.total) * 100, 100)}%` }}
+                style={{ width: `${Math.min((localTask.amountPaid / localTask.total) * 100, 100)}%` }}
               ></div>
             </div>
           </div>
         )}
 
         {/* Footer Links */}
-        <div className="flex gap-3 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-          {task.projectFileLink && (
-            <a
-              href={task.projectFileLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:underline"
-            >
-              <ExternalLink className="h-3 w-3" /> Project File
-            </a>
+        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+          {localTask.projectFileLink && (
+            <Button variant="outline" size="sm" className="h-8" asChild>
+              <a
+                href={localTask.projectFileLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View Project File"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" /> Project File
+              </a>
+            </Button>
           )}
-          {task.outputFileLink && (
-            <a
-              href={task.outputFileLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs flex items-center gap-1 text-green-600 hover:text-green-700 hover:underline"
-            >
-              <ExternalLink className="h-3 w-3" /> Output File
-            </a>
+          {localTask.outputFileLink && (
+            <Button variant="outline" size="sm" className="h-8" asChild>
+              <a
+                href={localTask.outputFileLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View Output File"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" /> Output File
+              </a>
+            </Button>
           )}
         </div>
       </div>

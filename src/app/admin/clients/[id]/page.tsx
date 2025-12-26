@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import { getClient, getTasks } from '@/lib/firebase-service';
-import { Client, Task } from '@/lib/types';
+import { getClient, getTasks, getAssignees } from '@/lib/firebase-service';
+import { Client, Task, Assignee } from '@/lib/types';
 import ClientTasksView from './ClientTasksView';
 
 interface ClientDetailPageProps {
@@ -15,10 +15,11 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
     // Await params first
     const resolvedParams = await params;
 
-    // Fetch client and all tasks
-    const [rawClient, rawTasks] = await Promise.all([
+    // Fetch client, all tasks, and assignees
+    const [rawClient, rawTasks, rawAssignees] = await Promise.all([
       getClient(resolvedParams.id),
-      getTasks()
+      getTasks(),
+      getAssignees()
     ]);
 
     if (!rawClient) {
@@ -28,13 +29,14 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
     // Serialize data
     const client = JSON.parse(JSON.stringify(rawClient)) as Client;
     const allTasks = JSON.parse(JSON.stringify(rawTasks)) as Task[];
-    
+    const assignees = JSON.parse(JSON.stringify(rawAssignees)) as Assignee[];
+
     // Filter tasks for this client
     const clientTasks = allTasks.filter(task => task.clientId === resolvedParams.id);
 
     return (
       <DashboardLayout>
-        <ClientTasksView client={client} tasks={clientTasks} />
+        <ClientTasksView client={client} tasks={clientTasks} assignees={assignees} />
       </DashboardLayout>
     );
   } catch (error) {

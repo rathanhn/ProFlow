@@ -22,7 +22,6 @@ body {
 /* Ensure proper scrolling on mobile */
 body {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 /* Safe area support for mobile devices */
@@ -63,8 +62,6 @@ body {
 /* Ensure content is scrollable and doesn't get hidden behind FAB */
 .fab-safe-bottom {
   padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
-  min-height: 100vh;
-  /* Ensure content takes full height */
 }
 
 /* Prevent scroll issues on mobile */
@@ -75,27 +72,18 @@ body {
 /* Ensure proper touch scrolling */
 .touch-scroll {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
   /* Allow vertical scrolling */
 }
 
 /* Main scrollable container - only this should have overflow */
 .scrollable-content {
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  /* Ensure touch events are properly handled */
-  pointer-events: auto;
+  /* Let the body handle scrolling */
   position: relative;
   z-index: 1;
 }
 
 /* Content areas - no overflow, just touch handling */
 .content-area {
-  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   /* Ensure content area is fully touchable */
   pointer-events: auto;
@@ -109,7 +97,6 @@ body {
 /* Ensure all interactive elements are touchable */
 .card-content,
 .table-container {
-  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   pointer-events: auto;
 }

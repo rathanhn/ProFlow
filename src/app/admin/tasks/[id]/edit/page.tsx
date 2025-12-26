@@ -7,8 +7,13 @@ import { getTask } from "@/lib/firebase-service";
 import { Task } from "@/lib/types";
 import { validateRouteId, sanitizeRouteParam } from "@/lib/auth-utils";
 
-export default async function EditTaskPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditTaskPage({ params, searchParams }: {
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
     const { id: rawId } = await params;
+    const { redirect } = await searchParams;
+    const redirectPath = typeof redirect === 'string' ? redirect : undefined;
 
     // Validate and sanitize the route parameter
     if (!validateRouteId(rawId)) {
@@ -35,7 +40,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
 
         return (
             <DashboardLayout>
-                <TaskForm task={task} />
+                <TaskForm task={task} redirectPath={redirectPath} />
             </DashboardLayout>
         );
     } catch (error) {

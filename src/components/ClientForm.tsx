@@ -23,6 +23,14 @@ import React from 'react';
 import ImageUploader from './ImageUploader';
 import { Loader2 } from 'lucide-react';
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 const rateSchema = z.object({
   label: z.string().min(1, 'Label is required'),
   rate: z.number().positive('Rate must be greater than 0'),
@@ -32,6 +40,7 @@ const formSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Please enter a valid email.'),
   phone: z.string().optional(),
+  paymentTerms: z.enum(["Net 5", "Net 15", "Net 30", "Due on Receipt", "Due End of Month"]),
   defaultRate: z.number().min(0, 'Default rate must be positive').optional(),
   defaultRates: z.array(rateSchema).optional(),
   avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
@@ -53,6 +62,7 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
       name: client?.name || '',
       email: client?.email || '',
       phone: client?.phone || '',
+      paymentTerms: client?.paymentTerms || 'Net 5',
       defaultRate: client?.defaultRate || undefined,
       defaultRates: client?.defaultRates && client.defaultRates.length > 0
         ? client.defaultRates
@@ -79,7 +89,8 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
         ...values,
         // keep legacy defaultRate for backward compatibility (use first rate if not provided)
         defaultRate: values.defaultRate ?? values.defaultRates?.[0]?.rate,
-        avatar: values.avatar || `https://placehold.co/128x128.png?text=${values.name.charAt(0)}`
+        avatar: values.avatar || `https://placehold.co/128x128.png?text=${values.name.charAt(0)}`,
+        paymentTerms: values.paymentTerms // Ensure explicitly passed
       };
 
       if (client) {
@@ -176,6 +187,30 @@ export default function ClientForm({ client, redirectPath }: ClientFormProps) {
                     <FormControl>
                       <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentTerms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Terms (Invoice Term)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select terms" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Net 5">Net 5 (Default)</SelectItem>
+                        <SelectItem value="Net 15">Net 15</SelectItem>
+                        <SelectItem value="Net 30">Net 30</SelectItem>
+                        <SelectItem value="Due on Receipt">Due on Receipt</SelectItem>
+                        <SelectItem value="Due End of Month">Due End of Month</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

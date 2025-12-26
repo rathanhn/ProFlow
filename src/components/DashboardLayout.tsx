@@ -48,6 +48,8 @@ import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from 'next-themes';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+// Import notification service
+import { getAdminNotifications } from '@/lib/firebase-service';
 import {
   Tooltip,
   TooltipContent,
@@ -201,20 +203,69 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 
+  // Fetch notifications
+  const [notifications, setNotifications] = useState<any[]>([]); // Using any to avoid strict type issues for now, matching fetched structure
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      if (isAdminSection) {
+        try {
+          const data = await getAdminNotifications();
+          setNotifications(data);
+        } catch (e) {
+          console.error("Failed to load notifications", e);
+        }
+      }
+    };
+    loadNotifications();
+    // Poll every 30 seconds
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [isAdminSection, pathname]);
+
+  // Page Title Logic
+  const getPageTitle = () => {
+    if (pathname === '/admin') return 'Dashboard';
+    if (pathname === '/admin/tasks') return 'All Tasks';
+    if (pathname === '/admin/clients') return 'Clients';
+    if (pathname === '/admin/team') return 'Team';
+    if (pathname === '/admin/transactions') return 'Transactions';
+    if (pathname === '/admin/analytics') return 'Analytics';
+    if (pathname === '/admin/reports') return 'Reports';
+    if (pathname === '/admin/calendar') return 'Calendar';
+    if (pathname === '/admin/settings') return 'Settings';
+    if (pathname.includes('/new')) return 'Create New';
+    if (pathname.includes('/edit')) return 'Edit';
+    return 'ProFlow Panel';
+  };
+
   const NotificationBell = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative hover:bg-secondary/50 rounded-full">
           <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+          {notifications.length > 0 && (
+            <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 glass-card z-[100]">
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <div className="p-4 text-center text-muted-foreground text-sm">
-          No new notifications
-        </div>
+        {notifications.length === 0 ? (
+          <div className="p-4 text-center text-muted-foreground text-sm">
+            No new notifications
+          </div>
+        ) : (
+          <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+            {notifications.map((n) => (
+              <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 p-3 cursor-pointer">
+                <div className="font-medium text-sm">{n.message}</div>
+                <div className="text-xs text-muted-foreground">{new Date(n.createdAt).toLocaleDateString()}</div>
+              </DropdownMenuItem>
+            ))}
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -229,7 +280,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const renderContent = () => children;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
       {/* Mobile Header */}
       <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="flex items-center gap-2">
@@ -452,7 +503,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === `/creator/${id}`}>
                     <Link href={`/creator/${id}`}>
-                      <Home />
+                      <Briefcase />
                       <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
                     </Link>
                   </SidebarMenuButton>
@@ -491,12 +542,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </Sidebar>
 
       <div className={cn(
-        "flex flex-col flex-1 w-full lg:pl-64 overflow-x-hidden min-w-0 transition-all duration-300 ease-in-out",
+        "flex flex-col flex-1 w-full lg:pl-64 min-w-0 transition-all duration-300 ease-in-out",
         isCollapsed && "lg:pl-20"
       )}>
         <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6 glass-card border-b border-white/20 dark:border-white/10">
           <div className="flex items-center gap-4">
-            {/* Breadcrumbs or Page Title could go here */}
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight">
+              {getPageTitle()}
+            </h1>
           </div>
           <div className="flex items-center gap-4">
             <NotificationBell />

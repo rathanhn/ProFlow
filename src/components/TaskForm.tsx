@@ -67,9 +67,10 @@ const newAssigneeSchema = z.object({
 
 interface TaskFormProps {
   task?: Task;
+  redirectPath?: string;
 }
 
-export default function TaskForm({ task }: TaskFormProps) {
+export default function TaskForm({ task, redirectPath }: TaskFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [clients, setClients] = React.useState<Client[]>([]);
@@ -263,7 +264,9 @@ export default function TaskForm({ task }: TaskFormProps) {
       }
 
       // Redirect based on whether we're creating or editing
-      if (task) {
+      if (redirectPath) {
+        router.push(redirectPath);
+      } else if (task) {
         // For editing, go back to the task detail page
         router.push(`/admin/tasks/${task.id}`);
       } else {

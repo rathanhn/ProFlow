@@ -19,6 +19,7 @@ export interface Task {
   notes?: string;
   total: number;
   amountPaid: number;
+  paymentDueDate?: string;
   assigneeId?: string;
   assigneeName?: string;
   projectFileLink?: string;
@@ -30,6 +31,8 @@ export interface ClientRate {
   rate: number;
 }
 
+export type PaymentTerms = "Net 5" | "Net 15" | "Net 30" | "Due on Receipt" | "Due End of Month";
+
 export interface Client {
   id: string;
   name: string;
@@ -38,28 +41,29 @@ export interface Client {
   phone?: string;
   defaultRate?: number; // legacy single rate
   defaultRates?: ClientRate[]; // new multi-rate support
+  paymentTerms?: PaymentTerms;
   password?: string;
 }
 
 export interface Assignee {
-    id: string;
-    name: string;
-    email?: string;
-    avatar?: string;
-    mobile?: string;
-    description?: string;
-    password?: string;
-    bio?: string;
-    profilePicture?: string;
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+  mobile?: string;
+  description?: string;
+  password?: string;
+  bio?: string;
+  profilePicture?: string;
 }
 
 export interface Notification {
-    id: string;
-    userId: string; // 'admin', client UID, or creator UID
-    message: string;
-    link: string;
-    isRead: boolean;
-    createdAt: string;
+  id: string;
+  userId: string; // 'admin', client UID, or creator UID
+  message: string;
+  link: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 export interface Transaction {

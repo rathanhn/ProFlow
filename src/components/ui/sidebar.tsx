@@ -102,10 +102,15 @@ export const SidebarProvider = ({ children }: { children: React.ReactNode }) => 
   });
 
   // Bind gestures to document body for edge detection
-  React.useEffect(() => {
-    const cleanup = edgeSwipeGestures.bindGestures(document.body);
-    return cleanup;
-  }, [edgeSwipeGestures, isOpen]);
+  /*
+  // React.useEffect(() => {
+  //   // Only bind edge gestures on mobile devices
+  //   if (typeof window !== 'undefined' && window.innerWidth >= 1024) return;
+    
+  //   const cleanup = edgeSwipeGestures.bindGestures(document.body);
+  //   return cleanup;
+  // }, [edgeSwipeGestures, isOpen]);
+  */
 
   return (
     <SidebarContext.Provider value={{ isOpen, setIsOpen, isCollapsed, setIsCollapsed, user, loading }}>

@@ -30,7 +30,7 @@ import EarningsChart from '@/components/EarningsChart';
 import { DonutChart, ProgressRing, MetricCard } from '@/components/ui/charts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AIInsights from './AIInsights';
-import { Client, Task } from '@/lib/types';
+import { Client, Task, Notification } from '@/lib/types';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { RippleButton } from '@/components/ui/ripple-effect';
@@ -42,7 +42,7 @@ import { useRouter } from 'next/navigation';
 export default function AdminDashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
-  const [unreadNotifications, setUnreadNotifications] = useState<unknown[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const haptic = useHapticFeedback();
   const router = useRouter();
@@ -135,32 +135,26 @@ export default function AdminDashboardPage() {
     <DashboardLayout>
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="space-y-6 fab-safe-bottom">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-              <p className="text-muted-foreground">An overview of all client projects and finances.</p>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <RippleButton
-                variant="outline"
-                className="w-full sm:w-auto btn-gradient"
-                onClick={() => {
-                  haptic.androidClick();
-                  router.push('/admin/export');
-                }}
-              >
-                <File className="mr-2 h-4 w-4" /> Export
-              </RippleButton>
-              <RippleButton
-                className="w-full sm:w-auto btn-gradient"
-                onClick={() => {
-                  haptic.androidClick();
-                  router.push('/admin/tasks/new');
-                }}
-              >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Task
-              </RippleButton>
-            </div>
+          <div className="flex items-center justify-end gap-2 w-full">
+            <RippleButton
+              variant="outline"
+              className="w-full sm:w-auto btn-gradient"
+              onClick={() => {
+                haptic.androidClick();
+                router.push('/admin/export');
+              }}
+            >
+              <File className="mr-2 h-4 w-4" /> Export
+            </RippleButton>
+            <RippleButton
+              className="w-full sm:w-auto btn-gradient"
+              onClick={() => {
+                haptic.androidClick();
+                router.push('/admin/tasks/new');
+              }}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Task
+            </RippleButton>
           </div>
 
           {unreadNotifications.length > 0 && (
@@ -292,6 +286,6 @@ export default function AdminDashboardPage() {
         position="bottom-right"
         size="default"
       />
-    </DashboardLayout>
+    </DashboardLayout >
   );
 }
