@@ -31,7 +31,9 @@ import {
   BarChart3,
   Calendar,
   Shield,
-  UserPlus
+  UserPlus,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -70,6 +72,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -87,6 +90,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       console.error('Error signing out:', error);
     }
   };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
 
   // Determine user role based on path
   const isAdminSection = pathname.startsWith('/admin');
@@ -270,6 +293,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     </DropdownMenu>
   );
 
+  const FullscreenToggle = () => (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleFullscreen}
+      className="hover:bg-secondary/50 rounded-full"
+      title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+    >
+      {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+    </Button>
+  );
+
   const MobileTabs = () => {
     if (!isMobileMenuOpen) return null;
     return (
@@ -295,6 +330,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <FullscreenToggle />
           <NotificationBell />
           <UserProfile compact />
         </div>
@@ -473,6 +509,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </h1>
           </div>
           <div className="flex items-center gap-4">
+            <FullscreenToggle />
             <NotificationBell />
           </div>
         </header>
