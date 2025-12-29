@@ -5,7 +5,7 @@
 'use server';
 
 import { auth, db, createSecondaryAuth } from '@/lib/firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction, limit } from 'firebase/firestore';
 import { Client, Task, Assignee, Notification, Transaction, PaymentMethod, Feedback } from './types';
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
@@ -222,6 +222,16 @@ export async function getTasksByAssigneeId(assigneeId: string): Promise<Task[]> 
 }
 
 
+export async function getNextProjectNo(): Promise<string> {
+    const tasksCol = collection(db, 'tasks');
+    const q = query(tasksCol, orderBy('slNo', 'desc'), limit(1));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) return "PRJ1";
+    const latestTask = snapshot.docs[0].data();
+    return `PRJ${(latestTask.slNo || 0) + 1}`;
+}
+
 export async function getTask(id: string): Promise<Task | null> {
     const taskDocRef = doc(db, 'tasks', id);
     const taskSnap = await getDoc(taskDocRef);
@@ -233,12 +243,48 @@ export async function getTask(id: string): Promise<Task | null> {
     }
 }
 
-export async function addTask(task: Omit<Task, 'id'>) {
+export async function getLatestProjectNoForClient(clientId: string): Promise<string | null> {
     const tasksCol = collection(db, 'tasks');
-    const docRef = await addDoc(tasksCol, task);
-    revalidatePath('/admin/tasks');
-    return { id: docRef.id, ...task };
+    const q = query(tasksCol, where('clientName', '==', clientId), orderBy('slNo', 'desc'));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) return null;
+
+    // Look for the first one that has a projectNo
+    for (const doc of snapshot.docs) {
+        const data = doc.data();
+        if (data.projectNo) return data.projectNo;
+    }
+    return null;
 }
+
+export async function addTask(task: Omit<Task, 'id' | 'slNo'> & { projectNo?: string }) {
+    const tasksCol = collection(db, 'tasks');
+
+    // Get the latest task to determine next slNo (global sequence)
+    const q = query(tasksCol, orderBy('slNo', 'desc'), limit(1));
+    const snapshot = await getDocs(q);
+
+    let nextSlNo = 1;
+    if (!snapshot.empty) {
+        const latestTask = snapshot.docs[0].data();
+        nextSlNo = (latestTask.slNo || 0) + 1;
+    }
+
+    // Use provided projectNo or generate one if empty
+    const projectNo = task.projectNo || `PRJ${nextSlNo}`;
+
+    const taskWithIds = {
+        ...task,
+        slNo: nextSlNo,
+        projectNo: projectNo
+    };
+
+    const docRef = await addDoc(tasksCol, taskWithIds);
+    revalidatePath('/admin/tasks');
+    return { id: docRef.id, ...taskWithIds };
+}
+
 
 export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'clientId'>>) {
     const taskDocRef = doc(db, 'tasks', id);

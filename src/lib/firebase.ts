@@ -30,17 +30,19 @@ if (!getApps().length) {
 const db = getFirestore(app);
 
 // Explicitly initialize auth with durable (local) persistence on the client.
-// On the server we fall back to getAuth to avoid touching browser-only APIs.
 let auth: Auth;
 if (typeof window !== "undefined") {
-  // initializeAuth must only run once per app; guard with getApps above.
+  // initializeAuth must only run once per app. 
+  // We use the default app persistence which is IndexedDB -> LocalStorage -> Session
   try {
     auth = initializeAuth(app, {
       persistence: [indexedDBLocalPersistence, browserLocalPersistence],
     });
-  } catch {
+    console.log("[Firebase] Auth initialized with multi-persistence.");
+  } catch (error) {
     // If auth was already initialized (e.g., hot reload), reuse it.
     auth = getAuth(app);
+    console.log("[Firebase] Auth reused existing instance.");
   }
 } else {
   auth = getAuth(app);
@@ -54,9 +56,9 @@ const clientAuth: Auth = auth;
 // We create a temporary, secondary Firebase app instance to handle user creation
 // without affecting the main admin auth state.
 export function createSecondaryAuth(): Auth {
-    const secondaryAppName = `secondary-app-${Date.now()}`;
-    const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-    return getAuth(secondaryApp);
+  const secondaryAppName = `secondary-app-${Date.now()}`;
+  const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+  return getAuth(secondaryApp);
 }
 
 

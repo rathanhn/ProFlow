@@ -41,7 +41,6 @@ export default function ClientLoginPage() {
         throw new Error("This email does not belong to a registered client.");
       }
 
-      await setPersistence(clientAuth, browserLocalPersistence);
       const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
 
       const clientId = userCredential.user.uid;

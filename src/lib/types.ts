@@ -7,6 +7,7 @@ export type PaymentMethod = "Cash" | "Bank Transfer" | "UPI" | "Other";
 export interface Task {
   id: string;
   slNo: number;
+  projectNo: string;
   clientName: string;
   clientId: string;
   acceptedDate: string;

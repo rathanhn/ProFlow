@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,7 +11,12 @@ import {
   Filter,
   FileText,
   Plus,
-  TrendingUp
+  TrendingUp,
+  LayoutGrid,
+  List,
+  Eye,
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 import { INRIcon } from '@/components/ui/inr-icon';
 import { Task } from '@/lib/types';
@@ -30,8 +35,8 @@ interface TaskListProps {
   emptyStateDescription?: string;
 }
 
-export default function TaskList({ 
-  tasks, 
+export default function TaskList({
+  tasks,
   title = "Tasks",
   showClient = false,
   showAddButton = true,
@@ -43,15 +48,30 @@ export default function TaskList({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'simple' | 'detailed'>('detailed');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus search on Ctrl + K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (showClient && task.clientName.toLowerCase().includes(searchTerm.toLowerCase()));
+      (task.projectNo && task.projectNo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      task.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (showClient && task.clientName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || task.workStatus === statusFilter;
     const matchesPayment = paymentFilter === 'all' || task.paymentStatus === paymentFilter;
-    
+
     return matchesSearch && matchesStatus && matchesPayment;
   });
 
@@ -70,127 +90,157 @@ export default function TaskList({
     <div className="space-y-6">
       {/* Statistics */}
       {tasks.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
-                  <p className="text-2xl font-bold transition-all-smooth">{stats.totalTasks}</p>
-                </div>
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+          <div
+            onClick={() => { setStatusFilter('all'); setPaymentFilter('all'); }}
+            className={cn(
+              "glass-card p-5 rounded-2xl hover-lift shadow-sm transition-all duration-300 cursor-pointer border-transparent",
+              statusFilter === 'all' && paymentFilter === 'all' ? "ring-2 ring-blue-500/50 bg-blue-500/5" : "border-blue-500/10"
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Total</p>
+                <p className="text-2xl font-bold">{stats.totalTasks}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                <FileText className="h-5 w-5 text-blue-500" />
+              </div>
+            </div>
+          </div>
 
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                  <p className="text-2xl font-bold text-success transition-all-smooth">{stats.completedTasks}</p>
-                </div>
-                <div className="p-2 bg-success/10 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-success" />
-                </div>
+          <div
+            onClick={() => { setStatusFilter('Completed'); setPaymentFilter('all'); }}
+            className={cn(
+              "glass-card p-5 rounded-2xl hover-lift shadow-sm transition-all duration-300 cursor-pointer border-transparent",
+              statusFilter === 'Completed' ? "ring-2 ring-emerald-500/50 bg-emerald-500/5" : "border-emerald-500/10"
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Completed</p>
+                <p className="text-2xl font-bold text-emerald-600">{stats.completedTasks}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-emerald-500" />
+              </div>
+            </div>
+          </div>
 
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Value</p>
-                  <p className="text-2xl font-bold transition-all-smooth">₹{stats.totalValue.toLocaleString()}</p>
-                </div>
-                <div className="p-2 bg-accent/10 rounded-lg">
-                  <INRIcon className="h-6 w-6 text-accent" />
-                </div>
+          <div className="glass-card p-5 rounded-2xl hover-lift border-indigo-500/10 shadow-sm transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Value</p>
+                <p className="text-2xl font-bold text-gradient-indigo">₹{stats.totalValue.toLocaleString()}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="h-10 w-10 bg-indigo-500/10 rounded-xl flex items-center justify-center">
+                <INRIcon className="h-5 w-5 text-indigo-500" />
+              </div>
+            </div>
+          </div>
 
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Unpaid</p>
-                  <p className="text-2xl font-bold text-destructive transition-all-smooth">₹{stats.unpaidAmount.toLocaleString()}</p>
-                </div>
-                <div className="p-2 bg-destructive/10 rounded-lg">
-                  <INRIcon className="h-6 w-6 text-destructive" />
-                </div>
+          <div
+            onClick={() => { setPaymentFilter('Unpaid'); setStatusFilter('all'); }}
+            className={cn(
+              "glass-card p-5 rounded-2xl hover-lift shadow-sm transition-all duration-300 cursor-pointer border-transparent",
+              paymentFilter === 'Unpaid' ? "ring-2 ring-rose-500/50 bg-rose-500/5" : "border-rose-500/10"
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Unpaid</p>
+                <p className="text-2xl font-bold text-rose-600">₹{stats.unpaidAmount.toLocaleString()}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="h-10 w-10 bg-rose-500/10 rounded-xl flex items-center justify-center">
+                <INRIcon className="h-5 w-5 text-rose-500" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Filters and Search */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <CardTitle className="text-lg">
-              {title} ({filteredTasks.length})
-            </CardTitle>
-            {showAddButton && (
-              <Link href={addButtonLink}>
-                <Button size="sm" className="w-full sm:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Task
-                </Button>
-              </Link>
-            )}
+      <div className="glass-card rounded-2xl p-4 transition-all duration-300 border-white/20 dark:border-white/10">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-1 px-0.5 bg-primary rounded-full hidden md:block" />
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+              <p className="text-xs text-muted-foreground font-medium">{filteredTasks.length} projects found</p>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 lg:max-w-3xl">
+            <div className="relative flex-1 w-full group">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               <Input
-                placeholder={`Search tasks by project name${showClient ? ', client' : ''} or notes...`}
-                className="pl-10"
+                ref={searchInputRef}
+                placeholder="Search projects..."
+                className="pl-9 pr-12 h-10 border-none bg-secondary/50 focus:bg-background transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded border border-muted-foreground/30 bg-muted/50 text-[10px] font-black text-muted-foreground/70 pointer-events-none">
+                <span className="text-[8px]">CTRL</span> K
+              </div>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="flex-1">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Work Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-10 w-full sm:w-[140px] border-none bg-secondary/50">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="glass-card">
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger className="h-10 w-full sm:w-[140px] border-none bg-secondary/50">
+                  <SelectValue placeholder="Payment" />
+                </SelectTrigger>
+                <SelectContent className="glass-card">
+                  <SelectItem value="all">All Payments</SelectItem>
+                  <SelectItem value="Paid">Paid</SelectItem>
+                  <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+                  <SelectItem value="Unpaid">Unpaid</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* View Toggle */}
+              <div className="flex bg-secondary/50 p-1 rounded-xl items-center">
+                <Button
+                  variant={viewMode === 'simple' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className={cn("h-8 w-8 rounded-lg", viewMode === 'simple' && "shadow-sm bg-white dark:bg-black/40")}
+                  onClick={() => setViewMode('simple')}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'detailed' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className={cn("h-8 w-8 rounded-lg", viewMode === 'detailed' && "shadow-sm bg-white dark:bg-black/40")}
+                  onClick={() => setViewMode('detailed')}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="flex-1">
-                <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Payment Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Payments</SelectItem>
-                    <SelectItem value="Paid">Paid</SelectItem>
-                    <SelectItem value="Partially Paid">Partially Paid</SelectItem>
-                    <SelectItem value="Unpaid">Unpaid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
+              {showAddButton && (
+                <Link href={addButtonLink} className="hidden sm:block">
+                  <Button size="icon" className="h-10 w-10 shrink-0 glow-blue">
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tasks List */}
       {filteredTasks.length === 0 ? (
@@ -231,22 +281,61 @@ export default function TaskList({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className={cn("grid gap-4", viewMode === 'simple' ? "grid-cols-1" : "grid-cols-1")}>
           {filteredTasks.map((task, index) => (
             <div
               key={task.id}
               className="animate-slide-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <TaskCard
-                task={task}
-                showClient={showClient}
-                onDelete={onTaskDelete}
-              />
+              {viewMode === 'detailed' ? (
+                <TaskCard
+                  task={task}
+                  showClient={showClient}
+                  onDelete={onTaskDelete}
+                />
+              ) : (
+                <SimpleTaskRow task={task} showClient={showClient} />
+              )}
             </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// Minimal Simple View Component
+function SimpleTaskRow({ task, showClient }: { task: Task; showClient?: boolean }) {
+  return (
+    <div className="glass-card p-3 rounded-xl border-white/10 hover:border-primary/30 transition-all group flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <span className="text-[10px] font-mono font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+          {task.projectNo}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-bold text-sm truncate group-hover:text-primary transition-colors">{task.projectName}</h3>
+          {showClient && <p className="text-[10px] text-muted-foreground font-medium">{task.clientName}</p>}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-1.5">
+          {task.workStatus === 'Completed' ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <Clock className="h-3 w-3 text-amber-500" />}
+          <span className="text-[10px] uppercase font-black text-muted-foreground">{task.workStatus}</span>
+        </div>
+
+        <div className="text-right min-w-[80px]">
+          <p className="text-[10px] leading-tight text-muted-foreground uppercase font-black">Total</p>
+          <p className="text-sm font-bold">₹{task.total.toLocaleString()}</p>
+        </div>
+
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" asChild>
+          <Link href={`/admin/tasks/${task.id}`}>
+            <Eye className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

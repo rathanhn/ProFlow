@@ -7,8 +7,13 @@ import { getClient } from "@/lib/firebase-service";
 import { Client } from "@/lib/types";
 import { validateRouteId, sanitizeRouteParam } from "@/lib/auth-utils";
 
-export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditClientPage({ params, searchParams }: {
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
     const { id: rawId } = await params;
+    const { redirect } = await searchParams;
+    const redirectPath = typeof redirect === 'string' ? redirect : undefined;
 
     // Validate and sanitize the route parameter
     if (!validateRouteId(rawId)) {
@@ -31,7 +36,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
 
         return (
             <DashboardLayout>
-                <ClientForm client={client} redirectPath={`/admin/clients/${id}`} />
+                <ClientForm client={client} redirectPath={redirectPath || `/admin/clients/${id}`} />
             </DashboardLayout>
         );
     } catch (error) {

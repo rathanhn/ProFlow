@@ -57,7 +57,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
               </Link>
             </Button>
             <Button asChild>
-              <Link href={`/admin/tasks/${task.id}/edit`}>
+              <Link href={`/admin/tasks/${task.id}/edit?redirect=/admin/tasks/${task.id}`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Task
               </Link>

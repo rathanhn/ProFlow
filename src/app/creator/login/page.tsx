@@ -38,14 +38,13 @@ export default function CreatorLoginPage() {
             setIsLoading(false);
             return;
         }
-        
+
         try {
             const creatorRecord = await getAssigneeByEmail(email);
             if (!creatorRecord) {
-                 throw new Error("This email does not belong to a registered creator.");
+                throw new Error("This email does not belong to a registered creator.");
             }
 
-            await setPersistence(clientAuth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             const user = userCredential.user;
 
@@ -64,8 +63,8 @@ export default function CreatorLoginPage() {
 
         } catch (error: unknown) {
             console.error("[CreatorLoginPage] Login error:", error);
-            await signOut(clientAuth).catch(() => {});
-            
+            await signOut(clientAuth).catch(() => { });
+
             let description = 'An unknown error occurred. Please try again.';
             if (typeof error === 'object' && error && 'code' in error && (error as { code?: string }).code === 'auth/invalid-credential') {
                 description = 'Incorrect password. Please try again.';
@@ -78,7 +77,7 @@ export default function CreatorLoginPage() {
             setIsLoading(false);
         }
     };
-    
+
     const handlePasswordReset = async () => {
         if (newPassword !== confirmNewPassword) {
             toast({ title: 'Password Reset Failed', description: 'New passwords do not match.', variant: 'destructive' });
@@ -108,98 +107,98 @@ export default function CreatorLoginPage() {
             }
         }
     };
-  
-  return (
-    <>
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md mx-auto shadow-2xl">
-        <CardHeader className="text-center">
-            <div className="flex justify-center items-center mb-4">
-                <div className="p-3 bg-primary rounded-full">
-                    <User className="w-8 h-8 text-primary-foreground" />
-                </div>
-            </div>
-          <CardTitle className="text-3xl font-bold">Creator Portal</CardTitle>
-          <CardDescription>Welcome back! Sign in to view your tasks.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-             <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative flex items-center">
-                <Input id="password" type={showPassword ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} className="pr-10"/>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-          </div>
-          <div className="mt-6 space-y-2">
-            <Button onClick={handleLogin} className="w-full" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login as Creator'}
-            </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Not a creator?{' '}
-            <Link href="/" className="underline">
-              Go to main page
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
 
-     <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
-        <AlertDialogContent>
-         <AlertDialogHeader>
-         <AlertDialogTitle id="reset-password-title">Welcome! Let&apos;s secure your account.</AlertDialogTitle>
-         <AlertDialogDescription id="reset-password-desc">
-             This is your first time logging in. For your security, please set a new, permanent password.
-         </AlertDialogDescription>
-         </AlertDialogHeader>
-         <div className="space-y-4 py-4">
-             <div className="space-y-2">
-                 <Label htmlFor="new-password">New Password</Label>
-                  <div className="relative flex items-center">
-                     <Input id="new-password" type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" className="pr-10" />
-                     <Button type="button" variant="ghost" size="icon" className="absolute right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowNewPassword(!showNewPassword)}>
-                         {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                     </Button>
-                 </div>
-             </div>
-             <div className="space-y-2">
-                 <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                  <div className="relative flex items-center">
-                     <Input id="confirm-new-password" type={showConfirmNewPassword ? 'text' : 'password'} value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" className="pr-10" />
-                     <Button type="button" variant="ghost" size="icon" className="absolute right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}>
-                         {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                     </Button>
-                 </div>
-             </div>
-         </div>
-         <AlertDialogFooter>
-            <Button onClick={handlePasswordReset}>Set New Password</Button>
-         </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
-    </>
-  );
+    return (
+        <>
+            <div className="flex min-h-screen items-center justify-center bg-background p-4">
+                <Card className="w-full max-w-md mx-auto shadow-2xl">
+                    <CardHeader className="text-center">
+                        <div className="flex justify-center items-center mb-4">
+                            <div className="p-3 bg-primary rounded-full">
+                                <User className="w-8 h-8 text-primary-foreground" />
+                            </div>
+                        </div>
+                        <CardTitle className="text-3xl font-bold">Creator Portal</CardTitle>
+                        <CardDescription>Welcome back! Sign in to view your tasks.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <div className="relative flex items-center">
+                                    <Input id="password" type={showPassword ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} className="pr-10" />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-6 space-y-2">
+                            <Button onClick={handleLogin} className="w-full" disabled={isLoading}>
+                                {isLoading ? 'Logging in...' : 'Login as Creator'}
+                            </Button>
+                        </div>
+                        <div className="mt-4 text-center text-sm">
+                            Not a creator?{' '}
+                            <Link href="/" className="underline">
+                                Go to main page
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle id="reset-password-title">Welcome! Let&apos;s secure your account.</AlertDialogTitle>
+                        <AlertDialogDescription id="reset-password-desc">
+                            This is your first time logging in. For your security, please set a new, permanent password.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-password">New Password</Label>
+                            <div className="relative flex items-center">
+                                <Input id="new-password" type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" className="pr-10" />
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowNewPassword(!showNewPassword)}>
+                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                            <div className="relative flex items-center">
+                                <Input id="confirm-new-password" type={showConfirmNewPassword ? 'text' : 'password'} value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" className="pr-10" />
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}>
+                                    {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                    <AlertDialogFooter>
+                        <Button onClick={handlePasswordReset}>Set New Password</Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
+    );
 }
 
 export async function getAdminByEmail(email: string) {
-  const q = query(collection(db, "admins"), where("email", "==", email));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) return null;
-  const docSnap = snapshot.docs[0];
-  return { id: docSnap.id, ...docSnap.data() };
+    const q = query(collection(db, "admins"), where("email", "==", email));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    const docSnap = snapshot.docs[0];
+    return { id: docSnap.id, ...docSnap.data() };
 }

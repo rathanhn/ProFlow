@@ -44,7 +44,7 @@ export default async function AdminTasksPage() {
             title="Task Overview"
             showClient={true}
             showAddButton={true}
-            addButtonLink="/admin/tasks/new"
+            addButtonLink="/admin/tasks/new?redirect=/admin/tasks"
             emptyStateMessage="No tasks found"
             emptyStateDescription="Start by creating your first task or importing tasks from a client."
           />

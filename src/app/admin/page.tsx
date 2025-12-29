@@ -22,10 +22,17 @@ import {
   Clock,
   Plus,
   UserPlus,
-  FileText
+  FileText,
+  Sparkles,
+  BarChart3,
+  Zap,
+  CheckCircle2,
+  CalendarCheck2
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { INRIcon } from '@/components/ui/inr-icon';
 import { getTasks, getClients, getAdminNotifications } from '@/lib/firebase-service';
+import { useToast } from '@/hooks/use-toast';
 import EarningsChart from '@/components/EarningsChart';
 import { DonutChart, ProgressRing, MetricCard } from '@/components/ui/charts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -35,17 +42,20 @@ import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { RippleButton } from '@/components/ui/ripple-effect';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
+import { useAuth } from '@/components/AuthProvider';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 
 export default function AdminDashboardPage() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const haptic = useHapticFeedback();
   const router = useRouter();
+  const { toast } = useToast();
 
   const loadData = async () => {
     try {
@@ -90,6 +100,10 @@ export default function AdminDashboardPage() {
     .sort((a, b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime())
     .slice(0, 5);
 
+  const recentActivities = [...tasks]
+    .sort((a, b) => new Date(b.acceptedDate).getTime() - new Date(a.acceptedDate).getTime())
+    .slice(0, 5);
+
   // FAB actions
   const fabActions = [
     {
@@ -121,6 +135,25 @@ export default function AdminDashboardPage() {
     },
   ];
 
+  // Real-time clock and dynamic quote
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [quote, setQuote] = useState("Focus on being productive instead of busy.");
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const quotes = [
+      "Focus on being productive instead of busy.",
+      "The best way to predict the future is to create it.",
+      "Success is not final, failure is not fatal.",
+      "Your only limit is your soul.",
+      "Do what you can, with what you have, where you are.",
+      "Quality is not an act, it is a habit.",
+      "Small progress is still progress."
+    ];
+    setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+    return () => clearInterval(timer);
+  }, []);
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -134,39 +167,72 @@ export default function AdminDashboardPage() {
   return (
     <DashboardLayout>
       <PullToRefresh onRefresh={handleRefresh}>
-        <div className="space-y-6 fab-safe-bottom">
-          <div className="flex items-center justify-end gap-2 w-full">
-            <RippleButton
-              variant="outline"
-              className="w-full sm:w-auto btn-gradient"
-              onClick={() => {
-                haptic.androidClick();
-                router.push('/admin/export');
-              }}
-            >
-              <File className="mr-2 h-4 w-4" /> Export
-            </RippleButton>
-            <RippleButton
-              className="w-full sm:w-auto btn-gradient"
-              onClick={() => {
-                haptic.androidClick();
-                router.push('/admin/tasks/new');
-              }}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Task
-            </RippleButton>
+        <div className="space-y-8 fab-safe-bottom pt-4">
+
+          {/* Welcome Hero Section */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-8 text-white shadow-2xl transition-all duration-500 hover:shadow-blue-500/20">
+            <div className="absolute top-0 right-0 -m-8 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -m-8 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-inner">
+                    <Sparkles className="h-7 w-7 text-yellow-300 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white/80 text-xs font-black uppercase tracking-widest leading-none">
+                        {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      </span>
+                      <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase font-bold px-2 py-0 h-4">
+                        Premium Partner
+                      </Badge>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
+                      Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-white">{user?.displayName?.split(' ')[0] || 'Admin'}</span>
+                    </h1>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 pt-2">
+                  <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg">
+                    <Clock className="h-5 w-5 text-yellow-300" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-black text-white/40 leading-none">Standard Time</span>
+                      <span className="text-xl font-mono tabular-nums font-bold leading-tight">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                    </div>
+                  </div>
+
+                  <div className="max-w-md">
+                    <p className="italic opacity-70 text-sm leading-relaxed border-l-2 border-white/20 pl-4 py-1">
+                      &quot;{quote}&quot;
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 min-w-[200px]">
+                <Button variant="outline" className="h-12 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-xl border-none shadow-lg active:scale-95 transition-all text-base font-bold" onClick={() => router.push('/admin/tasks/new')}>
+                  <Plus className="mr-2 h-5 w-5" /> Quick Project
+                </Button>
+                <Button className="h-12 bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 transition-transform font-black shadow-xl shadow-blue-900/10 text-base" onClick={() => router.push('/admin/tasks/report')}>
+                  <FileText className="mr-2 h-5 w-5" /> Intelligence Report
+                </Button>
+              </div>
+            </div>
           </div>
 
           {unreadNotifications.length > 0 && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="glass-card border-red-500/50 bg-red-500/5">
               <MessageSquareWarning className="h-4 w-4" />
-              <AlertTitle>Important Alerts!</AlertTitle>
+              <AlertTitle className="font-bold">Urgent Client Messages</AlertTitle>
               <AlertDescription>
-                You have unread messages from clients. Please check your notifications.
-                <ul className="mt-2 list-disc list-inside">
+                <ul className="mt-2 space-y-2">
                   {unreadNotifications.map(notification => (
-                    <li key={notification.id}>
-                      <Link href={notification.link} className="font-semibold underline">
+                    <li key={notification.id} className="flex items-center gap-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
+                      <Link href={notification.link} className="hover:underline transition-all">
                         {notification.message}
                       </Link>
                     </li>
@@ -176,106 +242,145 @@ export default function AdminDashboardPage() {
             </Alert>
           )}
 
-          {paidButNotCompletedTasks.length > 0 && (
-            <Alert>
-              <BellRing className="h-4 w-4" />
-              <AlertTitle>Action Required!</AlertTitle>
-              <AlertDescription>
-                The following projects have been paid for but their work status is not yet &apos;Completed&apos;. Please review and update their status.
-                <ul className="mt-2 list-disc list-inside">
-                  {paidButNotCompletedTasks.map(task => (
-                    <li key={task.id}>
-                      <Link href={`/admin/tasks/${task.id}`} className="font-semibold underline">
-                        {task.projectName}
-                      </Link>
-                      {' '}for {task.clientName} (Work Status: {task.workStatus})
-                    </li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
-                <INRIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₹{(totalEarnings || 0).toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">Based on fully paid projects</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Outstanding Amount</CardTitle>
-                <INRIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₹{(pendingPayments || 0).toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">Across all unpaid/partial projects</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Completed Projects</CardTitle>
-                <ListChecks className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">+{completedProjects}</div>
-                <p className="text-xs text-muted-foreground">{tasks.length} total projects</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalClients}</div>
-                <p className="text-xs text-muted-foreground">Active and past clients</p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricCard
+              title="Global Total Revenue"
+              value={`₹${(totalEarnings || 0).toLocaleString()}`}
+              icon={<INRIcon className="h-6 w-6 text-blue-500" />}
+              className="glass-card border-blue-500/20 shadow-blue-500/5 hover:border-blue-500/40"
+              change={{ value: 12, type: 'increase' }}
+            />
+            <MetricCard
+              title="Pending Invoices"
+              value={`₹${(pendingPayments || 0).toLocaleString()}`}
+              icon={<Clock className="h-6 w-6 text-orange-500" />}
+              className="glass-card border-orange-500/20 shadow-orange-500/5 hover:border-orange-500/40"
+            />
+            <MetricCard
+              title="Project Success"
+              value={`+${completedProjects}`}
+              icon={<ListChecks className="h-6 w-6 text-emerald-500" />}
+              className="glass-card border-emerald-500/20 shadow-emerald-500/5 hover:border-emerald-500/40"
+              change={{ value: 8, type: 'increase' }}
+            />
+            <MetricCard
+              title="Active Partnerships"
+              value={totalClients}
+              icon={<Users className="h-6 w-6 text-purple-500" />}
+              className="glass-card border-purple-500/20 shadow-purple-500/5 hover:border-purple-500/40"
+            />
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-7">
-            <EarningsChart />
-            <AIInsights tasks={tasks} clients={clients} />
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Row 1: Pulse & Workflow */}
+            <div className="lg:col-span-4">
+              <Card className="glass-card border-white/20 shadow-xl overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-yellow-500" /> Project Pulse
+                  </CardTitle>
+                  <CardDescription>Visual breakdown of work status</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center justify-center pt-6">
+                  <DonutChart
+                    data={[
+                      { label: 'Pending', value: tasks.filter(t => t.workStatus === 'Pending').length, color: '#f59e0b' },
+                      { label: 'In Progress', value: tasks.filter(t => t.workStatus === 'In Progress').length, color: '#3b82f6' },
+                      { label: 'Completed', value: completedProjects, color: '#10b981' },
+                    ]}
+                    size={180}
+                    strokeWidth={20}
+                  />
+                </CardContent>
+              </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Deadlines</CardTitle>
-              <CardDescription>These projects are next on the timeline.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {upcomingDeadlines.length > 0 ? upcomingDeadlines.map(task => (
-                  <div key={task.id} className="flex justify-between items-center">
+            <div className="lg:col-span-8">
+              <Card className="glass-card border-white/20 shadow-xl overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-3 opacity-5">
+                  <Zap className="h-32 w-32 rotate-12" />
+                </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">{task.projectName}</p>
-                      <p className="text-sm text-muted-foreground">{task.clientName}</p>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <CalendarCheck2 className="h-5 w-5 text-blue-500" /> Recent Workflow
+                      </CardTitle>
+                      <CardDescription>Latest project movements</CardDescription>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        {new Date(task.submissionDate).toLocaleDateString()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{task.workStatus}</p>
-                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => router.push('/admin/tasks')} className="text-xs">
+                      View All <ArrowRight className="ml-1 h-3 w-3" />
+                    </Button>
                   </div>
-                )) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">No upcoming deadlines. All projects are completed!</p>
-                )}
-              </div>
-              <div className="mt-4 pt-4 border-t">
-                <Button variant="secondary" className="w-full" asChild>
-                  <Link href="/admin/tasks">View All Tasks <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                </CardHeader>
+                <CardContent className="pt-4 px-6 pb-6">
+                  <div className="space-y-4">
+                    {recentActivities.map((task, idx) => (
+                      <div key={task.id} className="flex items-start gap-4 group cursor-pointer" onClick={() => router.push(`/admin/tasks/${task.id}`)}>
+                        <div className="relative">
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 border transition-all duration-300 ${task.workStatus === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
+                            task.workStatus === 'In Progress' ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
+                              'bg-amber-500/10 border-amber-500/20 text-amber-500'
+                            }`}>
+                            {task.workStatus === 'Completed' ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+                          </div>
+                          {idx !== recentActivities.length - 1 && (
+                            <div className="absolute top-10 left-1/2 -ml-px h-6 w-0.5 bg-border/50" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="font-bold text-sm truncate group-hover:text-blue-500 transition-colors uppercase tracking-tight">{task.projectName}</h4>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap font-mono">{task.projectNo}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-muted-foreground truncate opacity-80">{task.clientName}</span>
+                            <span className="text-xs text-muted-foreground/30">•</span>
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{task.workStatus}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Row 2: AI Intelligence Full Width */}
+            <div className="lg:col-span-12">
+              <AIInsights tasks={tasks} clients={clients} />
+            </div>
+          </div>
+
+          {paidButNotCompletedTasks.length > 0 && (
+            <Card className="glass-card border-yellow-500/20 bg-yellow-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2 text-yellow-600">
+                  <BellRing className="h-5 w-5 animate-bounce" />
+                  Action Required
+                </CardTitle>
+                <CardDescription>Paid projects that need completion</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3">
+                  {paidButNotCompletedTasks.map(task => (
+                    <div key={task.id} className="flex items-center justify-between p-3 rounded-xl bg-white/50 dark:bg-black/20 border border-white/20">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm">{task.projectName}</span>
+                        <span className="text-xs text-muted-foreground">{task.clientName}</span>
+                      </div>
+                      <Badge variant="outline" className="capitalize bg-yellow-100 text-yellow-700 border-yellow-200">
+                        {task.workStatus}
+                      </Badge>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/admin/tasks/${task.id}`}>Update <ArrowRight className="ml-1 h-3 w-3" /></Link>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
         </div>
       </PullToRefresh>

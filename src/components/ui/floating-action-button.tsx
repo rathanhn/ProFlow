@@ -49,7 +49,7 @@ interface FABAction {
 
 interface FloatingActionButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof fabVariants> {
+  VariantProps<typeof fabVariants> {
   icon?: LucideIcon;
   actions?: FABAction[];
   extended?: boolean;
@@ -177,7 +177,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
                     {action.label}
                   </span>
                 )}
-                
+
                 <Button
                   size="sm"
                   variant="outline"
@@ -213,7 +213,14 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           !extended && 'p-0',
           className
         )}
-        onClick={actions.length === 0 ? onClick : undefined}
+        onClick={(e) => {
+          if (actions.length > 0) {
+            haptic.androidClick();
+            setIsExpanded(!isExpanded);
+          } else {
+            onClick?.(e);
+          }
+        }}
         {...props}
       >
         <Icon className={cn(

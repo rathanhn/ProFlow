@@ -6,7 +6,7 @@ import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, XAxis, YAxis, 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { BarChart as BarChartIcon, Loader2 } from 'lucide-react';
+import { BarChart as BarChartIcon, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ChartData, generateChart } from '@/ai/flows/generateChartFlow';
 import { Client, Task } from '@/lib/types';
@@ -31,7 +31,7 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
         if (!hasApiKey) {
             toast({
                 title: 'API Key Missing',
-                description: 'Gemini API key is not configured. Please check the debug page for setup instructions.',
+                description: 'Gemini API key is not configured. Please add it to your environment variables.',
                 variant: 'destructive'
             });
             return;
@@ -49,9 +49,9 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
             const result = await generateChart({ query, tasks, clients });
             if (result && result.data.length > 0) {
                 setChartData(result);
-                 toast({ title: "Chart Generated!", description: result.title });
+                toast({ title: "Chart Generated!", description: result.title });
             } else {
-                 toast({ title: "No Data", description: "The AI couldn't generate a chart from your query or no data was found.", variant: 'destructive' });
+                toast({ title: "No Data", description: "The AI couldn't generate a chart from your query or no data was found.", variant: 'destructive' });
             }
         } catch (error) {
             console.error("Failed to generate chart:", error);
@@ -59,7 +59,7 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
             if (errorMessage.includes('API key') || errorMessage.includes('GEMINI_API_KEY') || errorMessage.includes('FAILED_PRECONDITION')) {
                 toast({
                     title: 'API Key Error',
-                    description: 'Please configure your Gemini API key in the environment variables. Check the debug page for instructions.',
+                    description: 'Please configure your Gemini API key in the environment variables.',
                     variant: 'destructive'
                 });
             } else {
@@ -74,7 +74,7 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
         if (!chartData) {
             return (
                 <div className="mt-4 p-4 border rounded-lg bg-muted/50 text-center text-sm text-muted-foreground min-h-[250px] flex items-center justify-center">
-                   <p>Your generated chart will appear here.</p>
+                    <p>Your generated chart will appear here.</p>
                 </div>
             );
         }
@@ -83,17 +83,17 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
             <div className="mt-4">
                 <h3 className="font-semibold">{chartData.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{chartData.description}</p>
-                 <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={250}>
                     {chartData.type === 'bar' ? (
                         <BarChart data={chartData.data}>
                             <XAxis dataKey="x" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                             <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
                             <Tooltip
-                              contentStyle={{ 
-                                background: 'hsl(var(--background))', 
-                                border: '1px solid hsl(var(--border))', 
-                                borderRadius: 'var(--radius)'
-                              }}
+                                contentStyle={{
+                                    background: 'hsl(var(--background))',
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: 'var(--radius)'
+                                }}
                             />
                             <Legend />
                             <Bar dataKey="y" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name={chartData.yLabel} />
@@ -105,13 +105,13 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                             <Tooltip
-                                contentStyle={{ 
-                                  background: 'hsl(var(--background))', 
-                                  border: '1px solid hsl(var(--border))', 
-                                  borderRadius: 'var(--radius)'
+                            <Tooltip
+                                contentStyle={{
+                                    background: 'hsl(var(--background))',
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: 'var(--radius)'
                                 }}
-                              />
+                            />
                             <Legend />
                         </PieChart>
                     )}
@@ -121,42 +121,53 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
     };
 
     return (
-        <Card className="lg:col-span-3">
-            <CardHeader>
-                <CardTitle>AI-Powered Insights</CardTitle>
-                <CardDescription>Ask about your data to get visualizations.</CardDescription>
+        <Card className="w-full overflow-hidden border-indigo-500/20 shadow-2xl shadow-indigo-500/10 relative group">
+            <div className="absolute top-0 right-0 -m-4 h-24 w-24 rounded-full bg-indigo-500/10 blur-2xl group-hover:bg-indigo-500/20 transition-all duration-700"></div>
+            <CardHeader className="relative z-10">
+                <CardTitle className="flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                    <Sparkles className="h-5 w-5 text-indigo-500" />
+                    AI Intelligence
+                </CardTitle>
+                <CardDescription>Ask Gemini to visualize your business data trends</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative z-10">
                 <div className="space-y-4">
-                    <Input
-                        placeholder={hasApiKey ? "e.g., 'Show top clients by earnings'" : "API key required - check debug page"}
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                    <div className="relative group">
+                        <Input
+                            placeholder={hasApiKey ? "Ask anything... (e.g., 'Projects by month')" : "API key required - configure in environment"}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                            disabled={isLoading || !hasApiKey}
+                            className="pr-10 border-indigo-100 bg-indigo-50/30 focus:bg-white transition-all ring-offset-indigo-500"
+                        />
+                        {isLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-indigo-500" />}
+                    </div>
+                    <Button
+                        onClick={handleGenerate}
+                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
                         disabled={isLoading || !hasApiKey}
-                    />
-                    <Button onClick={handleGenerate} className="w-full" disabled={isLoading || !hasApiKey}>
+                    >
                         {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Generating...
+                                Analyzing Data...
                             </>
                         ) : !hasApiKey ? (
                             <>
                                 <BarChartIcon className="mr-2 h-4 w-4" />
-                                API Key Required
+                                Setup API Key
                             </>
                         ) : (
                             <>
                                 <BarChartIcon className="mr-2 h-4 w-4" />
-                                Generate Visualization
+                                Generate Visual Insight
                             </>
                         )}
                     </Button>
                     {!hasApiKey && (
-                        <div className="text-sm text-muted-foreground text-center">
-                            <p>Gemini API key is required for AI insights.</p>
-                            <p>Visit the <a href="/admin/debug" className="text-primary underline">debug page</a> for setup instructions.</p>
+                        <div className="text-sm text-indigo-600 text-center p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 italic">
+                            <p>Unlock the power of AI with a Gemini API key</p>
                         </div>
                     )}
                     {renderChart()}

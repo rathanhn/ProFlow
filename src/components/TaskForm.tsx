@@ -13,6 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,8 +27,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Task, Client, WorkStatus, PaymentStatus, Assignee } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { addTask, updateTask, getClients, getTasks, getAssignees, addAssignee, createNotification } from '@/lib/firebase-service';
-import React, { useState } from 'react';
+import { addTask, updateTask, getClients, getTasks, getAssignees, addAssignee, createNotification, getNextProjectNo, getLatestProjectNoForClient } from '@/lib/firebase-service';
+import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +50,7 @@ const workStatuses = ['Pending', 'In Progress', 'Completed'] as const;
 
 const formSchema = z.object({
   clientName: z.string().min(1, 'Client name is required'),
+  projectNo: z.string().optional(),
   projectName: z.string().min(1, 'Project name is required'),
   pages: z.coerce.number().min(1, 'Pages must be at least 1'),
   rate: z.coerce.number().min(1, 'Rate must be at least 1'),
@@ -68,9 +71,11 @@ const newAssigneeSchema = z.object({
 interface TaskFormProps {
   task?: Task;
   redirectPath?: string;
+  initialClientId?: string;
 }
 
-export default function TaskForm({ task, redirectPath }: TaskFormProps) {
+export default function TaskForm({ task, redirectPath, initialClientId }: TaskFormProps) {
+  // 1. Basic Hooks & State
   const router = useRouter();
   const { toast } = useToast();
   const [clients, setClients] = React.useState<Client[]>([]);
@@ -81,6 +86,36 @@ export default function TaskForm({ task, redirectPath }: TaskFormProps) {
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 2. Computed Values
+  const initialClientName = React.useMemo(() => {
+    if (task) return task.clientName;
+    if (initialClientId && clients.length > 0) {
+      const found = clients.find(c => c.id === initialClientId);
+      return found ? found.name : '';
+    }
+    return '';
+  }, [task, initialClientId, clients]);
+
+  // 3. Form Initialization
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      clientName: initialClientName || '',
+      projectNo: task?.projectNo || '',
+      projectName: task?.projectName || '',
+      pages: task?.pages || 1,
+      rate: task?.rate || 100,
+      workStatus: task?.workStatus || 'Pending',
+      assigneeId: task?.assigneeId || 'unassigned',
+      notes: task?.notes || '',
+      projectFileLink: task?.projectFileLink || '',
+      outputFileLink: task?.outputFileLink || '',
+      acceptedDate: task?.acceptedDate?.split('T')[0] ?? new Date().toISOString().split('T')[0],
+      submissionDate: task?.submissionDate?.split('T')[0] ?? new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0],
+    },
+  });
+
+  // 4. Data Fetching & Callbacks
   const fetchClients = React.useCallback(async () => {
     const clientData = await getClients();
     setClients(clientData);
@@ -91,34 +126,68 @@ export default function TaskForm({ task, redirectPath }: TaskFormProps) {
     setAssignees(assigneeData);
   }, []);
 
+  const fetchNextProjectNo = React.useCallback(async () => {
+    if (!task) {
+      const nextNo = await getNextProjectNo();
+      form.setValue('projectNo', nextNo);
+    }
+  }, [task, form]);
+
   React.useEffect(() => {
     fetchClients();
     fetchAssignees();
-  }, [fetchClients, fetchAssignees]);
+    fetchNextProjectNo();
+  }, [fetchClients, fetchAssignees, fetchNextProjectNo]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      clientName: task?.clientName || '',
-      projectName: task?.projectName || '',
-      pages: task?.pages || 1,
-      rate: task?.rate || 100,
-      workStatus: task?.workStatus || 'Pending',
-      assigneeId: task?.assigneeId || 'unassigned',
-      notes: task?.notes || '',
-      projectFileLink: task?.projectFileLink || '',
-      outputFileLink: task?.outputFileLink || '',
-      acceptedDate: task?.acceptedDate?.split('T')[0] ?? '',
-      submissionDate: task?.submissionDate?.split('T')[0] ?? '',
-    },
-  });
+  // Handle client name updates if clients load after mount
+  React.useEffect(() => {
+    if (!task && initialClientName && !form.getValues('clientName')) {
+      form.setValue('clientName', initialClientName);
+    }
+  }, [initialClientName, form, task]);
 
-  // Watch for client selection to auto-set rate
+  // Watch for client selection to auto-set rate and project number
   const selectedClientName = form.watch('clientName');
+
+  React.useEffect(() => {
+    if (selectedClientName && !task) {
+      const suggestProjectNo = async () => {
+        const lastNo = await getLatestProjectNoForClient(selectedClientName);
+        if (lastNo) {
+          // Extract number, increment it
+          const numMatch = lastNo.match(/\d+/);
+          if (numMatch) {
+            const nextNum = parseInt(numMatch[0]) + 1;
+            form.setValue('projectNo', `PRJ${nextNum}`);
+          }
+        } else {
+          // Fallback to global sequence if client is new
+          const nextNo = await getNextProjectNo();
+          form.setValue('projectNo', nextNo);
+        }
+      };
+      suggestProjectNo();
+    }
+  }, [selectedClientName, task, form]);
+
   const selectedClient = React.useMemo(
     () => clients.find(c => c.name === selectedClientName),
     [clients, selectedClientName]
   );
+
+  // KEYBOARD SHORTCUT: Cmd/Ctrl + Enter to fast-launch
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        const formValues = form.getValues();
+        if (formValues.projectName && formValues.clientName) {
+          form.handleSubmit(onSubmit)();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [form]);
   const clientRates = React.useMemo(() => {
     if (selectedClient?.defaultRates && selectedClient.defaultRates.length > 0) {
       return selectedClient.defaultRates;
@@ -128,6 +197,7 @@ export default function TaskForm({ task, redirectPath }: TaskFormProps) {
     }
     return [];
   }, [selectedClient]);
+
   React.useEffect(() => {
     if (selectedClient && !task) { // Only auto-set on new tasks
       if (clientRates.length > 0) {
@@ -198,41 +268,19 @@ export default function TaskForm({ task, redirectPath }: TaskFormProps) {
         await updateTask(task.id, taskData);
         toast({
           title: 'Task Updated!',
-          description: `Project "${values.projectName}" has been saved.`,
+          description: `Project "${values.projectName}" (${values.projectNo}) has been saved.`,
         });
 
         // Notify if assignee changed
         if (taskData.assigneeId && taskData.assigneeId !== task.assigneeId) {
           await createNotification({
             userId: taskData.assigneeId,
-            message: `You have been assigned a new task: ${taskData.projectName}.`,
+            message: `You have been assigned a project: ${taskData.projectName} (${values.projectNo}).`,
             link: `/creator/${taskData.assigneeId}/tasks/${task.id}`,
             isRead: false,
             createdAt: new Date().toISOString(),
           });
         }
-
-        // Notify client on file uploads
-        if (values.projectFileLink && values.projectFileLink !== task.projectFileLink) {
-          await createNotification({
-            userId: client.id,
-            message: `A new project file was uploaded for: ${task.projectName}.`,
-            link: `/client/${client.id}/projects/${task.id}`,
-            isRead: false,
-            createdAt: new Date().toISOString(),
-          });
-        }
-        if (values.outputFileLink && values.outputFileLink !== task.outputFileLink) {
-          await createNotification({
-            userId: client.id,
-            message: `A new output file was uploaded for: ${task.projectName}.`,
-            link: `/client/${client.id}/projects/${task.id}`,
-            isRead: false,
-            createdAt: new Date().toISOString(),
-          });
-        }
-
-
       } else {
         const newTaskData = {
           ...finalValues,
@@ -243,19 +291,30 @@ export default function TaskForm({ task, redirectPath }: TaskFormProps) {
           amountPaid: 0,
           acceptedDate: values.acceptedDate ? new Date(values.acceptedDate).toISOString() : new Date().toISOString(),
           submissionDate: values.submissionDate ? new Date(values.submissionDate).toISOString() : new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
-          slNo: (await getTasks()).length + 1
         }
-        const addedTask = await addTask(newTaskData as Omit<Task, 'id'>);
+        // Remove projectNo from newTaskData if it's empty, backend will generate it
+        if (!newTaskData.projectNo) delete newTaskData.projectNo;
+
+        const addedTask = await addTask(newTaskData as Omit<Task, 'id' | 'slNo' | 'projectNo'>);
+
+        // Success Celebration!
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#3b82f6', '#8b5cf6', '#ec4899']
+        });
+
         toast({
           title: 'Task Created!',
-          description: `Project "${values.projectName}" has been added.`,
+          description: `Project "${values.projectName}" has been added as ${addedTask.projectNo}.`,
         });
 
         // Notify if assigned on creation
         if (addedTask && newTaskData.assigneeId) {
           await createNotification({
             userId: newTaskData.assigneeId,
-            message: `You have been assigned a new task: ${newTaskData.projectName}.`,
+            message: `New Assignment: ${newTaskData.projectName} (${addedTask.projectNo}).`,
             link: `/creator/${newTaskData.assigneeId}/tasks/${addedTask.id}`,
             isRead: false,
             createdAt: new Date().toISOString(),
@@ -285,338 +344,366 @@ export default function TaskForm({ task, redirectPath }: TaskFormProps) {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
-              <CardTitle>{task ? 'Edit Task' : 'Create a New Task'}</CardTitle>
-              <CardDescription>{task ? 'Update task details and payment status.' : 'Fill in the form to create a new task.'}</CardDescription>
-            </div>
-            {task && (
-              <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)} className="w-full sm:w-auto">
-                <DollarSign className="mr-2 h-4 w-4" />
-                Update Payment
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="clientName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client Name</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!task}>
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black tracking-tight text-gradient-indigo mb-2">
+          {task ? 'Edit Project' : 'Initiate Project'}
+        </h1>
+        <p className="text-muted-foreground font-medium">
+          {task ? 'Update the details and monitor the progress of your project.' : 'Launch a new collaboration by filling out the project blueprints below.'}
+        </p>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Info Section */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="glass-card rounded-3xl p-6 border-white/20 dark:border-white/10 shadow-xl space-y-6">
+                <div className="flex items-center gap-3 pb-2 border-b border-white/10 mb-2">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h2 className="text-lg font-bold">Project Blueprint</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="clientName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Client Partner</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!task}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 bg-secondary/50 border-none rounded-xl">
+                              <SelectValue placeholder="Select a partner" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="glass-card border-white/20">
+                            {clients.map((client: Client) => (
+                              <SelectItem key={client.id} value={client.name}>
+                                {client.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="projectNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Project Reference</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a client" />
-                          </SelectTrigger>
+                          <Input
+                            placeholder="e.g. PRJ95"
+                            {...field}
+                            className="h-11 bg-secondary/30 border-none rounded-xl font-mono font-bold text-primary focus:ring-2 ring-primary/20 transition-all"
+                          />
                         </FormControl>
-                        <SelectContent>
-                          {clients.map((client: Client) => (
-                            <SelectItem key={client.id} value={client.name}>
-                              {client.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormDescription className="text-[10px]">Unique ID used for tracking and invoicing.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="projectName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project Name</FormLabel>
+                      <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Title of Project</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. E-commerce Website" {...field} />
+                        <Input
+                          placeholder="e.g. Q4 Marketing Campaign"
+                          {...field}
+                          className="h-11 bg-secondary/50 border-none rounded-xl font-medium focus:ring-2 ring-primary/20 transition-all"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Internal Brief / Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Specify project goals, specific requirements, or milestones..."
+                          className="resize-none min-h-[120px] bg-secondary/50 border-none rounded-xl focus:ring-2 ring-primary/20 transition-all"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="assigneeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assigned To</FormLabel>
-                      <div className="flex gap-2">
+
+              {/* Workflow & Files Section */}
+              <div className="glass-card rounded-3xl p-6 border-white/20 dark:border-white/10 shadow-xl space-y-6">
+                <div className="flex items-center gap-3 pb-2 border-b border-white/10 mb-2">
+                  <div className="h-8 w-1 bg-indigo-500 rounded-full" />
+                  <h2 className="text-lg font-bold">Workflow & Resources</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="projectFileLink"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Source Material</FormLabel>
+                        <FormControl>
+                          <FileUpload
+                            value={field.value}
+                            onChange={field.onChange}
+                            folder="project_files"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="outputFileLink"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Final Deliverable</FormLabel>
+                        <FormControl>
+                          <FileUpload
+                            value={field.value}
+                            onChange={field.onChange}
+                            folder="output_files"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar Stats Section */}
+            <div className="space-y-8">
+              <div className="glass-card rounded-3xl p-6 border-white/20 dark:border-white/10 shadow-xl space-y-6 sticky top-24">
+                <div className="flex items-center gap-3 pb-2 border-b border-white/10 mb-2">
+                  <div className="h-8 w-1 bg-emerald-500 rounded-full" />
+                  <h2 className="text-lg font-bold">Logistics</h2>
+                </div>
+
+                <div className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="assigneeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Assigned Creator</FormLabel>
+                        <div className="flex gap-2">
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-10 bg-secondary/50 border-none rounded-xl">
+                                <SelectValue placeholder="Assign someone" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="glass-card border-white/20">
+                              <SelectItem value="unassigned">Keep Unassigned</SelectItem>
+                              {assignees.map((assignee: Assignee) => (
+                                <SelectItem key={assignee.id} value={assignee.id}>
+                                  {assignee.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Dialog open={isAddAssigneeDialogOpen} onOpenChange={setAddAssigneeDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-xl hover:bg-primary hover:text-white transition-all">
+                                <PlusCircle className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="glass-card border-white/20">
+                              <DialogHeader>
+                                <DialogTitle>Onboard New Creator</DialogTitle>
+                                <DialogDescription>
+                                  Add a new professional to your creative team.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="new-assignee-name" className="text-xs uppercase font-bold text-muted-foreground">Full Name</Label>
+                                  <Input id="new-assignee-name" value={newAssigneeName} onChange={(e) => setNewAssigneeName(e.target.value)} placeholder="e.g. John Doe" className="bg-secondary/50 border-none h-10" />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="new-assignee-email" className="text-xs uppercase font-bold text-muted-foreground">Email Address</Label>
+                                  <Input id="new-assignee-email" type="email" value={newAssigneeEmail} onChange={(e) => setNewAssigneeEmail(e.target.value)} placeholder="john@proflow.com" className="bg-secondary/50 border-none h-10" />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <Button type="button" onClick={handleAddAssignee} className="w-full glow-blue">Confirm Recruitment</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="workStatus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Activity Status</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a creator" />
+                            <SelectTrigger className="h-10 bg-secondary/50 border-none rounded-xl">
+                              <SelectValue placeholder="Status" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="unassigned">N/A</SelectItem>
-                            {assignees.map((assignee: Assignee) => (
-                              <SelectItem key={assignee.id} value={assignee.id}>
-                                {assignee.name}
+                          <SelectContent className="glass-card border-white/20">
+                            {workStatuses.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {status}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                        <Dialog open={isAddAssigneeDialogOpen} onOpenChange={setAddAssigneeDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button type="button" variant="outline" size="icon">
-                              <PlusCircle className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Add New Creator</DialogTitle>
-                              <DialogDescription>
-                                Enter the details for the new creator. They will then be available for assignment.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="new-assignee-name">Name</Label>
-                                <Input id="new-assignee-name" value={newAssigneeName} onChange={(e) => setNewAssigneeName(e.target.value)} placeholder="e.g. Alex" />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-assignee-email">Email (Optional)</Label>
-                                <Input id="new-assignee-email" type="email" value={newAssigneeEmail} onChange={(e) => setNewAssigneeEmail(e.target.value)} placeholder="alex@example.com" />
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <DialogClose asChild>
-                                <Button type="button" variant="outline">Cancel</Button>
-                              </DialogClose>
-                              <Button type="button" onClick={handleAddAssignee}>Add Creator</Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="workStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Work Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select work status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {workStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="pages"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Number of Pages</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="rate"
-                  render={({ field }) => {
-                    const matchedRate = clientRates.find(r => r.rate === field.value);
-                    const selectValue = matchedRate ? matchedRate.label : 'custom';
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Rate per Page (₹)</FormLabel>
-                        <div className="space-y-2">
-                          <Select
-                            value={selectValue}
-                            onValueChange={(val) => {
-                              if (val === 'custom') return;
-                              const found = clientRates.find(r => r.label === val);
-                              if (found) {
-                                field.onChange(found.rate);
-                                return;
-                              }
-                            }}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a rate" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {clientRates.map((rate) => (
-                                <SelectItem key={rate.label} value={rate.label}>
-                                  {rate.label} — ₹{rate.rate}
-                                </SelectItem>
-                              ))}
-                              <SelectItem value="custom">Custom rate</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            type="number"
-                            value={field.value}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
-                            placeholder="Enter custom rate"
-                          />
-                        </div>
                         <FormMessage />
                       </FormItem>
-                    );
-                  }}
-                />
-              </div>
+                    )}
+                  />
 
-              {/* Live Total Calculation */}
-              <div className="bg-muted/50 p-4 rounded-lg border flex justify-between items-center animate-in fade-in slide-in-from-top-2">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Estimated Total</p>
-                  <p className="text-xs text-muted-foreground">Based on {pages || 0} pages at ₹{rate || 0}/page</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="pages"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Volume (Pages)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} className="h-10 bg-secondary/50 border-none rounded-xl font-bold" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="rate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Unit Rate (₹)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} className="h-10 bg-secondary/50 border-none rounded-xl font-bold" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="py-4 px-5 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl border border-indigo-500/20 shadow-inner">
+                    <p className="text-[10px] uppercase font-black tracking-widest text-indigo-500 mb-1">Total Valuation</p>
+                    <p className="text-3xl font-black text-gradient-indigo">
+                      ₹{calculatedTotal.toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="space-y-4 pt-2">
+                    <FormField
+                      control={form.control}
+                      name="acceptedDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Kickoff Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} className="h-10 bg-secondary/50 border-none rounded-xl text-xs" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="submissionDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Deadline Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} className="h-10 bg-secondary/50 border-none rounded-xl text-xs" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-3 pt-4">
+                    <Button
+                      type="submit"
+                      className="w-full h-12 rounded-2xl font-bold text-lg glow-blue active:scale-95 transition-all"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        task ? 'Update Project' : 'Launch Project'
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => router.back()}
+                      disabled={isSubmitting}
+                      className="w-full text-muted-foreground hover:bg-white/5 rounded-2xl h-10"
+                    >
+                      Discard Changes
+                    </Button>
+
+                    {task && (
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => setPaymentDialogOpen(true)}
+                        className="text-xs text-primary font-bold decoration-primary/30"
+                      >
+                        <DollarSign className="mr-1 h-3 w-3" />
+                        Manage Payment Ledger
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-primary">
-                  ₹{calculatedTotal.toLocaleString()}
-                </div>
               </div>
+            </div>
+          </div>
+        </form>
+      </Form>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="acceptedDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Accepted Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="submissionDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Submission Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add any relevant notes here..."
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="projectFileLink"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Project File</FormLabel>
-                      <FormControl>
-                        <FileUpload
-                          value={field.value}
-                          onChange={field.onChange}
-                          folder="project_files"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="outputFileLink"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Output File</FormLabel>
-                      <FormControl>
-                        <FileUpload
-                          value={field.value}
-                          onChange={field.onChange}
-                          folder="output_files"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-
-                <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {task ? 'Updating...' : 'Creating...'}
-                    </>
-                  ) : (
-                    task ? 'Update Task' : 'Create Task'
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
       {task && (
         <PaymentDialog
           task={task}
           isOpen={isPaymentDialogOpen}
           onClose={() => {
             setPaymentDialogOpen(false);
-            router.refresh(); // Refresh data on the edit page
+            router.refresh();
           }}
         />
       )}
-    </>
+    </div>
   );
 }
 

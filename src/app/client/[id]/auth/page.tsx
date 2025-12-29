@@ -48,7 +48,6 @@ export default function ClientAuthPage() {
     const handleSignIn = async () => {
         setIsLoading(true);
         try {
-            await setPersistence(clientAuth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
             const user = userCredential.user;
 
@@ -108,7 +107,7 @@ export default function ClientAuthPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="password">Password</Label>
-                         <div className="relative flex items-center">
+                        <div className="relative flex items-center">
                             <Input
                                 id="password"
                                 type={showPassword ? 'text' : 'password'}
@@ -127,7 +126,7 @@ export default function ClientAuthPage() {
                             >
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
-                         </div>
+                        </div>
                     </div>
                     <Button onClick={handleSignIn} disabled={isLoading || !email} className="w-full">
                         {isLoading ? 'Signing In...' : 'Sign In'}
@@ -135,49 +134,49 @@ export default function ClientAuthPage() {
                 </CardContent>
             </Card>
 
-             <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
+            <AlertDialog open={showPasswordResetDialog} onOpenChange={setShowPasswordResetDialog}>
                 <AlertDialogContent>
-                 <AlertDialogHeader>
-                 <AlertDialogTitle>Welcome! Let&apos;s secure your account.</AlertDialogTitle>
-                 <AlertDialogDescription>
-                     This is your first time logging in. For your security, please set a new, permanent password.
-                 </AlertDialogDescription>
-                 </AlertDialogHeader>
-                 <div className="space-y-4 py-4">
-                     <div className="space-y-2">
-                         <Label htmlFor="new-password">New Password</Label>
-                          <div className="relative flex items-center">
-                             <Input id="new-password" type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" className="pr-10" />
-                             <Button
-                                 type="button"
-                                 variant="ghost"
-                                 size="icon"
-                                 className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                 onClick={() => setShowNewPassword(!showNewPassword)}
-                                 >
-                                 {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                             </Button>
-                         </div>
-                     </div>
-                     <div className="space-y-2">
-                         <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                          <div className="relative flex items-center">
-                             <Input id="confirm-new-password" type={showConfirmNewPassword ? 'text' : 'password'} value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" className="pr-10" />
-                             <Button
-                                 type="button"
-                                 variant="ghost"
-                                 size="icon"
-                                 className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                 onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-                                 >
-                                 {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                             </Button>
-                         </div>
-                     </div>
-                 </div>
-                 <AlertDialogFooter>
-                    <Button onClick={handlePasswordReset}>Set New Password</Button>
-                 </AlertDialogFooter>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Welcome! Let&apos;s secure your account.</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This is your first time logging in. For your security, please set a new, permanent password.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-password">New Password</Label>
+                            <div className="relative flex items-center">
+                                <Input id="new-password" type={showNewPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter your new password" className="pr-10" />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                >
+                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                            <div className="relative flex items-center">
+                                <Input id="confirm-new-password" type={showConfirmNewPassword ? 'text' : 'password'} value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} placeholder="Confirm your new password" className="pr-10" />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                >
+                                    {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                    <AlertDialogFooter>
+                        <Button onClick={handlePasswordReset}>Set New Password</Button>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </div>

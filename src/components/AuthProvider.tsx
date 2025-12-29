@@ -55,23 +55,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    const isPublicPath = pathname === '/' || pathname === '/admin/login' || pathname === '/client-login' || pathname === '/creator/login';
+    // Check if we're in a standalone PWA environment
+    const isStandalone = typeof window !== 'undefined' &&
+      (window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone);
+
+    const isLoginPage = pathname === '/admin/login' || pathname === '/client-login' || pathname === '/creator/login' || pathname === '/';
     const isAdminPath = pathname.startsWith('/admin');
     const isClientPath = pathname.startsWith('/client');
     const isCreatorPath = pathname.startsWith('/creator');
 
-    if (!user && !isPublicPath) {
-      // If not logged in and trying to access protected route, redirect to home
-      if (isAdminPath) router.push('/admin/login');
-      else if (isClientPath) router.push('/client-login');
-      else if (isCreatorPath) router.push('/creator/login');
-      else router.push('/');
+    // 1. If LOGGED IN and on a login page -> Auto-forward to dashboard
+    if (user && isLoginPage) {
+      if (pathname === '/admin/login') {
+        router.push('/admin');
+      } else if (pathname === '/client-login') {
+        router.push(`/client/${user.uid}`);
+      } else if (pathname === '/creator/login') {
+        router.push(`/creator/${user.uid}`);
+      } else if (pathname === '/') {
+        // On the very front page, if logged in, go to admin by default or try to guess
+        router.push('/admin');
+      }
+      return;
+    }
+
+    // 2. If NOT LOGGED IN and on PROTECTED path -> Redirect to Login
+    if (!user && !isLoginPage) {
+      // Small delay to ensure auth state is truly settled. 
+      // PWAs on cold start can sometimes take a moment to read from IndexedDB.
+      const delay = isStandalone ? 1000 : 200;
+      const timeout = setTimeout(() => {
+        // One final check of the actual auth state
+        if (!auth.currentUser && !isLoginPage) {
+          if (isAdminPath) router.push('/admin/login');
+          else if (isClientPath) router.push('/client-login');
+          else if (isCreatorPath) router.push('/creator/login');
+          else router.push('/');
+        }
+      }, delay);
+
+      return () => clearTimeout(timeout);
     }
   }, [user, loading, pathname, router]);
 
+  // Safer pattern: Don't render protected pages until we've checked the local session.
+  // This prevents sub-components from triggering their own redirects or errors.
   return (
     <AuthContext.Provider value={{ user, loading, signOut }}>
-      {!loading && children}
+      {loading ? (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground animate-pulse">Checking session...</p>
+          </div>
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 }

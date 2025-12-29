@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import confetti from 'canvas-confetti';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Imports
 import { updateTask, getClient } from '@/lib/firebase-service';
@@ -115,6 +122,15 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
         workStatus: 'Completed',
         paymentDueDate
       });
+
+      // Celebration!
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#10b981', '#f59e0b', '#3b82f6']
+      });
+
       setLocalTask(prev => ({
         ...prev,
         workStatus: 'Completed',
@@ -137,6 +153,15 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
         paymentStatus: 'Paid',
         amountPaid: localTask.total // Set amountPaid to total
       });
+
+      // Financial Celebration!
+      confetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ['#3b82f6', '#10b981', '#ffffff']
+      });
+
       setLocalTask(prev => ({
         ...prev,
         paymentStatus: 'Paid',
@@ -156,253 +181,137 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
   const isDueSoon = daysRemaining <= 3 && daysRemaining >= 0;
 
   return (
-    <div className="glass-card rounded-xl p-5 hover-lift relative group overflow-hidden transition-all duration-300 border-white/20 dark:border-white/10">
-      {/* Gradient Border Effect on Hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500 pointer-events-none"></div>
+    <TooltipProvider>
+      <div className="glass-card rounded-[2rem] p-8 hover-lift relative group transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-xl">
+        {/* Decorative Background Element */}
+        <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-primary/10 group-hover:scale-125"></div>
+        <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-purple-500/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-purple-500/10 group-hover:scale-125 delay-150"></div>
 
-      <div className="relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between sm:hidden mb-2">
-              <div className="flex gap-2">
-                <Badge className={cn(getStatusColor(localTask.workStatus), "border px-2 py-0.5 text-xs font-medium")}>
-                  {localTask.workStatus}
-                </Badge>
+        <div className="relative z-10 flex flex-col gap-8">
+          {/* Header Row: Project ID, Client, and Actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {localTask.projectNo && (
+                <span className="text-[10px] font-black tracking-[0.2em] uppercase py-1.5 px-3 bg-primary text-white rounded-full shadow-lg shadow-primary/20">
+                  {localTask.projectNo}
+                </span>
+              )}
+              <div className="h-4 w-[1px] bg-border/50 mx-1"></div>
+              <div className="flex items-center gap-2 text-muted-foreground group/client">
+                <User className="h-4 w-4 text-primary/60" />
+                <span className="text-sm font-bold tracking-tight group-hover/client:text-primary transition-colors">{localTask.clientName}</span>
               </div>
-              {/* Mobile Actions Dropdown */}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="secondary" size="icon" asChild className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-white transition-all duration-300">
+                    <Link href={`/admin/tasks/${localTask.id}`}>
+                      <Eye className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">View Workspace</TooltipContent>
+              </Tooltip>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
+                  <Button variant="secondary" size="icon" className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-secondary transition-all">
+                    <MoreVertical className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`} className="flex items-center">
-                      <Edit className="mr-2 h-4 w-4" /> Edit Task
+                <DropdownMenuContent align="end" className="glass-card rounded-2xl border-white/20 p-2 min-w-[180px]">
+                  <DropdownMenuItem onClick={handleMarkCompleted} disabled={isUpdating} className="rounded-xl py-2.5">
+                    <CheckSquare className="mr-3 h-4 w-4 text-emerald-500" /> <span className="font-bold">Mark Completed</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handlePaymentReceived} disabled={isUpdating} className="rounded-xl py-2.5">
+                    <DollarSign className="mr-3 h-4 w-4 text-blue-500" /> <span className="font-bold">Mark Fully Paid</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                    <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`}>
+                      <Edit className="mr-3 h-4 w-4 text-amber-500" /> <span className="font-bold">Modify Details</span>
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`} className="flex items-center">
-                      <Edit className="mr-2 h-4 w-4" /> Edit Task
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleMarkCompleted} disabled={isUpdating}>
-                    <CheckSquare className="mr-2 h-4 w-4" /> Mark Completed
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handlePaymentReceived} disabled={isUpdating}>
-                    <DollarSign className="mr-2 h-4 w-4" /> Mark Paid
                   </DropdownMenuItem>
                   {onDelete && (
                     <DropdownMenuItem
-                      onClick={() => {
-                        if (confirm('Are you sure you want to delete this task?')) {
-                          onDelete(localTask.id);
-                        }
-                      }}
-                      className="text-red-600 focus:text-red-600"
+                      onClick={() => { if (confirm('Delete task?')) onDelete(localTask.id); }}
+                      className="text-red-500 focus:text-red-500 rounded-xl py-2.5 mt-1 bg-red-500/5"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      <Trash2 className="mr-3 h-4 w-4" /> <span className="font-bold">Delete Project</span>
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          </div>
 
-            <h3 className="text-xl font-bold mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
+          {/* Main Body: Title and Description Spark */}
+          <div className="space-y-2">
+            <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight text-foreground group-hover:text-primary transition-all duration-500">
               {localTask.projectName}
             </h3>
-
-            {showClient && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                <div className="flex items-center gap-1 bg-secondary/50 px-2 py-1 rounded-md">
-                  <User className="h-3 w-3" />
-                  <span className="truncate font-medium">{localTask.clientName}</span>
-                </div>
-              </div>
+            {localTask.notes && (
+              <p className="text-muted-foreground text-sm line-clamp-1 opacity-60 font-medium italic">
+                &quot;{localTask.notes}&quot;
+              </p>
             )}
+          </div>
 
-            <div className="hidden sm:flex flex-wrap gap-2 mt-2">
-              <Badge className={cn(getStatusColor(localTask.workStatus), "border px-2.5 py-0.5 text-xs font-medium shadow-sm")}>
+          {/* Footer Bar: Metrics and Metadata */}
+          <div className="pt-6 border-t border-border/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className={cn(getStatusColor(localTask.workStatus), "border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-inner")}>
                 {localTask.workStatus}
               </Badge>
-              <Badge className={cn(getPaymentColor(localTask.paymentStatus), "border px-2.5 py-0.5 text-xs font-medium shadow-sm")}>
+              <Badge className={cn(getPaymentColor(localTask.paymentStatus), "border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-inner")}>
                 {localTask.paymentStatus}
               </Badge>
-              {isOverdue && (
-                <Badge className="bg-red-100 text-red-800 border-red-200 animate-pulse">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Overdue
-                </Badge>
-              )}
-              {isDueSoon && !isOverdue && (
-                <Badge className="bg-orange-100 text-orange-800 border-orange-200">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Due Soon
-                </Badge>
-              )}
-            </div>
-          </div>
 
-          {/* Desktop Actions */}
-          <div className="hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
-            <Link href={`/admin/tasks/${localTask.id}`}>
-              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors">
-                <Eye className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`}>
-              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition-colors">
-                <Edit className="h-4 w-4" />
-              </Button>
-            </Link>
-            {onDelete && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => {
-                  if (confirm('Are you sure you want to delete this task?')) {
-                    onDelete(localTask.id);
-                  }
-                }}
-                className="h-9 w-9 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-            {/* Quick Update Buttons */}
-            <div className="flex gap-2">
-              {localTask.workStatus !== 'Completed' && (
-                <Button
-                  size="sm"
-                  className="btn-gradient text-xs h-9"
-                  onClick={handleMarkCompleted}
-                  disabled={isUpdating}
-                >
-                  Completed
-                </Button>
-              )}
+              {/* Only show deadline if NOT fully paid */}
               {localTask.paymentStatus !== 'Paid' && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs h-9 border-green-500 text-green-600 hover:bg-green-50"
-                  onClick={handlePaymentReceived}
-                  disabled={isUpdating}
-                >
-                  Paid
-                </Button>
+                <>
+                  {isOverdue && (
+                    <div className="flex items-center gap-2 px-4 py-1.5 bg-red-500/10 text-red-600 rounded-xl border border-red-500/20 animate-pulse">
+                      <Clock className="h-3 w-3" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Overdue</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 px-4 py-1.5 bg-secondary/30 text-muted-foreground rounded-xl border border-secondary/50">
+                    <Calendar className="h-3 w-3" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      Due: {formatDate(localTask.submissionDate)}
+                    </span>
+                  </div>
+                </>
               )}
             </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-4 border-t border-b border-dashed border-gray-200 dark:border-gray-700 my-4">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <FileText className="h-3 w-3" /> Pages
-            </p>
-            <p className="font-semibold text-foreground">{localTask.pages}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <DollarSign className="h-3 w-3" /> Rate
-            </p>
-            <p className="font-semibold text-foreground">₹{localTask.rate}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <DollarSign className="h-3 w-3" /> Total
-            </p>
-            <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              ₹{localTask.total.toLocaleString()}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <DollarSign className="h-3 w-3" /> Paid
-            </p>
-            <p className={cn(
-              "font-semibold",
-              localTask.amountPaid >= localTask.total ? "text-green-600" : "text-foreground"
-            )}>
-              ₹{localTask.amountPaid.toLocaleString()}
-            </p>
-          </div>
-        </div>
+            <div className="flex items-center gap-6 md:pl-6 md:border-l border-border/40">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 leading-none mb-1">Total Valuation</span>
+                <span className="text-2xl font-black text-foreground tabular-nums tracking-tighter">₹{localTask.total.toLocaleString()}</span>
+              </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 text-sm mb-4">
-          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 px-3 py-1.5 rounded-full">
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-muted-foreground text-xs">Due:</span>
-            <span className={cn(
-              "font-medium",
-              isOverdue ? "text-red-600" : isDueSoon ? "text-orange-600" : "text-foreground"
-            )}>
-              {formatDate(localTask.submissionDate)}
-            </span>
-          </div>
-
-          {localTask.assigneeName && (
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 px-3 py-1.5 rounded-full">
-              <User className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground text-xs">Assigned:</span>
-              <span className="font-medium text-foreground">{localTask.assigneeName}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Progress Bar */}
-        {localTask.total > 0 && (
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Payment Progress</span>
-              <span className="font-medium text-foreground">
-                {((localTask.amountPaid / localTask.total) * 100).toFixed(0)}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 overflow-hidden">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all duration-500",
-                  localTask.amountPaid >= localTask.total
-                    ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                    : "bg-gradient-to-r from-blue-500 to-purple-500"
-                )}
-                style={{ width: `${Math.min((localTask.amountPaid / localTask.total) * 100, 100)}%` }}
-              ></div>
+              <div className="w-32">
+                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1.5">
+                  <span>Pay Progress</span>
+                  <span>{Math.round((localTask.amountPaid / (localTask.total || 1)) * 100)}%</span>
+                </div>
+                <div className="h-2 bg-muted/50 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                  <div
+                    className={cn(
+                      "h-full transition-all duration-1000 ease-out",
+                      localTask.paymentStatus === 'Paid' ? "bg-emerald-500" : "bg-primary"
+                    )}
+                    style={{ width: `${Math.min((localTask.amountPaid / (localTask.total || 1)) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Footer Links */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-          {localTask.projectFileLink && (
-            <Button variant="outline" size="sm" className="h-8" asChild>
-              <a
-                href={localTask.projectFileLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="View Project File"
-              >
-                <ExternalLink className="h-3 w-3 mr-1" /> Project File
-              </a>
-            </Button>
-          )}
-          {localTask.outputFileLink && (
-            <Button variant="outline" size="sm" className="h-8" asChild>
-              <a
-                href={localTask.outputFileLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="View Output File"
-              >
-                <ExternalLink className="h-3 w-3 mr-1" /> Output File
-              </a>
-            </Button>
-          )}
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

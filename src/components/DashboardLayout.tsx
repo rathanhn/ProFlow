@@ -302,29 +302,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <Sidebar>
         <SidebarHeader>
-          <div className={cn("flex items-center justify-between w-full transition-all duration-300", isCollapsed ? "justify-center" : "")}>
+          <div className={cn("flex items-center w-full transition-all duration-300", isCollapsed ? "justify-center" : "gap-3")}>
+            <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
+              <Rocket className="w-6 h-6 text-white" />
+            </div>
             {!isCollapsed && (
-              <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg shadow-lg shadow-blue-500/20">
-                  <Rocket className="w-6 h-6 text-white" />
-                </div>
-                <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProFlow</span>
-              </div>
+              <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProFlow</span>
             )}
-            {isCollapsed && (
-              <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg shadow-lg shadow-blue-500/20">
-                <Rocket className="w-6 h-6 text-white" />
-              </div>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              className="hidden lg:flex hover:bg-secondary/50 rounded-full"
-            >
-              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
           </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="hidden lg:flex absolute -right-3 top-8 h-6 w-6 rounded-full border bg-background shadow-md z-50 hover:bg-primary hover:text-primary-foreground transition-all duration-300 active:scale-90"
+          >
+            {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+          </Button>
         </SidebarHeader>
 
         <SidebarContent>
@@ -388,55 +382,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/calendar')}>
-                    <Link href="/admin/calendar">
-                      <Calendar />
-                      <span className={isCollapsed ? 'hidden' : ''}>Calendar</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/notifications')}>
-                    <Link href="/admin/notifications">
-                      <Bell />
-                      <span className={isCollapsed ? 'hidden' : ''}>Notifications</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/export')}>
-                    <Link href="/admin/export">
-                      <FileDown />
-                      <span className={isCollapsed ? 'hidden' : ''}>Export</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/security')}>
-                    <Link href="/admin/security">
-                      <Shield />
-                      <span className={isCollapsed ? 'hidden' : ''}>Security</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/feedback')}>
-                    <Link href="/admin/feedback">
-                      <MessageSquare />
-                      <span className={isCollapsed ? 'hidden' : ''}>Feedback & Reports</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/help')}>
-                    <Link href="/admin/help">
-                      <HelpCircle />
-                      <span className={isCollapsed ? 'hidden' : ''}>Help & Support</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
                     <Link href="/admin/settings">
                       <Settings />
@@ -473,26 +418,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/export`)}>
-                    <Link href={`/client/${id}/export`}>
-                      <FileDown />
-                      <span className={isCollapsed ? 'hidden' : ''}>Export</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)}>
                     <Link href={`/client/${id}/settings`}>
                       <Settings />
                       <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/feedback`)}>
-                    <Link href={`/client/${id}/feedback`}>
-                      <MessageSquare />
-                      <span className={isCollapsed ? 'hidden' : ''}>Send Feedback</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -521,14 +450,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Link href={`/creator/${id}/settings`}>
                       <Settings />
                       <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/feedback`)}>
-                    <Link href={`/creator/${id}/feedback`}>
-                      <MessageSquare />
-                      <span className={isCollapsed ? 'hidden' : ''}>Send Feedback</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -50,13 +50,13 @@ export default function ClientTasksView({ client, tasks, assignees = [] }: Clien
             baseUrl={`/admin/clients/${client.id}/report`}
             assignees={assignees}
           />
-          <Link href={`/admin/clients/${client.id}/edit`}>
+          <Link href={`/admin/clients/${client.id}/edit?redirect=/admin/clients/${client.id}`}>
             <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />
               Edit Client
             </Button>
           </Link>
-          <Link href={`/admin/tasks/new?clientId=${client.id}`}>
+          <Link href={`/admin/tasks/new?clientId=${client.id}&redirect=/admin/clients/${client.id}`}>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Add Task
@@ -109,7 +109,7 @@ export default function ClientTasksView({ client, tasks, assignees = [] }: Clien
         title={`${client.name}'s Tasks`}
         showClient={false}
         showAddButton={true}
-        addButtonLink={`/admin/tasks/new?clientId=${client.id}`}
+        addButtonLink={`/admin/tasks/new?clientId=${client.id}&redirect=/admin/clients/${client.id}`}
         emptyStateMessage="No tasks found"
         emptyStateDescription={`${client.name} doesn't have any tasks yet.`}
       />
