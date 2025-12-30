@@ -5,6 +5,8 @@ import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import { Assignee, Task } from '@/lib/types';
 import CreatorDashboardClient from './CreatorDashboardClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CreatorDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 

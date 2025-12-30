@@ -33,7 +33,8 @@ import {
   Shield,
   UserPlus,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Trophy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,7 +52,7 @@ import { useTheme } from 'next-themes';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 // Import notification service
-import { getAdminNotifications } from '@/lib/firebase-service';
+import { getAdminNotifications, getClient, getAssignee } from '@/lib/firebase-service';
 import {
   Tooltip,
   TooltipContent,
@@ -73,6 +74,72 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { theme, setTheme } = useTheme();
   const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [profile, setProfile] = useState<{ name?: string, avatar?: string } | null>(null);
+
+  // Determine user role based on path
+  const isAdminSection = pathname.startsWith('/admin');
+  const isClientSection = pathname.startsWith('/client');
+  const isCreatorSection = pathname.startsWith('/creator');
+
+  // Extract ID from path if present
+  const pathParts = pathname.split('/');
+  const id = pathParts.length > 2 ? pathParts[2] : null;
+
+  // Fetch real profile data from Firestore AND Enforce Access Control
+  useEffect(() => {
+    async function verifyAccessAndLoadProfile() {
+      if (!user) {
+        setProfile(null);
+        return;
+      }
+
+      try {
+        // Fetch user records from both collections
+        const [clientData, creatorData] = await Promise.all([
+          getClient(user.uid),
+          getAssignee(user.uid)
+        ]);
+
+        const isUserCreator = !!creatorData;
+        const isUserClient = !!clientData;
+        const isUserAdmin = !isUserCreator && !isUserClient;
+
+        // 1. Protection for Admin Portal
+        if (isAdminSection && !isUserAdmin) {
+          console.warn("Unauthorized admin portal access attempt.");
+          if (isUserCreator) router.push(`/creator/${user.uid}`);
+          else if (isUserClient) router.push(`/client/${user.uid}`);
+          return;
+        }
+
+        // 2. Protection for Personal Portals (Ownership check for non-admins)
+        if (!isUserAdmin) {
+          if (isClientSection && id && id !== user.uid) {
+            router.push(`/client/${user.uid}`);
+            return;
+          }
+          if (isCreatorSection && id && id !== user.uid) {
+            router.push(`/creator/${user.uid}`);
+            return;
+          }
+        }
+
+        // 3. Load Profile Information
+        if (isAdminSection) {
+          setProfile({ name: user.displayName || 'Admin', avatar: user.photoURL || '' });
+        } else if (isClientSection && id) {
+          const targetClient = id === user.uid ? clientData : await getClient(id);
+          if (targetClient) setProfile({ name: targetClient.name, avatar: targetClient.avatar });
+        } else if (isCreatorSection && id) {
+          const targetCreator = id === user.uid ? creatorData : await getAssignee(id);
+          if (targetCreator) setProfile({ name: targetCreator.name, avatar: targetCreator.avatar });
+        }
+      } catch (e) {
+        console.error("Failed access verification or profile load", e);
+      }
+    }
+    verifyAccessAndLoadProfile();
+  }, [user, id, isAdminSection, isClientSection, isCreatorSection, pathname, router]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -111,14 +178,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // Determine user role based on path
-  const isAdminSection = pathname.startsWith('/admin');
-  const isClientSection = pathname.startsWith('/client');
-  const isCreatorSection = pathname.startsWith('/creator');
-
-  // Extract ID from path if present
-  const pathParts = pathname.split('/');
-  const id = pathParts.length > 2 ? pathParts[2] : null;
 
   const SidebarMenuItem = ({ children }: { children: React.ReactNode }) => (
     <div className="px-3 py-1">{children}</div>
@@ -192,15 +251,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full ring-2 ring-white/20 hover:ring-blue-500/50 transition-all">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=random`} alt={user?.email || ''} />
-              <AvatarFallback>U</AvatarFallback>
+              <AvatarImage src={profile?.avatar || user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=random`} alt={user?.email || ''} />
+              <AvatarFallback>{(profile?.name || user?.email || 'U').charAt(0)}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56 glass-card" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">User</p>
+              <p className="text-sm font-medium leading-none">{profile?.name || 'Account'}</p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user?.email}
               </p>
@@ -219,7 +278,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </DropdownMenu>
       {!isCollapsed && !compact && (
         <div className="flex flex-col overflow-hidden transition-all duration-300">
-          <span className="text-sm font-medium truncate">My Account</span>
+          <span className="text-sm font-medium truncate">{profile?.name || 'My Account'}</span>
           <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
         </div>
       )}
@@ -250,8 +309,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const getPageTitle = () => {
     if (pathname === '/admin') return 'Dashboard';
     if (pathname === '/admin/tasks') return 'All Tasks';
-    if (pathname === '/admin/clients') return 'Clients';
-    if (pathname === '/admin/team') return 'Team';
+    if (pathname === '/admin/clients') return 'Partner Matrix';
+    if (pathname === '/admin/team') return 'Creator Network';
+    if (pathname.includes('/achievements')) return 'Achievement Center';
     if (pathname === '/admin/transactions') return 'Transactions';
     if (pathname === '/admin/analytics') return 'Analytics';
     if (pathname === '/admin/reports') return 'Reports';
@@ -312,216 +372,240 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   };
 
-  const renderContent = () => children;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
-      {/* Mobile Header */}
-      <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-            <Menu className="h-6 w-6" />
-          </Button>
+    <TooltipProvider delayDuration={300}>
+      <div className="min-h-screen bg-background flex flex-col lg:flex-row">
+        {/* Mobile Header */}
+        <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg">
-              <Rocket className="w-5 h-5 text-white" />
+            <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
+              <Menu className="h-6 w-6" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg">
+                <Rocket className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-lg tracking-tight">ProFlow</span>
             </div>
-            <span className="font-bold text-lg tracking-tight">ProFlow</span>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <FullscreenToggle />
-          <NotificationBell />
-          <UserProfile compact />
-        </div>
-      </header>
-
-      <Sidebar>
-        <SidebarHeader>
-          <div className={cn("flex items-center w-full transition-all duration-300", isCollapsed ? "justify-center" : "gap-3")}>
-            <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
-              <Rocket className="w-6 h-6 text-white" />
-            </div>
-            {!isCollapsed && (
-              <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProFlow</span>
-            )}
-          </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="hidden lg:flex absolute -right-3 top-8 h-6 w-6 rounded-full border bg-background shadow-md z-50 hover:bg-primary hover:text-primary-foreground transition-all duration-300 active:scale-90"
-          >
-            {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-          </Button>
-        </SidebarHeader>
-
-        <SidebarContent>
-          <SidebarMenu>
-            {isAdminSection && (
-              <>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/admin'}>
-                    <Link href="/admin">
-                      <LayoutDashboard />
-                      <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')}>
-                    <Link href="/admin/tasks">
-                      <ListChecks />
-                      <span className={isCollapsed ? 'hidden' : ''}>All Tasks</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
-                    <Link href="/admin/clients">
-                      <Users />
-                      <span className={isCollapsed ? 'hidden' : ''}>Manage Clients</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
-                    <Link href="/admin/team">
-                      <UserPlus />
-                      <span className={isCollapsed ? 'hidden' : ''}>Creators</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/transactions')}>
-                    <Link href="/admin/transactions">
-                      <Banknote />
-                      <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/analytics')}>
-                    <Link href="/admin/analytics">
-                      <BarChart3 />
-                      <span className={isCollapsed ? 'hidden' : ''}>Analytics</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/reports')}>
-                    <Link href="/admin/reports">
-                      <FileText />
-                      <span className={isCollapsed ? 'hidden' : ''}>Reports</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
-                    <Link href="/admin/settings">
-                      <Settings />
-                      <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </>
-            )}
-            {isClientSection && user && id && (
-              <>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === `/client/${id}`}>
-                    <Link href={`/client/${id}`}>
-                      <Briefcase />
-                      <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
-                    <Link href={`/client/${id}/projects`}>
-                      <ListChecks />
-                      <span className={isCollapsed ? 'hidden' : ''}>My Projects</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/transactions`)}>
-                    <Link href={`/client/${id}/transactions`}>
-                      <Banknote />
-                      <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)}>
-                    <Link href={`/client/${id}/settings`}>
-                      <Settings />
-                      <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </>
-            )}
-            {isCreatorSection && user && id && (
-              <>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === `/creator/${id}`}>
-                    <Link href={`/creator/${id}`}>
-                      <Briefcase />
-                      <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/tasks`)}>
-                    <Link href={`/creator/${id}/tasks`}>
-                      <ListChecks />
-                      <span className={isCollapsed ? 'hidden' : ''}>My Tasks</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/settings`)}>
-                    <Link href={`/creator/${id}/settings`}>
-                      <Settings />
-                      <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </>
-            )}
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <UserProfile />
-        </SidebarFooter>
-      </Sidebar>
-
-      <div className={cn(
-        "flex flex-col flex-1 w-full lg:pl-64 min-w-0 transition-all duration-300 ease-in-out",
-        isCollapsed && "lg:pl-20"
-      )}>
-        <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6 glass-card border-b border-white/20 dark:border-white/10">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight">
-              {getPageTitle()}
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <FullscreenToggle />
             <NotificationBell />
+            <UserProfile compact />
           </div>
         </header>
 
-        <main className="flex-1 scrollable-content p-4 sm:p-6 lg:p-8 animate-fade-in">
-          <div className="max-w-7xl mx-auto pb-32 md:pb-8">
-            {renderContent()}
-          </div>
-        </main>
-      </div>
+        <Sidebar>
+          <SidebarHeader>
+            <div className={cn("flex items-center w-full transition-all duration-300", isCollapsed ? "justify-center" : "gap-3")}>
+              <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
+                <Rocket className="w-6 h-6 text-white" />
+              </div>
+              {!isCollapsed && (
+                <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProFlow</span>
+              )}
+            </div>
 
-      <MobileTabs />
-    </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="hidden lg:flex absolute -right-3 top-8 h-6 w-6 rounded-full border bg-background shadow-md z-50 hover:bg-primary hover:text-primary-foreground transition-all duration-300 active:scale-90"
+            >
+              {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+            </Button>
+          </SidebarHeader>
+
+          <SidebarContent>
+            <SidebarMenu>
+              {isAdminSection && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/admin'}>
+                      <Link href="/admin">
+                        <LayoutDashboard />
+                        <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')}>
+                      <Link href="/admin/tasks">
+                        <ListChecks />
+                        <span className={isCollapsed ? 'hidden' : ''}>All Tasks</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
+                      <Link href="/admin/clients">
+                        <Users />
+                        <span className={isCollapsed ? 'hidden' : ''}>Partner Matrix</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
+                      <Link href="/admin/team">
+                        <UserPlus />
+                        <span className={isCollapsed ? 'hidden' : ''}>Creator Network</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/transactions')}>
+                      <Link href="/admin/transactions">
+                        <Banknote />
+                        <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/analytics')}>
+                      <Link href="/admin/analytics">
+                        <BarChart3 />
+                        <span className={isCollapsed ? 'hidden' : ''}>Analytics</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/reports')}>
+                      <Link href="/admin/reports">
+                        <FileText />
+                        <span className={isCollapsed ? 'hidden' : ''}>Reports</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
+                      <Link href="/admin/settings">
+                        <Settings />
+                        <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+              {isClientSection && user && id && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === `/client/${id}`}>
+                      <Link href={`/client/${id}`}>
+                        <Briefcase />
+                        <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
+                      <Link href={`/client/${id}/projects`}>
+                        <ListChecks />
+                        <span className={isCollapsed ? 'hidden' : ''}>My Projects</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/transactions`)}>
+                      <Link href={`/client/${id}/transactions`}>
+                        <Banknote />
+                        <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === `/client/${id}/achievements`}>
+                      <Link href={`/client/${id}/achievements`}>
+                        <Trophy />
+                        <span className={isCollapsed ? 'hidden' : ''}>Achievements</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)}>
+                      <Link href={`/client/${id}/settings`}>
+                        <Settings />
+                        <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+              {isCreatorSection && user && id && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === `/creator/${id}`}>
+                      <Link href={`/creator/${id}`}>
+                        <Briefcase />
+                        <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/tasks`)}>
+                      <Link href={`/creator/${id}/tasks`}>
+                        <ListChecks />
+                        <span className={isCollapsed ? 'hidden' : ''}>My Tasks</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === `/creator/${id}/achievements`}>
+                      <Link href={`/creator/${id}/achievements`}>
+                        <Trophy />
+                        <span className={isCollapsed ? 'hidden' : ''}>Achievements</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/settings`)}>
+                      <Link href={`/creator/${id}/settings`}>
+                        <Settings />
+                        <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+            </SidebarMenu>
+          </SidebarContent>
+          <SidebarFooter>
+            <UserProfile />
+          </SidebarFooter>
+        </Sidebar>
+
+        <div className={cn(
+          "flex flex-col flex-1 w-full lg:pl-64 min-w-0 transition-all duration-300 ease-in-out",
+          isCollapsed && "lg:pl-20"
+        )}>
+          <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6 glass-card border-b border-white/20 dark:border-white/10">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight">
+                {getPageTitle()}
+              </h1>
+            </div>
+            <div className="flex items-center gap-4">
+              <FullscreenToggle />
+              <NotificationBell />
+            </div>
+          </header>
+
+          <main className="flex-1 scrollable-content p-4 sm:p-6 lg:p-8 animate-fade-in">
+            <div className="max-w-7xl mx-auto pb-32 md:pb-8">
+              {children}
+            </div>
+          </main>
+        </div>
+
+        <MobileTabs />
+      </div>
+      <ProfileImageViewer
+        isOpen={isOpen}
+        onClose={closeViewer}
+        imageUrl={imageData.imageUrl}
+        userName={imageData.userName}
+        userEmail={imageData.userEmail}
+      />
+    </TooltipProvider>
   );
 };

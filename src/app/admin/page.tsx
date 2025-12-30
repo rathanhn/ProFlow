@@ -27,7 +27,8 @@ import {
   BarChart3,
   Zap,
   CheckCircle2,
-  CalendarCheck2
+  CalendarCheck2,
+  Trophy
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { INRIcon } from '@/components/ui/inr-icon';
@@ -272,33 +273,60 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Row 1: Pulse & Workflow */}
-            <div className="lg:col-span-4">
-              <Card className="glass-card border-white/20 shadow-xl overflow-hidden">
-                <CardHeader>
+            {/* Row 1: Pulse & Focus */}
+            <div className="lg:col-span-4 space-y-6">
+              <Card className="glass-card border-white/20 shadow-xl overflow-hidden transition-all hover:shadow-blue-500/10">
+                <CardHeader className="pb-2">
                   <CardTitle className="text-xl flex items-center gap-2">
                     <Zap className="h-5 w-5 text-yellow-500" /> Project Pulse
                   </CardTitle>
-                  <CardDescription>Visual breakdown of work status</CardDescription>
+                  <CardDescription>Live telemetry breakdown</CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center pt-6">
+                <CardContent className="flex flex-col items-center justify-center pt-6 pb-8">
                   <DonutChart
                     data={[
                       { label: 'Pending', value: tasks.filter(t => t.workStatus === 'Pending').length, color: '#f59e0b' },
                       { label: 'In Progress', value: tasks.filter(t => t.workStatus === 'In Progress').length, color: '#3b82f6' },
                       { label: 'Completed', value: completedProjects, color: '#10b981' },
                     ]}
-                    size={180}
-                    strokeWidth={20}
+                    size={200}
+                    strokeWidth={24}
                   />
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card border-white/20 shadow-xl overflow-hidden transition-all hover:shadow-amber-500/10">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-amber-500" /> Immediate Focus
+                  </CardTitle>
+                  <CardDescription>Critical upcoming deadlines</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-4">
+                    {upcomingDeadlines.length > 0 ? upcomingDeadlines.map((task) => (
+                      <div key={task.id} className="flex items-center justify-between group cursor-pointer" onClick={() => router.push(`/admin/tasks/${task.id}`)}>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-black uppercase tracking-tight truncate group-hover:text-blue-500 transition-colors">{task.projectName}</span>
+                          <span className="text-[10px] text-muted-foreground font-medium">{new Date(task.submissionDate).toLocaleDateString()}</span>
+                        </div>
+                        <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-widest leading-none px-1.5 h-4 ${new Date(task.submissionDate) < new Date() ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                          }`}>
+                          {new Date(task.submissionDate) < new Date() ? 'Critical' : 'Active'}
+                        </Badge>
+                      </div>
+                    )) : (
+                      <div className="text-center py-4 text-[10px] font-black uppercase text-muted-foreground/30 italic">No direct threats detected</div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
             <div className="lg:col-span-8">
-              <Card className="glass-card border-white/20 shadow-xl overflow-hidden relative">
+              <Card className="glass-card border-white/20 shadow-xl overflow-hidden relative min-h-[500px]">
                 <div className="absolute top-0 right-0 p-3 opacity-5">
-                  <Zap className="h-32 w-32 rotate-12" />
+                  <ListChecks className="h-48 w-48 rotate-12" />
                 </div>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -306,37 +334,46 @@ export default function AdminDashboardPage() {
                       <CardTitle className="text-xl flex items-center gap-2">
                         <CalendarCheck2 className="h-5 w-5 text-blue-500" /> Recent Workflow
                       </CardTitle>
-                      <CardDescription>Latest project movements</CardDescription>
+                      <CardDescription>Real-time project activities and state changes</CardDescription>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => router.push('/admin/tasks')} className="text-xs">
-                      View All <ArrowRight className="ml-1 h-3 w-3" />
+                    <Button variant="ghost" size="sm" onClick={() => router.push('/admin/tasks')} className="text-[10px] font-black uppercase tracking-widest hover:bg-white/10">
+                      Access All Nodes <ArrowRight className="ml-1 h-3 w-3" />
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4 px-6 pb-6">
-                  <div className="space-y-4">
+                <CardContent className="pt-6 px-6 pb-6">
+                  <div className="space-y-6">
                     {recentActivities.map((task, idx) => (
-                      <div key={task.id} className="flex items-start gap-4 group cursor-pointer" onClick={() => router.push(`/admin/tasks/${task.id}`)}>
-                        <div className="relative">
-                          <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 border transition-all duration-300 ${task.workStatus === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
+                      <div key={task.id} className="flex items-start gap-4 group cursor-pointer relative" onClick={() => router.push(`/admin/tasks/${task.id}`)}>
+                        <div className="relative z-10">
+                          <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 border transition-all duration-500 group-hover:scale-110 shadow-lg ${task.workStatus === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
                             task.workStatus === 'In Progress' ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
                               'bg-amber-500/10 border-amber-500/20 text-amber-500'
                             }`}>
-                            {task.workStatus === 'Completed' ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+                            {task.workStatus === 'Completed' ? <CheckCircle2 className="h-5.5 w-5.5" /> : <Clock className="h-5.5 w-5.5" />}
                           </div>
                           {idx !== recentActivities.length - 1 && (
-                            <div className="absolute top-10 left-1/2 -ml-px h-6 w-0.5 bg-border/50" />
+                            <div className="absolute top-11 left-1/2 -ml-px h-8 w-0.5 bg-gradient-to-b from-border/50 to-transparent" />
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 bg-white/5 border border-white/10 p-4 rounded-3xl group-hover:bg-white/10 transition-all">
                           <div className="flex items-center justify-between gap-2">
-                            <h4 className="font-bold text-sm truncate group-hover:text-blue-500 transition-colors uppercase tracking-tight">{task.projectName}</h4>
-                            <span className="text-[10px] text-muted-foreground whitespace-nowrap font-mono">{task.projectNo}</span>
+                            <h4 className="font-black text-sm truncate group-hover:text-blue-500 transition-colors uppercase tracking-tight">{task.projectName}</h4>
+                            <Badge variant="outline" className="text-[9px] font-mono text-muted-foreground border-white/10">{task.projectNo}</Badge>
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-muted-foreground truncate opacity-80">{task.clientName}</span>
-                            <span className="text-xs text-muted-foreground/30">•</span>
-                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{task.workStatus}</span>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">{task.clientName}</span>
+                            <span className="text-[10px] text-muted-foreground/30">•</span>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${task.workStatus === 'Completed' ? 'text-emerald-500' :
+                              task.workStatus === 'In Progress' ? 'text-blue-500' : 'text-amber-500'
+                              }`}>{task.workStatus}</span>
+                          </div>
+                          <div className="mt-3 h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-1000 ${task.workStatus === 'Completed' ? 'bg-emerald-500 w-full' :
+                                task.workStatus === 'In Progress' ? 'bg-blue-500 w-2/3' : 'bg-amber-500 w-1/3'
+                                }`}
+                            />
                           </div>
                         </div>
                       </div>
@@ -346,9 +383,44 @@ export default function AdminDashboardPage() {
               </Card>
             </div>
 
-            {/* Row 2: AI Intelligence Full Width */}
-            <div className="lg:col-span-12">
+            {/* Row 2: AI Intelligence & Achievement Pulse */}
+            <div className="lg:col-span-8">
               <AIInsights tasks={tasks} clients={clients} />
+            </div>
+            <div className="lg:col-span-4">
+              <Card className="glass-card border-white/20 shadow-xl overflow-hidden bg-gradient-to-br from-yellow-500/5 to-transparent h-full">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-500" /> Achievement Pulse
+                  </CardTitle>
+                  <CardDescription>Network-wide engagement levels</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Milestones Unlocked</span>
+                      <Badge variant="outline" className="text-[10px] font-black">{completedProjects} TOTAL</Badge>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow-500 w-3/4 animate-pulse" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                      <Zap className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black uppercase text-muted-foreground">Most Unlocked</p>
+                      <p className="font-black text-sm uppercase">Initiator Node</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-700">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-center">Reward Distribution Active</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
 

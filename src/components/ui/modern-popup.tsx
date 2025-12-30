@@ -84,7 +84,7 @@ export const ModernPopup: React.FC<ModernPopupProps> = ({
   const getStyleClasses = () => {
     switch (style) {
       case 'glass':
-        return 'bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl';
+        return 'bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl text-white';
       case 'minimal':
         return 'bg-white border border-gray-200 shadow-lg';
       case 'android':

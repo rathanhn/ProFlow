@@ -44,6 +44,7 @@ import { DollarSign, PlusCircle, Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import PaymentDialog from './PaymentDialog';
 import FileUpload from './FileUpload';
+import { cn } from '@/lib/utils';
 
 
 const workStatuses = ['Pending', 'In Progress', 'Completed'] as const;
@@ -85,6 +86,8 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
   const [newAssigneeEmail, setNewAssigneeEmail] = useState("");
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProjectNoLoading, setIsProjectNoLoading] = useState(false);
+
 
   // 2. Computed Values
   const initialClientName = React.useMemo(() => {
@@ -126,18 +129,11 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
     setAssignees(assigneeData);
   }, []);
 
-  const fetchNextProjectNo = React.useCallback(async () => {
-    if (!task) {
-      const nextNo = await getNextProjectNo();
-      form.setValue('projectNo', nextNo);
-    }
-  }, [task, form]);
 
   React.useEffect(() => {
     fetchClients();
     fetchAssignees();
-    fetchNextProjectNo();
-  }, [fetchClients, fetchAssignees, fetchNextProjectNo]);
+  }, [fetchClients, fetchAssignees]);
 
   // Handle client name updates if clients load after mount
   React.useEffect(() => {
@@ -149,31 +145,25 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
   // Watch for client selection to auto-set rate and project number
   const selectedClientName = form.watch('clientName');
 
-  React.useEffect(() => {
-    if (selectedClientName && !task) {
-      const suggestProjectNo = async () => {
-        const lastNo = await getLatestProjectNoForClient(selectedClientName);
-        if (lastNo) {
-          // Extract number, increment it
-          const numMatch = lastNo.match(/\d+/);
-          if (numMatch) {
-            const nextNum = parseInt(numMatch[0]) + 1;
-            form.setValue('projectNo', `PRJ${nextNum}`);
-          }
-        } else {
-          // Fallback to global sequence if client is new
-          const nextNo = await getNextProjectNo();
-          form.setValue('projectNo', nextNo);
-        }
-      };
-      suggestProjectNo();
-    }
-  }, [selectedClientName, task, form]);
-
   const selectedClient = React.useMemo(
     () => clients.find(c => c.name === selectedClientName),
     [clients, selectedClientName]
   );
+
+  React.useEffect(() => {
+    console.log("[TaskForm] Client selection effect triggered:", { selectedClientName, selectedClientId: selectedClient?.id });
+    if (selectedClient && !task) {
+      const suggestProjectNo = async () => {
+        setIsProjectNoLoading(true);
+        console.log(`[TaskForm] Requesting next PRJ for client: ${selectedClient.name} (${selectedClient.id})`);
+        const nextNo = await getNextProjectNo(selectedClient.id);
+        console.log(`[TaskForm] Received suggested PRJ: ${nextNo}`);
+        form.setValue('projectNo', nextNo);
+        setIsProjectNoLoading(false);
+      };
+      suggestProjectNo();
+    }
+  }, [selectedClient, task, form]);
 
   // KEYBOARD SHORTCUT: Cmd/Ctrl + Enter to fast-launch
   React.useEffect(() => {
@@ -203,13 +193,22 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
       if (clientRates.length > 0) {
         const rateToUse = clientRates[0].rate;
         form.setValue('rate', rateToUse);
-        toast({
-          title: "Rate Updated",
-          description: `Rate set to ₹${rateToUse} from client defaults.`,
-        });
+      }
+
+      // Auto-calculate deadline based on payment terms
+      if (selectedClient.paymentTerms) {
+        const today = new Date();
+        let daysToAdd = 7; // default fallback
+        if (selectedClient.paymentTerms === 'Due on Receipt') daysToAdd = 1;
+        else if (selectedClient.paymentTerms === 'Net 5') daysToAdd = 5;
+        else if (selectedClient.paymentTerms === 'Net 15') daysToAdd = 15;
+        else if (selectedClient.paymentTerms === 'Net 30') daysToAdd = 30;
+
+        const dueDate = new Date(today.setDate(today.getDate() + daysToAdd)).toISOString().split('T')[0];
+        form.setValue('submissionDate', dueDate);
       }
     }
-  }, [selectedClient, clientRates, form, task, toast]);
+  }, [selectedClient, clientRates, form, task]);
 
   // Watch values for live calculation
   const pages = form.watch('pages');
@@ -295,7 +294,7 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
         // Remove projectNo from newTaskData if it's empty, backend will generate it
         if (!newTaskData.projectNo) delete newTaskData.projectNo;
 
-        const addedTask = await addTask(newTaskData as Omit<Task, 'id' | 'slNo' | 'projectNo'>);
+        const addedTask = await addTask(newTaskData as Omit<Task, 'id' | 'slNo'> & { projectNo?: string });
 
         // Success Celebration!
         confetti({
@@ -344,7 +343,7 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-black tracking-tight text-gradient-indigo mb-2">
           {task ? 'Edit Project' : 'Initiate Project'}
@@ -396,13 +395,21 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
                     name="projectNo"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Project Reference</FormLabel>
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Project Reference (Client Case)</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="e.g. PRJ95"
-                            {...field}
-                            className="h-11 bg-secondary/30 border-none rounded-xl font-mono font-bold text-primary focus:ring-2 ring-primary/20 transition-all"
-                          />
+                          <div className="relative">
+                            <Input
+                              placeholder="e.g. PRJ 95"
+                              {...field}
+                              className="h-11 bg-primary/5 border-2 border-primary/20 rounded-xl font-mono font-black text-xl text-primary focus:ring-4 ring-primary/10 transition-all text-center tracking-tighter"
+                              disabled={isProjectNoLoading}
+                            />
+                            {isProjectNoLoading && (
+                              <div className="absolute inset-y-0 right-3 flex items-center">
+                                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                              </div>
+                            )}
+                          </div>
                         </FormControl>
                         <FormDescription className="text-[10px]">Unique ID used for tracking and invoicing.</FormDescription>
                         <FormMessage />
@@ -410,6 +417,30 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
                     )}
                   />
                 </div>
+
+                {clientRates.length > 1 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                    <Label className="text-xs uppercase font-black tracking-widest text-muted-foreground">Design Style / Page Category</Label>
+                    <Select onValueChange={(val) => {
+                      const style = clientRates.find(r => r.label === val);
+                      if (style) form.setValue('rate', style.rate);
+                    }}>
+                      <SelectTrigger className="h-11 bg-primary/5 border-none rounded-xl font-bold">
+                        <SelectValue placeholder="Select Design Style" />
+                      </SelectTrigger>
+                      <SelectContent className="glass-card">
+                        {clientRates.map((style) => (
+                          <SelectItem key={style.label} value={style.label} className="py-3">
+                            <div className="flex justify-between items-center w-full min-w-[200px]">
+                              <span className="font-bold">{style.label}</span>
+                              <span className="text-primary font-black ml-4">₹{style.rate}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <FormField
                   control={form.control}
@@ -567,13 +598,28 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
                         <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Activity Status</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-10 bg-secondary/50 border-none rounded-xl">
+                            <SelectTrigger className={cn(
+                              "h-11 border-none rounded-xl font-bold transition-all duration-300",
+                              field.value === 'Pending' ? "bg-amber-500/10 text-amber-600" :
+                                field.value === 'In Progress' ? "bg-blue-500/10 text-blue-600" :
+                                  field.value === 'Completed' ? "bg-emerald-500/10 text-emerald-600" :
+                                    "bg-secondary/50"
+                            )}>
                               <SelectValue placeholder="Status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="glass-card border-white/20">
                             {workStatuses.map((status) => (
-                              <SelectItem key={status} value={status}>
+                              <SelectItem
+                                key={status}
+                                value={status}
+                                className={cn(
+                                  "rounded-lg my-1",
+                                  status === 'Pending' ? "focus:bg-amber-500/10 focus:text-amber-600" :
+                                    status === 'In Progress' ? "focus:bg-blue-500/10 focus:text-blue-600" :
+                                      status === 'Completed' ? "focus:bg-emerald-500/10 focus:text-emerald-600" : ""
+                                )}
+                              >
                                 {status}
                               </SelectItem>
                             ))}
@@ -639,7 +685,18 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
                       name="submissionDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Deadline Date</FormLabel>
+                          <div className="flex justify-between items-end mb-2">
+                            <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Deadline Date</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-[10px] font-black uppercase text-primary hover:bg-primary/10 rounded-lg"
+                              onClick={() => field.onChange(new Date().toISOString().split('T')[0])}
+                            >
+                              Set Today
+                            </Button>
+                          </div>
                           <FormControl>
                             <Input type="date" {...field} className="h-10 bg-secondary/50 border-none rounded-xl text-xs" />
                           </FormControl>

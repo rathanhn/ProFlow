@@ -51,6 +51,25 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
   const [localTask, setLocalTask] = React.useState(task);
   const [isUpdating, setIsUpdating] = React.useState(false);
 
+  // Portal Detection
+  const isAdminPortal = pathname.startsWith('/admin');
+  const isCreatorPortal = pathname.startsWith('/creator');
+  const isClientPortal = pathname.startsWith('/client');
+
+  const portalId = pathname.split('/')[2]; // Extracts [id] from /portal/[id]/...
+
+  const getTaskLink = (taskId: string) => {
+    if (isAdminPortal) return `/admin/tasks/${taskId}`;
+    if (isCreatorPortal) return `/creator/${portalId}/tasks/${taskId}`;
+    if (isClientPortal) return `/client/${portalId}/projects/${taskId}`;
+    return `/admin/tasks/${taskId}`;
+  };
+
+  const getEditLink = (taskId: string) => {
+    if (isAdminPortal) return `/admin/tasks/${taskId}/edit?redirect=${encodeURIComponent(pathname)}`;
+    return null; // Only admins can edit full details
+  };
+
   React.useEffect(() => {
     setLocalTask(task);
   }, [task]);
@@ -181,137 +200,153 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
   const isDueSoon = daysRemaining <= 3 && daysRemaining >= 0;
 
   return (
-    <TooltipProvider>
-      <div className="glass-card rounded-[2rem] p-8 hover-lift relative group transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-xl">
-        {/* Decorative Background Element */}
-        <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-primary/10 group-hover:scale-125"></div>
-        <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-purple-500/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-purple-500/10 group-hover:scale-125 delay-150"></div>
+    <div className="glass-card rounded-[2rem] p-8 hover-lift relative group transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-xl">
+      {/* Decorative Background Element */}
+      <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-primary/10 group-hover:scale-125"></div>
+      <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-purple-500/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-purple-500/10 group-hover:scale-125 delay-150"></div>
 
-        <div className="relative z-10 flex flex-col gap-8">
-          {/* Header Row: Project ID, Client, and Actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {localTask.projectNo && (
-                <span className="text-[10px] font-black tracking-[0.2em] uppercase py-1.5 px-3 bg-primary text-white rounded-full shadow-lg shadow-primary/20">
-                  {localTask.projectNo}
-                </span>
-              )}
-              <div className="h-4 w-[1px] bg-border/50 mx-1"></div>
-              <div className="flex items-center gap-2 text-muted-foreground group/client">
-                <User className="h-4 w-4 text-primary/60" />
-                <span className="text-sm font-bold tracking-tight group-hover/client:text-primary transition-colors">{localTask.clientName}</span>
-              </div>
+      <div className="relative z-10 flex flex-col gap-8">
+        {/* Header Row: Project ID, Client, and Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {localTask.projectNo && (
+              <span className="text-xs font-black tracking-[0.2em] uppercase py-2 px-4 bg-primary text-white rounded-xl shadow-xl shadow-primary/20 ring-4 ring-primary/5">
+                {localTask.projectNo}
+              </span>
+            )}
+            <div className="h-4 w-[1px] bg-border/50 mx-1"></div>
+            <div className="flex items-center gap-2 text-muted-foreground group/client">
+              <User className="h-4 w-4 text-primary/60" />
+              <span className="text-sm font-bold tracking-tight group-hover/client:text-primary transition-colors">{localTask.clientName}</span>
             </div>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="secondary" size="icon" asChild className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-white transition-all duration-300">
-                    <Link href={`/admin/tasks/${localTask.id}`}>
-                      <Eye className="h-5 w-5" />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">View Workspace</TooltipContent>
-              </Tooltip>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="secondary" size="icon" asChild className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-white transition-all duration-300">
+                  <Link href={getTaskLink(localTask.id)}>
+                    <Eye className="h-5 w-5" />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">View Workspace</TooltipContent>
+            </Tooltip>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" size="icon" className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-secondary transition-all">
-                    <MoreVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="glass-card rounded-2xl border-white/20 p-2 min-w-[180px]">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-secondary transition-all">
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="glass-card rounded-2xl border-white/20 p-2 min-w-[180px]">
+                {/* Both Admin and Creator can mark completed */}
+                {(isAdminPortal || isCreatorPortal) && (
                   <DropdownMenuItem onClick={handleMarkCompleted} disabled={isUpdating} className="rounded-xl py-2.5">
                     <CheckSquare className="mr-3 h-4 w-4 text-emerald-500" /> <span className="font-bold">Mark Completed</span>
                   </DropdownMenuItem>
+                )}
+
+                {/* ONLY Admin can mark paid */}
+                {isAdminPortal && (
                   <DropdownMenuItem onClick={handlePaymentReceived} disabled={isUpdating} className="rounded-xl py-2.5">
                     <DollarSign className="mr-3 h-4 w-4 text-blue-500" /> <span className="font-bold">Mark Fully Paid</span>
                   </DropdownMenuItem>
+                )}
+
+                {/* ONLY Admin can edit details */}
+                {isAdminPortal && (
                   <DropdownMenuItem asChild className="rounded-xl py-2.5">
-                    <Link href={`/admin/tasks/${localTask.id}/edit?redirect=${encodeURIComponent(pathname)}`}>
+                    <Link href={getEditLink(localTask.id) || '#'}>
                       <Edit className="mr-3 h-4 w-4 text-amber-500" /> <span className="font-bold">Modify Details</span>
                     </Link>
                   </DropdownMenuItem>
-                  {onDelete && (
-                    <DropdownMenuItem
-                      onClick={() => { if (confirm('Delete task?')) onDelete(localTask.id); }}
-                      className="text-red-500 focus:text-red-500 rounded-xl py-2.5 mt-1 bg-red-500/5"
-                    >
-                      <Trash2 className="mr-3 h-4 w-4" /> <span className="font-bold">Delete Project</span>
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+                )}
 
-          {/* Main Body: Title and Description Spark */}
-          <div className="space-y-2">
-            <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight text-foreground group-hover:text-primary transition-all duration-500">
-              {localTask.projectName}
-            </h3>
-            {localTask.notes && (
-              <p className="text-muted-foreground text-sm line-clamp-1 opacity-60 font-medium italic">
-                &quot;{localTask.notes}&quot;
-              </p>
+                {onDelete && isAdminPortal && (
+                  <DropdownMenuItem
+                    onClick={() => { if (confirm('Delete task?')) onDelete(localTask.id); }}
+                    className="text-red-500 focus:text-red-500 rounded-xl py-2.5 mt-1 bg-red-500/5"
+                  >
+                    <Trash2 className="mr-3 h-4 w-4" /> <span className="font-bold">Delete Project</span>
+                  </DropdownMenuItem>
+                )}
+
+                {!isAdminPortal && !isCreatorPortal && (
+                  <DropdownMenuItem disabled className="rounded-xl py-2.5 opacity-50">
+                    <span className="text-xs">No extra actions available</span>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Main Body: Title and Description Spark */}
+        <div className="space-y-2">
+          <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight text-foreground group-hover:text-primary transition-all duration-500">
+            {localTask.projectName}
+          </h3>
+          {localTask.notes && (
+            <p className="text-muted-foreground text-sm line-clamp-1 opacity-60 font-medium italic">
+              &quot;{localTask.notes}&quot;
+            </p>
+          )}
+        </div>
+
+        {/* Footer Bar: Metrics and Metadata */}
+        <div className="pt-6 border-t border-border/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge className={cn(getStatusColor(localTask.workStatus), "border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-inner")}>
+              {localTask.workStatus}
+            </Badge>
+            <Badge className={cn(getPaymentColor(localTask.paymentStatus), "border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-inner")}>
+              {localTask.paymentStatus}
+            </Badge>
+
+            {/* Only show deadline if NOT fully paid */}
+            {localTask.paymentStatus !== 'Paid' && (
+              <>
+                {isOverdue && (
+                  <div className="flex items-center gap-2 px-4 py-1.5 bg-red-500/10 text-red-600 rounded-xl border border-red-500/20 animate-pulse">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Overdue</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-secondary/30 text-muted-foreground rounded-xl border border-secondary/50">
+                  <Calendar className="h-3 w-3" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    Due: {formatDate(localTask.submissionDate)}
+                  </span>
+                </div>
+              </>
             )}
           </div>
 
-          {/* Footer Bar: Metrics and Metadata */}
-          <div className="pt-6 border-t border-border/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className={cn(getStatusColor(localTask.workStatus), "border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-inner")}>
-                {localTask.workStatus}
-              </Badge>
-              <Badge className={cn(getPaymentColor(localTask.paymentStatus), "border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-inner")}>
-                {localTask.paymentStatus}
-              </Badge>
-
-              {/* Only show deadline if NOT fully paid */}
-              {localTask.paymentStatus !== 'Paid' && (
-                <>
-                  {isOverdue && (
-                    <div className="flex items-center gap-2 px-4 py-1.5 bg-red-500/10 text-red-600 rounded-xl border border-red-500/20 animate-pulse">
-                      <Clock className="h-3 w-3" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Overdue</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 px-4 py-1.5 bg-secondary/30 text-muted-foreground rounded-xl border border-secondary/50">
-                    <Calendar className="h-3 w-3" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">
-                      Due: {formatDate(localTask.submissionDate)}
-                    </span>
-                  </div>
-                </>
-              )}
+          <div className="flex items-center gap-6 md:pl-6 md:border-l border-border/40">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 leading-none mb-1">Total Valuation</span>
+              <span className="text-2xl font-black text-foreground tabular-nums tracking-tighter">₹{localTask.total.toLocaleString()}</span>
             </div>
 
-            <div className="flex items-center gap-6 md:pl-6 md:border-l border-border/40">
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 leading-none mb-1">Total Valuation</span>
-                <span className="text-2xl font-black text-foreground tabular-nums tracking-tighter">₹{localTask.total.toLocaleString()}</span>
+            <div className="w-32">
+              <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1.5">
+                <span>Pay Progress</span>
+                <span>{Math.round((localTask.amountPaid / (localTask.total || 1)) * 100)}%</span>
               </div>
-
-              <div className="w-32">
-                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1.5">
-                  <span>Pay Progress</span>
-                  <span>{Math.round((localTask.amountPaid / (localTask.total || 1)) * 100)}%</span>
-                </div>
-                <div className="h-2 bg-muted/50 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-1000 ease-out",
-                      localTask.paymentStatus === 'Paid' ? "bg-emerald-500" : "bg-primary"
-                    )}
-                    style={{ width: `${Math.min((localTask.amountPaid / (localTask.total || 1)) * 100, 100)}%` }}
-                  />
-                </div>
+              <div className="h-2 bg-muted/50 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                <div
+                  className={cn(
+                    "h-full transition-all duration-1000 ease-out",
+                    localTask.paymentStatus === 'Paid' ? "bg-emerald-500" : "bg-primary"
+                  )}
+                  style={{ width: `${Math.min((localTask.amountPaid / (localTask.total || 1)) * 100, 100)}%` }}
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </TooltipProvider>
+    </div>
   );
 }

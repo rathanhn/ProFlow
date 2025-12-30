@@ -9,12 +9,14 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => { },
+  refreshUser: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -33,6 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => unsubscribe();
   }, []);
+
+  const refreshUser = async () => {
+    if (auth.currentUser) {
+      await auth.currentUser.reload();
+      setUser({ ...auth.currentUser }); // Spread to force new object reference
+    }
+  };
 
   const signOut = async () => {
     try {
@@ -102,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Safer pattern: Don't render protected pages until we've checked the local session.
   // This prevents sub-components from triggering their own redirects or errors.
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, refreshUser }}>
       {loading ? (
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="flex flex-col items-center gap-4">

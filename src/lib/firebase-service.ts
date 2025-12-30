@@ -222,15 +222,53 @@ export async function getTasksByAssigneeId(assigneeId: string): Promise<Task[]> 
 }
 
 
-export async function getNextProjectNo(): Promise<string> {
+export async function getNextProjectNo(clientId?: string): Promise<string> {
+    console.log(`[firebase-service] getNextProjectNo called with clientId: ${clientId}`);
     const tasksCol = collection(db, 'tasks');
-    const q = query(tasksCol, orderBy('slNo', 'desc'), limit(1));
-    const snapshot = await getDocs(q);
 
-    if (snapshot.empty) return "PRJ1";
-    const latestTask = snapshot.docs[0].data();
-    return `PRJ${(latestTask.slNo || 0) + 1}`;
+    if (clientId) {
+        try {
+            console.log(`[firebase-service] Attempting index-free lookup for client: ${clientId}`);
+            // Simple query only (No orderBy here = No composite index needed)
+            const q = query(tasksCol, where('clientId', '==', clientId));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                let maxProjectNum = 0;
+
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    const projectNo = data.projectNo || "";
+                    const numMatch = projectNo.match(/\d+/);
+                    if (numMatch) {
+                        const currentNum = parseInt(numMatch[0]);
+                        if (currentNum > maxProjectNum) {
+                            maxProjectNum = currentNum;
+                        }
+                    }
+                });
+
+                const nextVal = `PRJ ${maxProjectNum + 1}`;
+                console.log(`[firebase-service] Calculated next serial for client: ${nextVal}`);
+                return nextVal;
+            } else {
+                console.log(`[firebase-service] New client detected (no tasks). Starting at PRJ 1.`);
+                return "PRJ 1";
+            }
+        } catch (error) {
+            console.error("[firebase-service] CLIENT LOOKUP FAILED:", error);
+        }
+    }
+
+    console.log(`[firebase-service] Falling back to global sequence...`);
+    const qGlobal = query(tasksCol, orderBy('slNo', 'desc'), limit(1));
+    const globalSnapshot = await getDocs(qGlobal);
+
+    if (globalSnapshot.empty) return "PRJ 1";
+    const latestGlobal = globalSnapshot.docs[0].data();
+    return `PRJ ${(latestGlobal.slNo || 0) + 1}`;
 }
+
 
 export async function getTask(id: string): Promise<Task | null> {
     const taskDocRef = doc(db, 'tasks', id);
@@ -245,17 +283,13 @@ export async function getTask(id: string): Promise<Task | null> {
 
 export async function getLatestProjectNoForClient(clientId: string): Promise<string | null> {
     const tasksCol = collection(db, 'tasks');
-    const q = query(tasksCol, where('clientName', '==', clientId), orderBy('slNo', 'desc'));
+    const q = query(tasksCol, where('clientId', '==', clientId), orderBy('slNo', 'desc'), limit(1));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) return null;
 
-    // Look for the first one that has a projectNo
-    for (const doc of snapshot.docs) {
-        const data = doc.data();
-        if (data.projectNo) return data.projectNo;
-    }
-    return null;
+    const data = snapshot.docs[0].data();
+    return data.projectNo || null;
 }
 
 export async function addTask(task: Omit<Task, 'id' | 'slNo'> & { projectNo?: string }) {
@@ -271,8 +305,11 @@ export async function addTask(task: Omit<Task, 'id' | 'slNo'> & { projectNo?: st
         nextSlNo = (latestTask.slNo || 0) + 1;
     }
 
-    // Use provided projectNo or generate one if empty
-    const projectNo = task.projectNo || `PRJ${nextSlNo}`;
+    // Use provided projectNo or generate one specifically for this client
+    let projectNo = task.projectNo;
+    if (!projectNo) {
+        projectNo = await getNextProjectNo(task.clientId);
+    }
 
     const taskWithIds = {
         ...task,

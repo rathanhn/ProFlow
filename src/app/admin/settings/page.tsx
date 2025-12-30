@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,15 +18,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { updateClientPassword } from '@/lib/firebase-client-service';
-import { KeyRound, Eye, EyeOff, User as UserIcon, LogOut, AlertTriangle } from 'lucide-react';
+import { KeyRound, Eye, EyeOff, User as UserIcon, LogOut, AlertTriangle, ShieldCheck, Palette, Sparkles, Mail, Lock } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ImageUploader from '@/components/ImageUploader';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User } from 'firebase/auth';
-import { auth, clientAuth } from '@/lib/firebase';
-import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { signOut, updateProfile } from 'firebase/auth';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -39,8 +37,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { updateProfile } from 'firebase/auth';
-
+import { Badge } from '@/components/ui/badge';
 
 const passwordFormSchema = z.object({
     newPassword: z.string().min(6, 'Password must be at least 6 characters.'),
@@ -55,56 +52,26 @@ const profileFormSchema = z.object({
     avatar: z.string().url('Avatar must be a valid URL.').or(z.literal('')),
 });
 
-
-function SettingsForm() {
+export default function AdminSettingsPage() {
     const { toast } = useToast();
     const router = useRouter();
-    const { user, loading: userLoading } = useAuth();
+    const { user, loading: userLoading, refreshUser } = useAuth();
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
-        defaultValues: {
-            newPassword: '',
-            confirmPassword: '',
-        },
+        defaultValues: { newPassword: '', confirmPassword: '' },
     });
 
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
-        defaultValues: {
-            name: 'Admin',
-            avatar: '',
-        },
+        defaultValues: { name: user?.displayName || 'Admin', avatar: user?.photoURL || '' },
     });
 
     useEffect(() => {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-            console.log('[Form Init] Current auth user:', currentUser.displayName, currentUser.photoURL);
-
-            // If the user doesn't have displayName set, set it to a default value
-            if (!currentUser.displayName) {
-                console.log('[Form Init] Setting initial displayName for admin user');
-                updateProfile(currentUser, {
-                    displayName: 'Admin',
-                    photoURL: currentUser.photoURL || ''
-                }).then(() => {
-                    console.log('[Form Init] Initial displayName set successfully');
-                }).catch((error) => {
-                    console.error('[Form Init] Failed to set initial displayName:', error);
-                });
-            }
-
-            profileForm.reset({
-                name: currentUser.displayName || 'Admin',
-                avatar: currentUser.photoURL || '',
-            });
-        } else if (user) {
-            console.log('[Form Init] Sidebar user:', user.displayName, user.photoURL);
+        if (user) {
             profileForm.reset({
                 name: user.displayName || 'Admin',
                 avatar: user.photoURL || '',
@@ -116,18 +83,10 @@ function SettingsForm() {
         setIsLoggingOut(true);
         try {
             await signOut(auth);
-            toast({
-                title: 'Logged Out',
-                description: 'You have been successfully logged out.'
-            });
+            toast({ title: 'Logged Out', description: 'Session terminated successfully.' });
             router.push('/admin/login');
         } catch (error) {
-            console.error('Logout error:', error);
-            toast({
-                title: 'Logout Failed',
-                description: 'Could not log you out. Please try again.',
-                variant: 'destructive'
-            });
+            toast({ title: 'Logout Failed', description: 'Critical error during session termination.', variant: 'destructive' });
         } finally {
             setIsLoggingOut(false);
         }
@@ -135,304 +94,247 @@ function SettingsForm() {
 
     async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         try {
-            toast({
-                title: 'Password Updated!',
-                description: 'Your password has been successfully changed.',
-            });
+            toast({ title: 'Security Protocol Updated', description: 'Your password has been successfully modified.' });
             passwordForm.reset();
         } catch (error) {
-            console.error("Failed to update password:", error);
-            toast({
-                title: 'Error',
-                description: 'Failed to update password. Please try again.',
-                variant: 'destructive'
-            });
+            toast({ title: 'Security Error', description: 'Failed to update credentials.', variant: 'destructive' });
         }
     }
 
     async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
         const currentUser = auth.currentUser;
-        if (!currentUser) {
-            toast({ title: 'Not Authenticated', description: 'You must be logged in to update your profile.', variant: 'destructive' });
-            return;
-        }
-
+        if (!currentUser) return;
         try {
-            console.log('[Profile Update] Starting update with values:', values);
-            console.log('[Profile Update] Current user before update:', currentUser.displayName, currentUser.photoURL);
-
-            // Update the Firebase Auth user profile directly
-            await updateProfile(currentUser, {
-                displayName: values.name,
-                photoURL: values.avatar
-            });
-
-            console.log('[Profile Update] Profile updated successfully');
-
-            // Force a re-render by reloading the current user
-            await currentUser.reload();
-
-            console.log('[Profile Update] User after reload:', currentUser.displayName, currentUser.photoURL);
-
-            // Force the sidebar to refresh by triggering a small delay
-            setTimeout(() => {
-                const updatedUser = auth.currentUser;
-                console.log('[Profile Update] User after timeout:', updatedUser?.displayName, updatedUser?.photoURL);
-            }, 500);
-
-            toast({
-                title: 'Profile Updated!',
-                description: 'Your profile information has been saved.',
-            });
-
+            await updateProfile(currentUser, { displayName: values.name, photoURL: values.avatar });
+            await refreshUser();
+            toast({ title: 'Profile Synchronized', description: 'Administrative details updated successfully.' });
         } catch (error) {
-            console.error("Failed to update profile:", error);
-            toast({ title: 'Error', description: 'Failed to update profile. Please try again.', variant: 'destructive' });
+            toast({ title: 'System Error', description: 'Failed to synchronize profile data.', variant: 'destructive' });
         }
     }
 
     if (userLoading) {
         return (
-            <div className="space-y-6">
-                <Card>
-                    <CardHeader>
-                        <Skeleton className="h-6 w-1/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="flex flex-col items-center">
-                            <Skeleton className="h-24 w-24 rounded-full" />
-                            <Skeleton className="h-10 w-32 mt-4" />
-                        </div>
-                        <Skeleton className="h-10 w-full" />
-                        <div className="flex justify-end">
-                            <Skeleton className="h-10 w-24" />
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <Skeleton className="h-6 w-1/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-10 w-full" />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <Skeleton className="h-6 w-1/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-10 w-full" />
-                    </CardContent>
-                </Card>
-            </div>
-        )
+            <DashboardLayout>
+                <div className="space-y-6 max-w-4xl mx-auto w-full">
+                    <Skeleton className="h-12 w-48" />
+                    <Skeleton className="h-4 w-72" />
+                    <Skeleton className="h-[500px] w-full rounded-[2.5rem]" />
+                </div>
+            </DashboardLayout>
+        );
     }
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Admin Profile</CardTitle>
-                    <CardDescription>Update your administrator name and avatar.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Form {...profileForm}>
-                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6 max-w-md">
-                            <FormField
-                                control={profileForm.control}
-                                name="avatar"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-col items-center">
-                                        <FormControl>
-                                            <ImageUploader
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                fallbackText={profileForm.getValues('name')?.charAt(0) || 'A'}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={profileForm.control}
-                                name="name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Admin Name</FormLabel>
-                                        <FormControl>
-                                            <div className="relative flex items-center">
-                                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                <Input placeholder="Enter your full name" {...field} className="pl-10" />
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <div className="flex justify-end">
-                                <Button type="submit" disabled={profileForm.formState.isSubmitting || userLoading}>
-                                    {profileForm.formState.isSubmitting ? "Saving..." : "Save Changes"}
-                                </Button>
-                            </div>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
-                    <CardDescription>
-                        Customize the look and feel of your dashboard.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between">
-                    <p className="text-sm font-medium">Toggle dark, light, or system theme</p>
-                    <ThemeToggle />
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Change Password</CardTitle>
-                    <CardDescription>
-                        Enter a new password for your account below.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Form {...passwordForm}>
-                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6 max-w-md">
-                            <FormField
-                                control={passwordForm.control}
-                                name="newPassword"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>New Password</FormLabel>
-                                        <FormControl>
-                                            <div className="relative flex items-center">
-                                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                <Input type={showNewPassword ? 'text' : 'password'} placeholder="Enter new password" {...field} className="pl-10 pr-10" />
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                                >
-                                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </Button>
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={passwordForm.control}
-                                name="confirmPassword"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Confirm New Password</FormLabel>
-                                        <FormControl>
-                                            <div className="relative flex items-center">
-                                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm new password" {...field} className="pl-10 pr-10" />
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
-                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                >
-                                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </Button>
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <div className="flex justify-end">
-                                <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
-                                    {passwordForm.formState.isSubmitting ? "Updating..." : "Update Password"}
-                                </Button>
-                            </div>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
-
-            <Card className="border-destructive/20">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-destructive">
-                        <AlertTriangle className="h-5 w-5" />
-                        Danger Zone
-                    </CardTitle>
-                    <CardDescription>
-                        Actions that will log you out of your account.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-                        <div>
-                            <h4 className="font-medium text-sm">Sign Out</h4>
-                            <p className="text-xs text-muted-foreground">
-                                Log out of your admin account and return to the login page.
-                            </p>
-                        </div>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    disabled={isLoggingOut}
-                                    className="ml-4"
-                                >
-                                    <LogOut className="h-4 w-4 mr-2" />
-                                    {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        You will be logged out of your admin account and redirected to the login page.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={handleLogout}
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    >
-                                        Sign Out
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                </CardContent>
-            </Card>
-
-        </div>
-    )
-}
-
-
-export default function AdminSettingsPage() {
-    return (
         <DashboardLayout>
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-                <p className="text-muted-foreground">Manage your admin dashboard settings.</p>
-            </div>
-            <div className="pt-6">
-                <SettingsForm />
+            <div className="max-w-4xl mx-auto space-y-12 fab-safe-bottom w-full">
+                {/* Header Section */}
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest px-2 py-0 h-4 border-blue-500/20 text-blue-600 bg-blue-500/5">
+                            System Control
+                        </Badge>
+                        <div className="h-1 w-1 rounded-full bg-border"></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Administrative Console
+                        </span>
+                    </div>
+                    <h1 className="text-4xl font-black tracking-tighter">Global Settings</h1>
+                    <p className="text-muted-foreground text-sm font-medium">Configure global administrative protocols and system appearance.</p>
+                </div>
+
+                <div className="grid gap-8">
+                    {/* Admin Profile Section */}
+                    <Card className="glass-card border-white/20 shadow-xl overflow-hidden rounded-[2.5rem]">
+                        <CardHeader className="bg-gradient-to-br from-blue-500/5 to-transparent border-b border-border/10 pb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-blue-500/10 rounded-xl">
+                                    <ShieldCheck className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-xl">Super Admin Profile</CardTitle>
+                                    <CardDescription>System-wide administrative identity.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-8 space-y-8">
+                            <Form {...profileForm}>
+                                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
+                                    <div className="flex flex-col sm:flex-row items-center gap-8 p-6 rounded-[2rem] bg-secondary/30 border border-border/10">
+                                        <FormField
+                                            control={profileForm.control}
+                                            name="avatar"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <ImageUploader
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                            fallbackText={profileForm.getValues('name')?.charAt(0) || 'A'}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <div className="flex-1 space-y-1 text-center sm:text-left">
+                                            <h4 className="font-black text-lg tracking-tight">{user?.displayName || 'Administrator'}</h4>
+                                            <p className="text-xs text-muted-foreground flex items-center justify-center sm:justify-start gap-1.5 font-bold uppercase tracking-wider">
+                                                <Mail className="h-3 w-3" /> {user?.email}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <FormField
+                                        control={profileForm.control}
+                                        name="name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/70">Legal Admin Name</FormLabel>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500/50" />
+                                                        <Input placeholder="Enter full name" {...field} className="pl-12 rounded-2xl bg-secondary/50 border-border/50 h-12 font-medium" />
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl h-12 px-10 shadow-lg shadow-blue-500/20 active:scale-95 transition-all w-full sm:w-auto">
+                                        Update Credentials
+                                    </Button>
+                                </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+
+                    {/* Security Card */}
+                    <Card className="glass-card border-white/20 shadow-xl overflow-hidden rounded-[2.5rem]">
+                        <CardHeader className="bg-gradient-to-br from-amber-500/5 to-transparent border-b border-border/10 pb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-amber-500/10 rounded-xl">
+                                    <Lock className="h-5 w-5 text-amber-600" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-xl">Access Security</CardTitle>
+                                    <CardDescription>Rotate administrative passwords.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-8">
+                            <Form {...passwordForm}>
+                                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <FormField
+                                            control={passwordForm.control}
+                                            name="newPassword"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/70">New Secure Password</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500/50" />
+                                                            <Input type={showNewPassword ? 'text' : 'password'} {...field} className="pl-12 pr-12 rounded-2xl bg-secondary/50 border-border/50 h-12 font-medium" />
+                                                            <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-transparent" onClick={() => setShowNewPassword(!showNewPassword)}>
+                                                                {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                            </Button>
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={passwordForm.control}
+                                            name="confirmPassword"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/70">Confirm High-Security Password</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500/50" />
+                                                            <Input type={showConfirmPassword ? 'text' : 'password'} {...field} className="pl-12 pr-12 rounded-2xl bg-secondary/50 border-border/50 h-12 font-medium" />
+                                                            <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-transparent" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                            </Button>
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                    <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl h-12 px-10 shadow-lg shadow-amber-500/20 active:scale-95 transition-all w-full sm:w-auto">
+                                        Rotate Password
+                                    </Button>
+                                </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+
+                    {/* Visual Interface Card */}
+                    <Card className="glass-card border-white/20 shadow-xl overflow-hidden rounded-[2.5rem]">
+                        <CardHeader className="bg-gradient-to-br from-indigo-500/5 to-transparent border-b border-border/10 pb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-indigo-500/10 rounded-xl">
+                                    <Palette className="h-5 w-5 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-xl">Interface Dynamics</CardTitle>
+                                    <CardDescription>Customize global UI behavior.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-8">
+                            <div className="flex items-center justify-between p-6 rounded-3xl bg-secondary/30 border border-border/10">
+                                <div>
+                                    <p className="font-black text-sm uppercase tracking-tight">System Theme</p>
+                                    <p className="text-xs text-muted-foreground mt-1 font-medium italic">Toggle between high-contrast light and deep OLED dark modes.</p>
+                                </div>
+                                <ThemeToggle />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Danger Zone */}
+                    <Card className="border-red-500/20 bg-red-500/5 overflow-hidden rounded-[2.5rem] shadow-xl">
+                        <CardContent className="p-8">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-red-500/20 rounded-2xl">
+                                        <AlertTriangle className="h-6 w-6 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-black text-lg tracking-tight text-red-700 uppercase">Session Termination</h4>
+                                        <p className="text-xs text-red-600/70 font-bold uppercase tracking-widest mt-1">Disconnect from the administrative matrix.</p>
+                                    </div>
+                                </div>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" className="rounded-2xl h-12 px-8 font-black uppercase tracking-widest shadow-lg shadow-red-500/20 active:scale-95 transition-all">
+                                            <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="rounded-[2.5rem] border-red-500/20 glass-card">
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle className="text-2xl font-black tracking-tighter text-red-700">Confirm Termination?</AlertDialogTitle>
+                                            <AlertDialogDescription className="text-sm font-medium">
+                                                This will disconnect your administrative session. All unsaved system configurations may be lost.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter className="mt-6">
+                                            <AlertDialogCancel className="rounded-2xl font-bold">Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black">
+                                                Terminate Session
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </DashboardLayout>
     );
