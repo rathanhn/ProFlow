@@ -1,6 +1,6 @@
 
-import ClientLoginPage from '@/components/ClientLoginPage';
+import UnifiedLoginPage from '@/components/UnifiedLoginPage';
 
 export default function ClientLogin() {
-  return <ClientLoginPage />;
+  return <UnifiedLoginPage defaultTab="client" />;
 }

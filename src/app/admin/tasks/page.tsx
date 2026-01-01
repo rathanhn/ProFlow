@@ -28,49 +28,49 @@ export default async function AdminTasksPage() {
     <DashboardLayout>
       <div className="space-y-8 fab-safe-bottom w-full">
         {/* Premium Page Header */}
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-8 md:p-12 text-white shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-5 md:p-12 text-white shadow-2xl">
           <div className="absolute top-0 right-0 -m-8 h-80 w-80 rounded-full bg-white/10 blur-3xl animate-pulse"></div>
           <div className="absolute bottom-0 left-0 -m-8 h-80 w-80 rounded-full bg-black/10 blur-3xl"></div>
 
-          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-8">
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase font-bold px-3 py-1 h-6 rounded-full">
+          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-4 md:gap-8">
+            <div className="space-y-3 md:space-y-6">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[8px] md:text-[10px] uppercase font-bold px-2 py-0.5 h-5 rounded-full">
                   Operations Center
                 </Badge>
-                <div className="h-1.5 w-1.5 rounded-full bg-white/40"></div>
-                <span className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">
-                  Global Task Management
+                <div className="h-1 w-1 rounded-full bg-white/40"></div>
+                <span className="text-white/70 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em]">
+                  Management
                 </span>
               </div>
-              <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-tight flex items-center gap-4">
-                <LayoutGrid className="h-12 w-12 text-blue-300" /> Task Control
+              <h1 className="text-2xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-tight flex items-center gap-2 md:gap-4">
+                <LayoutGrid className="h-6 w-6 md:h-12 md:w-12 text-blue-300" /> Task Control
               </h1>
-              <p className="text-blue-50/70 max-w-2xl text-base md:text-lg font-medium italic border-l-4 border-blue-400/30 pl-6 leading-relaxed">
+              <p className="hidden sm:block text-blue-50/70 max-w-2xl text-base lg:text-lg font-medium italic border-l-4 border-blue-400/30 pl-6 leading-relaxed">
                 Seamlessly orchestrate your entire project ecosystem. Monitor production velocity, manage creator assignments, and ensure top-tier delivery standards across every client account.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-              <div className="px-8 py-6 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center min-w-[140px] hover:scale-105 transition-transform">
-                <Clock className="h-6 w-6 text-blue-300 mb-2" />
-                <span className="text-3xl font-black tabular-nums">{inProgressCount}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Active</span>
+            <div className="grid grid-cols-3 gap-2 md:gap-6">
+              <div className="p-2 md:px-8 md:py-6 bg-white/10 backdrop-blur-xl rounded-xl md:rounded-[2.5rem] border border-white/10 shadow-lg flex flex-col items-center min-w-[70px] md:min-w-[140px] hover:scale-105 transition-transform">
+                <Clock className="h-3 w-3 md:h-6 md:w-6 text-blue-300 mb-1 md:mb-2" />
+                <span className="text-lg md:text-3xl font-black tabular-nums">{inProgressCount}</span>
+                <span className="text-[7px] md:text-[10px] font-black uppercase tracking-widest opacity-60">Active</span>
               </div>
-              <div className="px-8 py-6 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center min-w-[140px] hover:scale-105 transition-transform">
-                <CheckCircle2 className="h-6 w-6 text-emerald-300 mb-2" />
-                <span className="text-3xl font-black tabular-nums">{completedCount}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Success</span>
+              <div className="p-2 md:px-8 md:py-6 bg-white/10 backdrop-blur-xl rounded-xl md:rounded-[2.5rem] border border-white/10 shadow-lg flex flex-col items-center min-w-[70px] md:min-w-[140px] hover:scale-105 transition-transform">
+                <CheckCircle2 className="h-3 w-3 md:h-6 md:w-6 text-emerald-300 mb-1 md:mb-2" />
+                <span className="text-lg md:text-3xl font-black tabular-nums">{completedCount}</span>
+                <span className="text-[7px] md:text-[10px] font-black uppercase tracking-widest opacity-60">Success</span>
               </div>
-              <div className="px-8 py-6 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center min-w-[140px] hover:scale-105 transition-transform">
-                <ClipboardList className="h-6 w-6 text-amber-300 mb-2" />
-                <span className="text-3xl font-black tabular-nums">{pendingCount}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Backlog</span>
+              <div className="p-2 md:px-8 md:py-6 bg-white/10 backdrop-blur-xl rounded-xl md:rounded-[2.5rem] border border-white/10 shadow-lg flex flex-col items-center min-w-[70px] md:min-w-[140px] hover:scale-105 transition-transform">
+                <ClipboardList className="h-3 w-3 md:h-6 md:w-6 text-amber-300 mb-1 md:mb-2" />
+                <span className="text-lg md:text-3xl font-black tabular-nums">{pendingCount}</span>
+                <span className="text-[7px] md:text-[10px] font-black uppercase tracking-widest opacity-60">Backlog</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-12 flex justify-end relative z-10">
+          <div className="mt-4 md:mt-12 flex justify-end relative z-10">
             <ExportDialog
               baseUrl="/admin/tasks/report"
               assignees={assignees}

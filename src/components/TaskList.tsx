@@ -23,6 +23,7 @@ import { Task } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import TaskCard from './TaskCard';
 import Link from 'next/link';
+import { MetricCard } from './ui/charts';
 
 interface TaskListProps {
   tasks: Task[];
@@ -88,74 +89,45 @@ export default function TaskList({
 
   return (
     <div className="space-y-6">
-      {/* Statistics */}
+      {/* Statistics Overlay */}
       {tasks.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
-          <div
-            onClick={() => { setStatusFilter('all'); setPaymentFilter('all'); }}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in mb-8">
+          <MetricCard
+            title="Total Ventures"
+            value={stats.totalTasks}
+            icon={<FileText className="h-6 w-6 text-primary" />}
             className={cn(
-              "glass-card p-5 rounded-2xl hover-lift shadow-sm transition-all duration-300 cursor-pointer border-transparent",
-              statusFilter === 'all' && paymentFilter === 'all' ? "ring-2 ring-blue-500/50 bg-blue-500/5" : "border-blue-500/10"
+              "glass-card border-primary/20",
+              statusFilter === 'all' && paymentFilter === 'all' && "ring-2 ring-primary/50"
             )}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Total</p>
-                <p className="text-2xl font-bold">{stats.totalTasks}</p>
-              </div>
-              <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-                <FileText className="h-5 w-5 text-blue-500" />
-              </div>
-            </div>
-          </div>
+          />
 
-          <div
-            onClick={() => { setStatusFilter('Completed'); setPaymentFilter('all'); }}
+          <MetricCard
+            title="Success Milestone"
+            value={stats.completedTasks}
+            icon={<TrendingUp className="h-6 w-6 text-emerald-500" />}
             className={cn(
-              "glass-card p-5 rounded-2xl hover-lift shadow-sm transition-all duration-300 cursor-pointer border-transparent",
-              statusFilter === 'Completed' ? "ring-2 ring-emerald-500/50 bg-emerald-500/5" : "border-emerald-500/10"
+              "glass-card border-emerald-500/20",
+              statusFilter === 'Completed' && "ring-2 ring-emerald-500/50"
             )}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Completed</p>
-                <p className="text-2xl font-bold text-emerald-600">{stats.completedTasks}</p>
-              </div>
-              <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-emerald-500" />
-              </div>
-            </div>
-          </div>
+          />
 
-          <div className="glass-card p-5 rounded-2xl hover-lift border-indigo-500/10 shadow-sm transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Value</p>
-                <p className="text-2xl font-bold text-gradient-indigo">₹{stats.totalValue.toLocaleString()}</p>
-              </div>
-              <div className="h-10 w-10 bg-indigo-500/10 rounded-xl flex items-center justify-center">
-                <INRIcon className="h-5 w-5 text-indigo-500" />
-              </div>
-            </div>
-          </div>
+          <MetricCard
+            title="Network Valuation"
+            value={`₹${stats.totalValue.toLocaleString()}`}
+            icon={<INRIcon className="h-6 w-6 text-indigo-500" />}
+            className="glass-card border-indigo-500/20"
+          />
 
-          <div
-            onClick={() => { setPaymentFilter('Unpaid'); setStatusFilter('all'); }}
+          <MetricCard
+            title="Settlement Due"
+            value={`₹${stats.unpaidAmount.toLocaleString()}`}
+            icon={<INRIcon className="h-6 w-6 text-rose-500" />}
             className={cn(
-              "glass-card p-5 rounded-2xl hover-lift shadow-sm transition-all duration-300 cursor-pointer border-transparent",
-              paymentFilter === 'Unpaid' ? "ring-2 ring-rose-500/50 bg-rose-500/5" : "border-rose-500/10"
+              "glass-card border-rose-500/20",
+              paymentFilter === 'Unpaid' && "ring-2 ring-rose-500/50"
             )}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1">Unpaid</p>
-                <p className="text-2xl font-bold text-rose-600">₹{stats.unpaidAmount.toLocaleString()}</p>
-              </div>
-              <div className="h-10 w-10 bg-rose-500/10 rounded-xl flex items-center justify-center">
-                <INRIcon className="h-5 w-5 text-rose-500" />
-              </div>
-            </div>
-          </div>
+          />
         </div>
       )}
 
@@ -165,8 +137,8 @@ export default function TaskList({
           <div className="flex items-center gap-3">
             <div className="h-10 w-1 px-0.5 bg-primary rounded-full hidden md:block" />
             <div>
-              <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-              <p className="text-xs text-muted-foreground font-medium">{filteredTasks.length} projects found</p>
+              <h2 className="premium-heading text-lg">{title}</h2>
+              <p className="premium-label opacity-60 mt-1">{filteredTasks.length} nodes active</p>
             </div>
           </div>
 
@@ -325,9 +297,9 @@ function SimpleTaskRow({ task, showClient }: { task: Task; showClient?: boolean 
           <span className="text-[10px] uppercase font-black text-muted-foreground">{task.workStatus}</span>
         </div>
 
-        <div className="text-right min-w-[80px]">
-          <p className="text-[10px] leading-tight text-muted-foreground uppercase font-black">Total</p>
-          <p className="text-sm font-bold">₹{task.total.toLocaleString()}</p>
+        <div className="text-right min-w-[100px]">
+          <p className="premium-stat-label">Total Valuation</p>
+          <p className="premium-value text-base">₹{task.total.toLocaleString()}</p>
         </div>
 
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" asChild>

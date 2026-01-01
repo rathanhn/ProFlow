@@ -243,46 +243,46 @@ function AdminClientsPageContent() {
             <PullToRefresh onRefresh={handleRefresh}>
                 <div className="space-y-8 fab-safe-bottom pt-4">
                     {/* Premium Hero Section */}
-                    <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-8 text-white shadow-2xl">
+                    <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-5 md:p-12 text-white shadow-2xl">
                         <div className="absolute top-0 right-0 -m-8 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 -m-8 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
 
-                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-inner">
-                                        <Users className="h-7 w-7 text-blue-200" />
+                        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-4 md:gap-8">
+                            <div className="space-y-3 md:space-y-6">
+                                <div className="flex items-center gap-2 md:gap-3">
+                                    <div className="h-10 w-10 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
+                                        <Users className="h-5 w-5 md:h-7 md:w-7 text-blue-200" />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-white/80 text-[10px] font-black uppercase tracking-widest leading-none">
+                                            <span className="text-white/80 text-[8px] md:text-[10px] font-black uppercase tracking-widest leading-none">
                                                 CRM Protocol
                                             </span>
-                                            <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase font-bold px-2 py-0 h-4">
+                                            <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[8px] md:text-[10px] uppercase font-bold px-2 py-0 h-4">
                                                 Elite Network
                                             </Badge>
                                         </div>
-                                        <h1 className="text-3xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
+                                        <h1 className="text-2xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
                                             Partner Ecosystem
                                         </h1>
                                     </div>
                                 </div>
-                                <p className="opacity-70 text-sm leading-relaxed border-l-2 border-white/20 pl-4 py-1 max-w-xl italic">
+                                <p className="hidden sm:block opacity-70 text-sm leading-relaxed border-l-2 border-white/20 pl-4 py-1 max-w-xl italic">
                                     Managing global partnerships and strategic client relations with precision and intelligence.
                                 </p>
                             </div>
 
-                            <div className="flex flex-col gap-3 min-w-[200px]">
-                                <Button className="h-12 bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 transition-transform font-black shadow-xl shadow-blue-900/10 text-base" onClick={() => router.push('/admin/clients/new')}>
-                                    <UserPlus className="mr-2 h-5 w-5" /> Onboard Partner
+                            <div className="flex flex-col sm:flex-row xl:flex-col gap-2 md:gap-3 min-w-0 sm:min-w-[300px] xl:min-w-[200px]">
+                                <Button className="h-10 md:h-12 bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 transition-transform font-black shadow-xl shadow-blue-900/10 text-sm md:text-base px-4 rounded-xl md:rounded-2xl" onClick={() => router.push('/admin/clients/new')}>
+                                    <UserPlus className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Onboard Partner
                                 </Button>
                                 <div className="relative group">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 group-focus-within:text-white transition-colors" />
+                                    <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 group-focus-within:text-white transition-colors" />
                                     <Input
                                         placeholder="Scan ecosystem..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="h-12 pl-11 bg-white/10 border-white/20 text-white placeholder:text-white/40 rounded-2xl backdrop-blur-xl focus:bg-white/20 transition-all border-none"
+                                        className="h-10 md:h-12 pl-10 md:pl-11 bg-white/10 border-white/20 text-white placeholder:text-white/40 rounded-xl md:rounded-2xl backdrop-blur-xl focus:bg-white/20 transition-all border-none text-sm md:text-base"
                                     />
                                 </div>
                             </div>

@@ -14,7 +14,7 @@ export default function ClientActions({ client, action }: { client: Client, acti
     const router = useRouter();
 
     const copyToClipboard = (id: string) => {
-        const url = `${window.location.origin}/client/${id}/auth`;
+        const url = `${window.location.origin}/p/${id}`;
         navigator.clipboard.writeText(url);
         toast({
             title: "Link Copied!",
@@ -65,6 +65,6 @@ export default function ClientActions({ client, action }: { client: Client, acti
             </DropdownMenuItem>
         );
     }
-    
+
     return null;
 }

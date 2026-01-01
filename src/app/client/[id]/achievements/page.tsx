@@ -73,27 +73,27 @@ export default function ClientAchievementsPage({ params }: { params: Promise<{ i
             <PullToRefresh onRefresh={handleRefresh}>
                 <div className="space-y-8 fab-safe-bottom pt-4">
                     {/* Hero Header */}
-                    <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-8 text-white shadow-2xl">
+                    <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-5 md:p-12 text-white shadow-2xl">
                         <div className="absolute top-0 right-0 -m-8 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 -m-8 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
 
-                        <div className="relative z-10 space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-lg">
-                                    <Trophy className="h-7 w-7 text-yellow-300" />
+                        <div className="relative z-10 space-y-3 md:space-y-4">
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-lg shrink-0">
+                                    <Trophy className="h-6 w-6 md:h-7 md:w-7 text-yellow-300" />
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase font-bold px-2 py-0 h-4 tracking-widest">
+                                        <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[8px] md:text-[10px] uppercase font-bold px-2 py-0 h-4 md:h-5 tracking-widest leading-none">
                                             Partner Rank
                                         </Badge>
                                     </div>
-                                    <h1 className="text-3xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
+                                    <h1 className="text-2xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
                                         Achievement <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-white">Center</span>
                                     </h1>
                                 </div>
                             </div>
-                            <p className="italic opacity-70 text-sm max-w-xl border-l-2 border-white/20 pl-4">
+                            <p className="hidden sm:block italic opacity-70 text-sm max-w-xl border-l-2 border-white/20 pl-4">
                                 Tracking your operational legacy. Your growth is our primary mission objective.
                             </p>
                         </div>

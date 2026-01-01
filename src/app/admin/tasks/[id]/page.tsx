@@ -80,7 +80,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
           <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-12">
             {/* Main Content */}
             <div className="lg:col-span-8 space-y-8">
-              <Card className="glass-card border-white/20 shadow-xl overflow-hidden rounded-[2.5rem]">
+              <Card id="task-detail-card" className="glass-card border-white/20 shadow-xl overflow-hidden rounded-[2.5rem]">
                 <CardHeader className="bg-gradient-to-br from-blue-500/5 to-transparent border-b border-border/10 pb-8">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-blue-500/10 rounded-2xl">

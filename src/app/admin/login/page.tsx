@@ -1,5 +1,6 @@
-import LoginPage from '@/components/LoginPage';
+
+import UnifiedLoginPage from '@/components/UnifiedLoginPage';
 
 export default function AdminLoginPage() {
-  return <LoginPage />;
+  return <UnifiedLoginPage defaultTab="admin" />;
 }

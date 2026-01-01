@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addTask, updateTask, getClients, getTasks, getAssignees, addAssignee, createNotification, getNextProjectNo, getLatestProjectNoForClient } from '@/lib/firebase-service';
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
+import { generateBrief } from '@/ai/flows/generateBriefFlow';
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
-import { DollarSign, PlusCircle, Loader2 } from 'lucide-react';
+import { DollarSign, PlusCircle, Loader2, Wand2, Sparkles } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import PaymentDialog from './PaymentDialog';
 import FileUpload from './FileUpload';
@@ -87,6 +88,7 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProjectNoLoading, setIsProjectNoLoading] = useState(false);
+  const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
 
 
   // 2. Computed Values
@@ -465,13 +467,48 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Internal Brief / Notes</FormLabel>
+                      <div className="flex justify-between items-center mb-1">
+                        <FormLabel className="text-xs uppercase font-black tracking-widest text-muted-foreground">Internal Brief / Notes</FormLabel>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg flex items-center gap-1.5 transition-all"
+                          onClick={async () => {
+                            const pName = form.getValues('projectName');
+                            const cName = form.getValues('clientName');
+                            if (!pName || !cName) {
+                              toast({ title: "Input Required", description: "Enter Project Name and Select Client first.", variant: 'destructive' });
+                              return;
+                            }
+                            setIsGeneratingBrief(true);
+                            try {
+                              const result = await generateBrief({ projectName: pName, clientName: cName, existingNotes: field.value });
+                              form.setValue('notes', result.brief);
+                              toast({ title: "Brief Generated!", description: "AI has polished your project description." });
+                            } catch (err) {
+                              toast({ title: "Generation Failed", description: "Could not generate brief. Check API key.", variant: 'destructive' });
+                            } finally {
+                              setIsGeneratingBrief(false);
+                            }
+                          }}
+                          disabled={isGeneratingBrief}
+                        >
+                          {isGeneratingBrief ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                          {isGeneratingBrief ? 'Generating...' : 'Magic Describe'}
+                        </Button>
+                      </div>
                       <FormControl>
-                        <Textarea
-                          placeholder="Specify project goals, specific requirements, or milestones..."
-                          className="resize-none min-h-[120px] bg-secondary/50 border-none rounded-xl focus:ring-2 ring-primary/20 transition-all"
-                          {...field}
-                        />
+                        <div className="relative group">
+                          <Textarea
+                            placeholder="Specify project goals, specific requirements, or milestones..."
+                            className="resize-none min-h-[120px] bg-secondary/50 border-none rounded-xl focus:ring-2 ring-primary/20 transition-all font-medium py-4 px-5"
+                            {...field}
+                          />
+                          <div className="absolute bottom-3 right-3 opacity-20 group-hover:opacity-100 transition-opacity">
+                            <Sparkles className="h-4 w-4 text-indigo-500" />
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

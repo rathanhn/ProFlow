@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { useToast } from '@/hooks/useToast';
 
 interface AuthContextType {
   user: User | null;
@@ -26,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const { error: toastError } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -58,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Error signing out:', error);
+      toastError('Failed to sign out');
     }
   };
 
@@ -73,34 +77,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isAdminPath = pathname.startsWith('/admin');
     const isClientPath = pathname.startsWith('/client');
     const isCreatorPath = pathname.startsWith('/creator');
+    const isPublicPath = pathname.startsWith('/p/');
 
-    // 1. If LOGGED IN and on a login page -> Auto-forward to dashboard
-    if (user && isLoginPage) {
-      if (pathname === '/admin/login') {
-        router.push('/admin');
-      } else if (pathname === '/client-login') {
-        router.push(`/client/${user.uid}`);
-      } else if (pathname === '/creator/login') {
-        router.push(`/creator/${user.uid}`);
-      } else if (pathname === '/') {
-        // On the very front page, if logged in, go to admin by default or try to guess
-        router.push('/admin');
-      }
-      return;
-    }
+    // Auto‑forward from login pages disabled to keep the login view until the user submits credentials.
+    // if (user && isLoginPage) {
+    //   if (pathname === '/admin/login') {
+    //     router.push('/admin');
+    //   } else if (pathname === '/client-login') {
+    //     router.push(`/client/${user.uid}`);
+    //   } else if (pathname === '/creator/login') {
+    //     router.push(`/creator/${user.uid}`);
+    //   } else if (pathname === '/') {
+    //     // On the very front page, if logged in, go to admin by default or try to guess
+    //     router.push('/admin');
+    //   }
+    //   return;
+    // }
 
     // 2. If NOT LOGGED IN and on PROTECTED path -> Redirect to Login
-    if (!user && !isLoginPage) {
+    if (!user && !isLoginPage && !isPublicPath) {
       // Small delay to ensure auth state is truly settled. 
       // PWAs on cold start can sometimes take a moment to read from IndexedDB.
       const delay = isStandalone ? 1000 : 200;
       const timeout = setTimeout(() => {
         // One final check of the actual auth state
-        if (!auth.currentUser && !isLoginPage) {
-          if (isAdminPath) router.push('/admin/login');
-          else if (isClientPath) router.push('/client-login');
-          else if (isCreatorPath) router.push('/creator/login');
-          else router.push('/');
+        if (!auth.currentUser && !isLoginPage && !isPublicPath) {
+          if (isAdminPath) {
+            router.push('/admin/login');
+          } else if (isCreatorPath) {
+            router.push('/creator/login');
+          } else if (isClientPath) {
+            const pathParts = pathname.split('/');
+            const clientId = pathParts[2];
+            if (clientId && clientId !== 'login' && clientId !== 'auth') {
+              router.push(`/p/${clientId}`);
+            } else {
+              router.push('/client-login');
+            }
+          } else {
+            router.push('/');
+          }
         }
       }, delay);
 
@@ -114,10 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{ user, loading, signOut, refreshUser }}>
       {loading ? (
         <div className="flex min-h-screen items-center justify-center bg-background">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm text-muted-foreground animate-pulse">Checking session...</p>
-          </div>
+          <LoadingSpinner />
         </div>
       ) : children}
     </AuthContext.Provider>

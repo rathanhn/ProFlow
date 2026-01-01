@@ -11,11 +11,31 @@ import { Bell, Zap, MessageSquare, Phone } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/components/AuthProvider';
+import { useRouter } from 'next/navigation';
 
 export default function ClientActions({ task, client, assignee }: { task: Task; client: Client, assignee: Assignee | null }) {
     const { toast } = useToast();
+    const { user } = useAuth();
+    const router = useRouter();
     const [isMessageDialogOpen, setMessageDialogOpen] = useState(false);
     const [message, setMessage] = useState('');
+
+    const handleProtectedAction = (action: () => void) => {
+        if (!user) {
+            toast({
+                title: "Login Required",
+                description: "You must be logged in to perform this action.",
+                action: (
+                    <Button variant="default" size="sm" onClick={() => router.push('/client-login')}>
+                        Login
+                    </Button>
+                ),
+            });
+            return;
+        }
+        action();
+    };
 
     const handleSendMessage = async () => {
         if (!message.trim()) {
@@ -44,7 +64,7 @@ export default function ClientActions({ task, client, assignee }: { task: Task; 
             });
         }
     };
-    
+
     const handleContactOnWhatsApp = () => {
         if (assignee && assignee.mobile) {
             const prefilledMessage = encodeURIComponent(`Hi ${assignee.name}, I have a question about the project: ${task.projectName}.`);
@@ -52,7 +72,7 @@ export default function ClientActions({ task, client, assignee }: { task: Task; 
             const whatsappUrl = `https://wa.me/${assignee.mobile.replace(/\D/g, '')}?text=${prefilledMessage}`;
             window.open(whatsappUrl, '_blank');
         } else {
-             toast({
+            toast({
                 title: "Contact Info Missing",
                 description: "The assigned creator's mobile number is not available.",
                 variant: 'destructive',
@@ -61,7 +81,7 @@ export default function ClientActions({ task, client, assignee }: { task: Task; 
     };
 
     const handlePrioritize = async () => {
-         try {
+        try {
             await createNotification({
                 userId: 'admin',
                 message: `${client.name} has requested to prioritize project '${task.projectName}'.`,
@@ -74,7 +94,7 @@ export default function ClientActions({ task, client, assignee }: { task: Task; 
                 description: "We've sent a request to prioritize this project.",
             });
         } catch (error) {
-             toast({
+            toast({
                 title: "Error",
                 description: "Could not send prioritization request.",
                 variant: 'destructive',
@@ -89,13 +109,16 @@ export default function ClientActions({ task, client, assignee }: { task: Task; 
                 <CardDescription>Need something for this project?</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+                <Button
+                    onClick={() => handleProtectedAction(() => setMessageDialogOpen(true))}
+                    variant="outline"
+                    className="w-full"
+                >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Send a Message
+                </Button>
+
                 <Dialog open={isMessageDialogOpen} onOpenChange={setMessageDialogOpen}>
-                    <DialogTrigger asChild>
-                         <Button variant="outline" className="w-full">
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Send a Message
-                        </Button>
-                    </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Send a message to the Admin</DialogTitle>
@@ -104,14 +127,14 @@ export default function ClientActions({ task, client, assignee }: { task: Task; 
                             </DialogDescription>
                         </DialogHeader>
                         <div className="py-4">
-                           <Label htmlFor="custom-message" className="sr-only">Your Message</Label>
-                           <Textarea 
+                            <Label htmlFor="custom-message" className="sr-only">Your Message</Label>
+                            <Textarea
                                 id="custom-message"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 placeholder="Type your message here..."
                                 rows={4}
-                           />
+                            />
                         </div>
                         <DialogFooter>
                             <DialogClose asChild>
@@ -121,13 +144,13 @@ export default function ClientActions({ task, client, assignee }: { task: Task; 
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
-                
-                <Button onClick={handleContactOnWhatsApp} variant="outline" className="w-full">
+
+                <Button onClick={() => handleProtectedAction(handleContactOnWhatsApp)} variant="outline" className="w-full">
                     <Phone className="mr-2 h-4 w-4" />
                     Contact Creator on WhatsApp
                 </Button>
 
-                <Button onClick={handlePrioritize} variant="outline" className="w-full">
+                <Button onClick={() => handleProtectedAction(handlePrioritize)} variant="outline" className="w-full">
                     <Zap className="mr-2 h-4 w-4" />
                     Request Prioritization
                 </Button>

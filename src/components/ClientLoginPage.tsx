@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { User, Eye, EyeOff, Loader2, Lock, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { getClientByEmail } from '@/lib/firebase-service';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { clientAuth } from '@/lib/firebase';
 
 export default function ClientLoginPage() {
@@ -26,8 +26,8 @@ export default function ClientLoginPage() {
     setIsLoading(true);
     if (!email || !password) {
       toast({
-        title: 'Login Failed',
-        description: 'Please enter both email and password.',
+        title: 'Login Required',
+        description: 'Please enter both your email and password.',
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -38,20 +38,19 @@ export default function ClientLoginPage() {
       const clientRecord = await getClientByEmail(email);
 
       if (!clientRecord) {
-        throw new Error("This email does not belong to a registered client.");
+        throw new Error("This email is not registered as a client.");
       }
 
       const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
-
       const clientId = userCredential.user.uid;
 
       if (clientId !== clientRecord.id) {
-        throw new Error("Mismatched user ID. Please contact support.");
+        throw new Error("Invalid account data. Please contact support.");
       }
 
       toast({
-        title: 'Login Successful!',
-        description: `Welcome back, ${clientRecord.name}!`,
+        title: 'Login Successful',
+        description: `Welcome back, ${clientRecord.name.split(' ')[0]}!`,
       });
       router.push(`/client/${clientId}`);
 
@@ -60,7 +59,7 @@ export default function ClientLoginPage() {
       await signOut(clientAuth);
       toast({
         title: 'Login Failed',
-        description: error instanceof Error ? error.message : 'Invalid credentials or not a registered client.',
+        description: error instanceof Error ? error.message : 'Invalid credentials. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -69,32 +68,69 @@ export default function ClientLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md mx-auto shadow-2xl">
-        <CardHeader className="text-center">
-          <div className="flex justify-center items-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
-              <User className="w-8 h-8 text-primary-foreground" />
-            </div>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 overflow-x-hidden">
+      {/* Background Decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 -m-20 h-[300px] sm:h-[500px] w-[300px] sm:w-[500px] rounded-full bg-blue-500/10 blur-[60px] sm:blur-[100px]" />
+        <div className="absolute bottom-0 left-0 -m-20 h-[300px] sm:h-[500px] w-[300px] sm:w-[500px] rounded-full bg-indigo-500/10 blur-[60px] sm:blur-[100px]" />
+      </div>
+
+      <Card className="w-full max-w-md mx-auto relative overflow-hidden glass-card border-white/20 shadow-2xl rounded-[1.5rem] sm:rounded-[2.5rem]">
+        <div className="absolute top-0 inset-x-0 h-1.5 sm:h-2 bg-gradient-to-r from-blue-600 to-indigo-600" />
+
+        <CardHeader className="text-center pt-8 sm:pt-10 pb-4 sm:pb-6 px-6 sm:px-8">
+          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-500/20 mb-4 sm:mb-6 animate-float">
+            <ShieldCheck className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
-          <CardTitle className="text-3xl font-bold">Client Portal</CardTitle>
-          <CardDescription>Welcome back! Sign in to view your dashboard.</CardDescription>
+          <CardTitle className="text-2xl sm:text-3xl font-black tracking-tighter leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+            Client Login
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm font-medium pt-2 max-w-[280px] mx-auto text-muted-foreground/80">
+            Login to access your project dashboard and assets.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
+
+        <CardContent className="space-y-4 sm:space-y-6 px-6 sm:px-8 pb-8 sm:pb-10">
+          <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="email" className="text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-muted-foreground/60 ml-1">Account Email</Label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-500 transition-colors">
+                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="h-11 sm:h-12 pl-11 border-white/20 focus:border-blue-500 bg-white/50 dark:bg-slate-900/50 rounded-xl transition-all shadow-sm font-bold text-sm"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative flex items-center">
-                <Input id="password" type={showPassword ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} className="pr-10" />
+
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="password" className="text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-muted-foreground/60 ml-1">Password</Label>
+              <div className="relative flex items-center group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-500 transition-colors">
+                  <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </div>
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  className="h-11 sm:h-12 pl-11 pr-12 border-white/20 focus:border-blue-500 bg-white/50 dark:bg-slate-900/50 rounded-xl transition-all shadow-sm font-bold text-sm"
+                />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute right-1 h-9 w-9 sm:h-10 sm:w-10 hover:bg-transparent text-muted-foreground"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -102,8 +138,13 @@ export default function ClientLoginPage() {
               </div>
             </div>
           </div>
-          <div className="mt-6 space-y-2">
-            <Button onClick={handleLogin} className="w-full" disabled={isLoading}>
+
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <Button
+              onClick={handleLogin}
+              className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm uppercase tracking-widest rounded-xl shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -113,12 +154,16 @@ export default function ClientLoginPage() {
                 'Login as Client'
               )}
             </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Not a client?{' '}
-            <Link href="/" className="underline">
-              Go to main page
+
+            <Link href="/" className="inline-flex items-center justify-center gap-2 text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-muted-foreground/60 hover:text-blue-600 transition-colors py-2">
+              <ArrowRight className="h-3 w-3" /> Back to Home
             </Link>
+          </div>
+
+          <div className="pt-3 sm:pt-4 border-t border-border/60">
+            <p className="text-[9px] sm:text-[10px] text-center text-muted-foreground/40 font-medium">
+              Secure SSL Encryption Enabled
+            </p>
           </div>
         </CardContent>
       </Card>

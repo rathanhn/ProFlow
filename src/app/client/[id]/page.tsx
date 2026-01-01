@@ -37,6 +37,8 @@ import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { RippleButton } from '@/components/ui/ripple-effect';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
 import Achievements from '@/components/Achievements';
+import { useAuth } from '@/components/AuthProvider';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ClientDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const [clientId, setClientId] = useState<string>('');
@@ -45,6 +47,8 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
   const [isLoading, setIsLoading] = useState(true);
   const haptic = useHapticFeedback();
   const router = useRouter();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadParams = async () => {
@@ -101,6 +105,22 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
   const outstandingBalance = clientTasks.reduce((acc, task) => acc + ((task.total || 0) - (task.amountPaid || 0)), 0);
   const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
 
+  const handleProtectedAction = (path: string) => {
+    if (!user) {
+      toast({
+        title: "Access Restricted",
+        description: "Please login to verify your identity and access this secure section.",
+        action: (
+          <Button variant="default" size="sm" onClick={() => router.push('/client-login')} className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-lg h-8">
+            Authorize
+          </Button>
+        ),
+      });
+      return;
+    }
+    router.push(path);
+  };
+
   const fabActions = [
     {
       id: 'projects',
@@ -111,24 +131,26 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
         router.push(`/client/${clientId}/projects`);
       },
     },
-    {
-      id: 'transactions',
-      label: 'Transactions',
-      icon: CreditCard,
-      onClick: () => {
-        haptic.androidClick();
-        router.push(`/client/${clientId}/transactions`);
+    ...(user ? [
+      {
+        id: 'transactions',
+        label: 'Transactions',
+        icon: CreditCard,
+        onClick: () => {
+          haptic.androidClick();
+          handleProtectedAction(`/client/${clientId}/transactions`);
+        },
       },
-    },
-    {
-      id: 'export',
-      label: 'Export Data',
-      icon: FileText,
-      onClick: () => {
-        haptic.androidClick();
-        router.push(`/client/${clientId}/export`);
+      {
+        id: 'export',
+        label: 'Export Data',
+        icon: FileText,
+        onClick: () => {
+          haptic.androidClick();
+          handleProtectedAction(`/client/${clientId}/export`);
+        },
       },
-    },
+    ] : []),
   ];
 
   return (
@@ -157,7 +179,7 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
                       <span className="text-white/80 text-[10px] font-black uppercase tracking-widest leading-none">
                         Partner Workspace
                       </span>
-                      <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase font-bold px-2 py-0 h-4">
+                      <Badge variant="premium" className="px-2 py-0 h-4">
                         Elite Client
                       </Badge>
                     </div>
@@ -182,7 +204,7 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
               </div>
 
               <div className="flex flex-col gap-3 min-w-[200px]">
-                <Button variant="outline" className="h-12 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-xl border-none shadow-lg active:scale-95 transition-all text-base font-bold" onClick={() => router.push(`/client/${client.id}/settings`)}>
+                <Button variant="outline" className="h-12 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-xl border-none shadow-lg active:scale-95 transition-all text-base font-bold" onClick={() => handleProtectedAction(`/client/${client.id}/settings`)}>
                   <Settings className="mr-2 h-5 w-5" /> Account Settings
                 </Button>
                 <Button className="h-12 bg-white text-indigo-700 hover:bg-indigo-50 hover:scale-105 transition-transform font-black shadow-xl shadow-indigo-900/10 text-base" onClick={() => router.push(`/client/${client.id}/projects`)}>
@@ -192,33 +214,58 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
             </div>
           </div>
 
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MetricCard
-              title="Total Investment"
-              value={`₹${(totalSpent || 0).toLocaleString()}`}
-              icon={<INRIcon className="h-6 w-6 text-indigo-500" />}
-              className="glass-card border-indigo-500/20 shadow-indigo-500/5 hover:border-indigo-500/40"
-            />
-            <MetricCard
-              title="Pending Balance"
-              value={`₹${(outstandingBalance || 0).toLocaleString()}`}
-              icon={<CreditCard className="h-6 w-6 text-cyan-500" />}
-              className="glass-card border-cyan-500/20 shadow-cyan-500/5 hover:border-cyan-500/40"
-            />
-            <MetricCard
-              title="Successful Deliveries"
-              value={clientTasks.filter(t => t.workStatus === 'Completed').length}
-              icon={<CalendarCheck2 className="h-6 w-6 text-emerald-500" />}
-              className="glass-card border-emerald-500/20 shadow-emerald-500/5 hover:border-emerald-500/40"
-            />
-          </div>
+          {/* Metrics Grid - Hidden for Guests */}
+          {user ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <MetricCard
+                title="Total Investment"
+                value={`₹${(totalSpent || 0).toLocaleString()}`}
+                icon={<INRIcon className="h-6 w-6 text-indigo-500" />}
+                className="glass-card border-indigo-500/20 shadow-indigo-500/5 hover:border-indigo-500/40"
+              />
+              <MetricCard
+                title="Pending Balance"
+                value={`₹${(outstandingBalance || 0).toLocaleString()}`}
+                icon={<CreditCard className="h-6 w-6 text-cyan-500" />}
+                className="glass-card border-cyan-500/20 shadow-cyan-500/5 hover:border-cyan-500/40"
+              />
+              <MetricCard
+                title="Successful Deliveries"
+                value={clientTasks.filter(t => t.workStatus === 'Completed').length}
+                icon={<CalendarCheck2 className="h-6 w-6 text-emerald-500" />}
+                className="glass-card border-emerald-500/20 shadow-emerald-500/5 hover:border-emerald-500/40"
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <MetricCard
+                title="Production Velocity"
+                value={`${Math.round((clientTasks.filter(t => t.workStatus === 'Completed').length / (clientTasks.length || 1)) * 100)}%`}
+                icon={<Zap className="h-6 w-6 text-yellow-500" />}
+                className="glass-card border-yellow-500/20 shadow-yellow-500/5"
+              />
+              <MetricCard
+                title="Verified milestones"
+                value={clientTasks.filter(t => t.workStatus === 'Completed').length}
+                icon={<CheckCircle2 className="h-6 w-6 text-emerald-500" />}
+                className="glass-card border-emerald-500/20 shadow-emerald-500/5"
+              />
+              <MetricCard
+                title="Pipeline Volume"
+                value={clientTasks.length}
+                icon={<ListChecks className="h-6 w-6 text-blue-500" />}
+                className="glass-card border-blue-500/20 shadow-blue-500/5"
+              />
+            </div>
+          )}
 
-          <Achievements
-            taskCount={clientTasks.filter(t => t.workStatus === 'Completed').length}
-            moneyValue={totalSpent}
-            type="client"
-          />
+          {user && (
+            <Achievements
+              taskCount={clientTasks.filter(t => t.workStatus === 'Completed').length}
+              moneyValue={totalSpent}
+              type="client"
+            />
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Status Breakdown */}

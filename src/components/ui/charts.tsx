@@ -13,17 +13,17 @@ interface DonutChartProps {
   showLabels?: boolean;
 }
 
-export function DonutChart({ 
-  data, 
-  size = 200, 
-  strokeWidth = 20, 
+export function DonutChart({
+  data,
+  size = 200,
+  strokeWidth = 20,
   className,
-  showLabels = true 
+  showLabels = true
 }: DonutChartProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const total = data.reduce((sum, item) => sum + item.value, 0);
-  
+
   let cumulativePercentage = 0;
 
   return (
@@ -42,9 +42,9 @@ export function DonutChart({
             const percentage = (item.value / total) * 100;
             const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
             const strokeDashoffset = -((cumulativePercentage / 100) * circumference);
-            
+
             cumulativePercentage += percentage;
-            
+
             return (
               <circle
                 key={index}
@@ -71,13 +71,13 @@ export function DonutChart({
           </div>
         </div>
       </div>
-      
+
       {showLabels && (
         <div className="flex flex-wrap justify-center gap-4">
           {data.map((item, index) => (
             <div key={index} className="flex items-center space-x-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: item.color }}
               />
               <span className="text-sm font-medium">{item.label}</span>
@@ -204,27 +204,31 @@ interface MetricCardProps {
 export function MetricCard({ title, value, change, icon, className }: MetricCardProps) {
   return (
     <div className={cn(
-      'p-6 rounded-lg border bg-card text-card-foreground hover-lift transition-all-smooth',
+      'p-6 rounded-3xl glass-card border-white/20 hover-lift transition-all duration-500 relative overflow-hidden group',
       className
     )}>
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold">{value}</p>
-          {change && (
-            <div className={cn(
-              'flex items-center text-xs font-medium',
-              change.type === 'increase' ? 'text-success' : 'text-destructive'
-            )}>
-              <span className="mr-1">
-                {change.type === 'increase' ? '↗' : '↘'}
-              </span>
-              {Math.abs(change.value)}%
-            </div>
-          )}
+      <div className="absolute -right-8 -top-8 h-24 w-24 bg-primary/5 blur-2xl rounded-full group-hover:bg-primary/10 transition-all duration-500"></div>
+
+      <div className="relative z-10 flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="premium-label leading-none mb-2">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <p className="premium-value text-3xl leading-none">{value}</p>
+            {change && (
+              <div className={cn(
+                'flex items-center text-[10px] font-black px-2 py-0.5 rounded-full',
+                change.type === 'increase' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+              )}>
+                <span className="mr-0.5">
+                  {change.type === 'increase' ? '↑' : '↓'}
+                </span>
+                {Math.abs(change.value)}%
+              </div>
+            )}
+          </div>
         </div>
         {icon && (
-          <div className="p-2 bg-primary/10 rounded-lg">
+          <div className="h-12 w-12 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
             {icon}
           </div>
         )}
@@ -246,7 +250,7 @@ export function TrendLine({ data, className, height = 60, color = 'hsl(var(--pri
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
-  
+
   const points = data.map((value, index) => {
     const x = (index / (data.length - 1)) * 100;
     const y = 100 - ((value - min) / range) * 100;

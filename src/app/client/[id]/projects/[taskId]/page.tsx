@@ -1,3 +1,5 @@
+'use client';
+
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   Card,
@@ -11,9 +13,10 @@ import { getTask, getClient, getAssignee } from '@/lib/firebase-service';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, User, Download, Mail, Phone, Eye, Layout, ShieldCheck, Sparkles, Receipt, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Download, Mail, Phone, Eye, Layout, ShieldCheck, Sparkles, Receipt, Calendar, Clock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/components/AuthProvider';
 import { Task, Client, Assignee } from '@/lib/types';
 import ClientActions from './ClientActions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,27 +42,57 @@ const DetailItem = ({ label, value, icon: Icon }: { label: string; value: React.
   </div>
 );
 
-export default async function ClientProjectDetailPage({ params }: { params: Promise<{ id: string; taskId: string }> }) {
-  const { id, taskId } = await params;
+export default function ClientProjectDetailPage({ params }: { params: Promise<{ id: string; taskId: string }> }) {
+  const { user } = useAuth();
+  const [data, setData] = useState<{
+    task: Task;
+    client: Client;
+    assignee: Assignee | null;
+    id: string;
+    taskId: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const rawTask = await getTask(taskId);
-  const rawClient = await getClient(id);
+  useEffect(() => {
+    const loadData = async () => {
+      const { id, taskId } = await params;
+      const rawTask = await getTask(taskId);
+      const rawClient = await getClient(id);
 
-  if (!rawTask || !rawClient || rawTask.clientId !== rawClient.id) {
-    notFound();
+      if (!rawTask || !rawClient || rawTask.clientId !== rawClient.id) {
+        notFound();
+        return;
+      }
+
+      const task = JSON.parse(JSON.stringify(rawTask)) as Task;
+      const client = JSON.parse(JSON.stringify(rawClient)) as Client;
+
+      let assignee: Assignee | null = null;
+      if (task.assigneeId) {
+        const rawAssignee = await getAssignee(task.assigneeId);
+        if (rawAssignee) {
+          assignee = JSON.parse(JSON.stringify(rawAssignee));
+        }
+      }
+
+      setData({ task, client, assignee, id, taskId });
+      setIsLoading(false);
+    };
+
+    loadData();
+  }, [params]);
+
+  if (isLoading || !data) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
-  const task = JSON.parse(JSON.stringify(rawTask)) as Task;
-  const client = JSON.parse(JSON.stringify(rawClient)) as Client;
-
-  let assignee: Assignee | null = null;
-  if (task.assigneeId) {
-    const rawAssignee = await getAssignee(task.assigneeId);
-    if (rawAssignee) {
-      assignee = JSON.parse(JSON.stringify(rawAssignee));
-    }
-  }
-
+  const { task, client, assignee } = data;
   const amountPaid = task.amountPaid ?? 0;
   const total = task.total ?? 0;
   const remainingAmount = total - amountPaid;
@@ -92,9 +125,11 @@ export default async function ClientProjectDetailPage({ params }: { params: Prom
             <Badge className="bg-indigo-500 hover:bg-indigo-600 border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-lg shadow-indigo-500/10">
               {task.workStatus}
             </Badge>
-            <Badge className="bg-violet-500 hover:bg-violet-600 border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-lg shadow-violet-500/10">
-              {task.paymentStatus}
-            </Badge>
+            {user && (
+              <Badge className="bg-violet-500 hover:bg-violet-600 border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-lg shadow-violet-500/10">
+                {task.paymentStatus}
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -117,26 +152,29 @@ export default async function ClientProjectDetailPage({ params }: { params: Prom
                 <dl className="divide-y divide-border/40">
                   <DetailItem label="Accepted Date" icon={Calendar} value={new Date(task.acceptedDate).toLocaleDateString(undefined, { dateStyle: 'long' })} />
                   <DetailItem label="Target Delivery" icon={Clock} value={new Date(task.submissionDate).toLocaleDateString(undefined, { dateStyle: 'long' })} />
-                  <div className="py-6 px-4 bg-secondary/20 rounded-3xl my-6 border border-border/10">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Receipt className="h-4 w-4 text-indigo-500" />
-                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">Financial Summary</h3>
+
+                  {user && (
+                    <div className="py-6 px-4 bg-secondary/20 rounded-3xl my-6 border border-border/10">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Receipt className="h-4 w-4 text-indigo-500" />
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">Financial Summary</h3>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase text-muted-foreground/60">Total Value</p>
+                          <p className="text-2xl font-black tracking-tighter">₹{total.toLocaleString()}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase text-emerald-600/60">Invested</p>
+                          <p className="text-2xl font-black tracking-tighter text-emerald-600">₹{amountPaid.toLocaleString()}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase text-red-600/60">Balance Due</p>
+                          <p className="text-2xl font-black tracking-tighter text-red-600">₹{remainingAmount.toLocaleString()}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase text-muted-foreground/60">Total Value</p>
-                        <p className="text-2xl font-black tracking-tighter">₹{total.toLocaleString()}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase text-emerald-600/60">Invested</p>
-                        <p className="text-2xl font-black tracking-tighter text-emerald-600">₹{amountPaid.toLocaleString()}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase text-red-600/60">Balance Due</p>
-                        <p className="text-2xl font-black tracking-tighter text-red-600">₹{remainingAmount.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </dl>
 
                 {(task.projectFileLink || task.outputFileLink) && (

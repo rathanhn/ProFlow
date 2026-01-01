@@ -24,19 +24,10 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
     const [chartData, setChartData] = useState<ChartData | null>(null);
     const { toast } = useToast();
 
-    // Check if API key is available
-    const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+    // We rely on the Server Action to handle the API key check securely
+    const hasApiKey = true; // Assume configured, server action will verify
 
     const handleGenerate = async () => {
-        if (!hasApiKey) {
-            toast({
-                title: 'API Key Missing',
-                description: 'Gemini API key is not configured. Please add it to your environment variables.',
-                variant: 'destructive'
-            });
-            return;
-        }
-
         if (!query) {
             toast({ title: "Query is empty", description: "Please enter a query to generate a visualization.", variant: 'destructive' });
             return;
@@ -56,10 +47,17 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
         } catch (error) {
             console.error("Failed to generate chart:", error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            if (errorMessage.includes('API key') || errorMessage.includes('GEMINI_API_KEY') || errorMessage.includes('FAILED_PRECONDITION')) {
+
+            if (errorMessage.includes('429') || errorMessage.includes('Quota') || errorMessage.includes('rate-limit')) {
+                toast({
+                    title: 'Quota Exceeded',
+                    description: 'The AI is currently at its free limit. Please try again in a few minutes or use a different API key.',
+                    variant: 'destructive'
+                });
+            } else if (errorMessage.includes('API key') || errorMessage.includes('GEMINI_API_KEY') || errorMessage.includes('FAILED_PRECONDITION')) {
                 toast({
                     title: 'API Key Error',
-                    description: 'Please configure your Gemini API key in the environment variables.',
+                    description: 'Please configure your Gemini API key correctly in the .env file.',
                     variant: 'destructive'
                 });
             } else {
@@ -89,11 +87,15 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                             <XAxis dataKey="x" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                             <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
                             <Tooltip
+                                cursor={{ fill: 'transparent' }}
                                 contentStyle={{
-                                    background: 'hsl(var(--background))',
-                                    border: '1px solid hsl(var(--border))',
-                                    borderRadius: 'var(--radius)'
+                                    background: 'rgba(255, 255, 255, 0.98)',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                                 }}
+                                itemStyle={{ color: '#1e1b4b', fontWeight: '800', fontSize: '12px' }}
+                                labelStyle={{ color: '#64748b', fontWeight: '600', marginBottom: '4px', fontSize: '10px', textTransform: 'uppercase' }}
                             />
                             <Legend />
                             <Bar dataKey="y" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name={chartData.yLabel} />
@@ -107,10 +109,13 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                             </Pie>
                             <Tooltip
                                 contentStyle={{
-                                    background: 'hsl(var(--background))',
-                                    border: '1px solid hsl(var(--border))',
-                                    borderRadius: 'var(--radius)'
+                                    background: 'rgba(255, 255, 255, 0.98)',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                                 }}
+                                itemStyle={{ color: '#1e1b4b', fontWeight: '800', fontSize: '12px' }}
+                                labelStyle={{ color: '#64748b', fontWeight: '600', marginBottom: '4px', fontSize: '10px', textTransform: 'uppercase' }}
                             />
                             <Legend />
                         </PieChart>
@@ -134,12 +139,12 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                 <div className="space-y-4">
                     <div className="relative group">
                         <Input
-                            placeholder={hasApiKey ? "Ask anything... (e.g., 'Projects by month')" : "API key required - configure in environment"}
+                            placeholder="Ask Gemini anything... (e.g., 'Earnings by month')"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
                             disabled={isLoading || !hasApiKey}
-                            className="pr-10 border-indigo-100 bg-indigo-50/30 focus:bg-white transition-all ring-offset-indigo-500"
+                            className="pr-10 border-indigo-200 bg-white/50 focus:bg-white text-indigo-950 placeholder:text-indigo-300 transition-all ring-offset-indigo-500 font-medium"
                         />
                         {isLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-indigo-500" />}
                     </div>
@@ -153,11 +158,6 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Analyzing Data...
                             </>
-                        ) : !hasApiKey ? (
-                            <>
-                                <BarChartIcon className="mr-2 h-4 w-4" />
-                                Setup API Key
-                            </>
                         ) : (
                             <>
                                 <BarChartIcon className="mr-2 h-4 w-4" />
@@ -165,11 +165,6 @@ export default function AIInsights({ tasks, clients }: AIInsightsProps) {
                             </>
                         )}
                     </Button>
-                    {!hasApiKey && (
-                        <div className="text-sm text-indigo-600 text-center p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 italic">
-                            <p>Unlock the power of AI with a Gemini API key</p>
-                        </div>
-                    )}
                     {renderChart()}
                 </div>
             </CardContent>

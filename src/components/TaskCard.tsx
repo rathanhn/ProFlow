@@ -16,9 +16,10 @@ import {
   Clock,
   Trash2,
   MoreVertical,
-  CheckSquare
+  CheckSquare,
+  Download
 } from 'lucide-react';
-import { Task } from '@/lib/types';
+import { Task, Client } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -36,7 +37,9 @@ import {
 // Imports
 import { updateTask, getClient } from '@/lib/firebase-service';
 import { useRouter, usePathname } from 'next/navigation';
-import { PaymentTerms } from '@/lib/types';
+import PaymentDialog from './PaymentDialog';
+import { RotateCcw, CreditCard, Share2, Loader2 } from 'lucide-react';
+import TicketSnapshotModal from './TicketSnapshotModal';
 
 interface TaskCardProps {
   task: Task;
@@ -50,6 +53,10 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
   const pathname = usePathname();
   const [localTask, setLocalTask] = React.useState(task);
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
+  const [clientData, setClientData] = React.useState<Client | null>(null);
+  const [isFetchingClient, setIsFetchingClient] = React.useState(false);
 
   // Portal Detection
   const isAdminPortal = pathname.startsWith('/admin');
@@ -195,12 +202,76 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
     }
   };
 
+  const handleResetPayment = async () => {
+    if (localTask.paymentStatus === 'Unpaid' && localTask.amountPaid === 0) return;
+    if (!confirm('This will reset the payment status to Unpaid and clear the amount paid. Continue?')) return;
+
+    setIsUpdating(true);
+    try {
+      await updateTask(task.id, {
+        paymentStatus: 'Unpaid',
+        amountPaid: 0
+      });
+
+      setLocalTask(prev => ({
+        ...prev,
+        paymentStatus: 'Unpaid',
+        amountPaid: 0
+      }));
+      router.refresh();
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Failed to reset payment:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleUndoCompletion = async () => {
+    if (localTask.workStatus !== 'Completed') return;
+    setIsUpdating(true);
+    try {
+      await updateTask(task.id, {
+        workStatus: 'In Progress'
+      });
+
+      setLocalTask(prev => ({
+        ...prev,
+        workStatus: 'In Progress'
+      }));
+      router.refresh();
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Failed to undo completion:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleOpenShare = async () => {
+    if (!clientData) {
+      setIsFetchingClient(true);
+      try {
+        const data = await getClient(task.clientId);
+        setClientData(data);
+      } catch (error) {
+        console.error("Failed to fetch client for sharing:", error);
+      } finally {
+        setIsFetchingClient(false);
+      }
+    }
+    setIsShareModalOpen(true);
+  };
+
   const daysRemaining = getDaysRemaining(localTask.submissionDate);
   const isOverdue = daysRemaining < 0;
   const isDueSoon = daysRemaining <= 3 && daysRemaining >= 0;
 
   return (
-    <div className="glass-card rounded-[2rem] p-8 hover-lift relative group transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-xl">
+    <div
+      className="glass-card rounded-[2rem] p-8 hover-lift relative group transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-xl cursor-pointer"
+      onClick={() => router.push(getTaskLink(localTask.id))}
+    >
       {/* Decorative Background Element */}
       <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-primary/10 group-hover:scale-125"></div>
       <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-purple-500/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-purple-500/10 group-hover:scale-125 delay-150"></div>
@@ -224,6 +295,34 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
           <div className="flex items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={handleOpenShare}
+                  disabled={isFetchingClient}
+                  className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-emerald-500 hover:text-white transition-all duration-300"
+                >
+                  {isFetchingClient ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-5 w-5" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Share Snapshot</TooltipContent>
+            </Tooltip>
+
+            {localTask.outputFileLink && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="secondary" size="icon" asChild className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-violet-500 hover:text-white transition-all duration-300">
+                    <a href={localTask.outputFileLink} target="_blank" rel="noopener noreferrer">
+                      <Download className="h-5 w-5" />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Download Deliverable</TooltipContent>
+              </Tooltip>
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button variant="secondary" size="icon" asChild className="h-10 w-10 rounded-2xl bg-white/50 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-white transition-all duration-300">
                   <Link href={getTaskLink(localTask.id)}>
                     <Eye className="h-5 w-5" />
@@ -242,15 +341,29 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
               <DropdownMenuContent align="end" className="glass-card rounded-2xl border-white/20 p-2 min-w-[180px]">
                 {/* Both Admin and Creator can mark completed */}
                 {(isAdminPortal || isCreatorPortal) && (
-                  <DropdownMenuItem onClick={handleMarkCompleted} disabled={isUpdating} className="rounded-xl py-2.5">
+                  <DropdownMenuItem
+                    onClick={handleMarkCompleted}
+                    disabled={isUpdating || localTask.workStatus === 'Completed'}
+                    className="rounded-xl py-2.5"
+                  >
                     <CheckSquare className="mr-3 h-4 w-4 text-emerald-500" /> <span className="font-bold">Mark Completed</span>
                   </DropdownMenuItem>
                 )}
 
                 {/* ONLY Admin can mark paid */}
                 {isAdminPortal && (
-                  <DropdownMenuItem onClick={handlePaymentReceived} disabled={isUpdating} className="rounded-xl py-2.5">
+                  <DropdownMenuItem
+                    onClick={handlePaymentReceived}
+                    disabled={isUpdating || localTask.paymentStatus === 'Paid'}
+                    className="rounded-xl py-2.5"
+                  >
                     <DollarSign className="mr-3 h-4 w-4 text-blue-500" /> <span className="font-bold">Mark Fully Paid</span>
+                  </DropdownMenuItem>
+                )}
+
+                {isAdminPortal && (
+                  <DropdownMenuItem onClick={() => setIsPaymentDialogOpen(true)} className="rounded-xl py-2.5">
+                    <CreditCard className="mr-3 h-4 w-4 text-indigo-500" /> <span className="font-bold">{localTask.paymentStatus === 'Paid' ? 'Revise Payment' : 'Record Payment'}</span>
                   </DropdownMenuItem>
                 )}
 
@@ -347,6 +460,22 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
           </div>
         </div>
       </div>
+
+      <PaymentDialog
+        task={localTask}
+        isOpen={isPaymentDialogOpen}
+        onClose={() => {
+          setIsPaymentDialogOpen(false);
+          if (onUpdate) onUpdate();
+        }}
+      />
+
+      <TicketSnapshotModal
+        task={localTask}
+        client={clientData}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
     </div>
   );
 }

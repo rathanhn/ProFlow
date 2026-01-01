@@ -16,6 +16,7 @@ import {
 import { INRIcon } from '@/components/ui/inr-icon';
 import { Task } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useAuth } from './AuthProvider';
 
 interface ClientTaskCardProps {
   task: Task;
@@ -24,6 +25,7 @@ interface ClientTaskCardProps {
 }
 
 export default function ClientTaskCard({ task, clientId, className }: ClientTaskCardProps) {
+  const { user } = useAuth();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-800';
@@ -65,9 +67,11 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
               <Badge className={cn(getStatusColor(task.workStatus), "transition-all-smooth")}>
                 {task.workStatus}
               </Badge>
-              <Badge className={cn(getPaymentColor(task.paymentStatus), "transition-all-smooth")}>
-                {task.paymentStatus}
-              </Badge>
+              {user && (
+                <Badge className={cn(getPaymentColor(task.paymentStatus), "transition-all-smooth")}>
+                  {task.paymentStatus}
+                </Badge>
+              )}
               {isOverdue && (
                 <Badge className="bg-red-100 text-red-800 animate-pulse">
                   <Clock className="h-3 w-3 mr-1" />
@@ -88,8 +92,8 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
                 <Eye className="h-4 w-4" />
               </Button>
             </Link>
-            {task.outputFileUrl && (
-              <a href={task.outputFileUrl} target="_blank" rel="noopener noreferrer">
+            {task.outputFileLink && (
+              <a href={task.outputFileLink} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="icon-sm" className="hover:bg-accent hover:text-accent-foreground">
                   <Download className="h-4 w-4" />
                 </Button>
@@ -98,10 +102,13 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Project Details Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+        <div className={cn(
+          "grid gap-3 text-sm",
+          user ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-1"
+        )}>
           <div className="flex items-center gap-2 min-w-0">
             <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="min-w-0">
@@ -109,30 +116,34 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
               <p className="font-medium truncate">{task.pages}</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2 min-w-0">
-            <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-muted-foreground text-xs">Rate</p>
-              <p className="font-medium truncate">₹{task.rate}</p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 min-w-0">
-            <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-muted-foreground text-xs">Total</p>
-              <p className="font-medium truncate">₹{task.total.toLocaleString()}</p>
-            </div>
-          </div>
+          {user && (
+            <>
+              <div className="flex items-center gap-2 min-w-0">
+                <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-muted-foreground text-xs">Rate</p>
+                  <p className="font-medium truncate">₹{task.rate}</p>
+                </div>
+              </div>
 
-          <div className="flex items-center gap-2 min-w-0">
-            <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-muted-foreground text-xs">Paid</p>
-              <p className="font-medium truncate">₹{task.amountPaid.toLocaleString()}</p>
-            </div>
-          </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-muted-foreground text-xs">Total</p>
+                  <p className="font-medium truncate">₹{task.total.toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 min-w-0">
+                <INRIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-muted-foreground text-xs">Paid</p>
+                  <p className="font-medium truncate">₹{task.amountPaid.toLocaleString()}</p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Dates */}
@@ -144,7 +155,7 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
               <p className="font-medium">{new Date(task.acceptedDate).toLocaleDateString()}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <div>
@@ -154,32 +165,34 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Payment Progress</span>
-            <span className="font-medium">
-              ₹{task.amountPaid.toLocaleString()} / ₹{task.total.toLocaleString()}
-            </span>
+        {/* Progress Bar - Hidden for guests if financial */}
+        {user && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Payment Progress</span>
+              <span className="font-medium">
+                ₹{task.amountPaid.toLocaleString()} / ₹{task.total.toLocaleString()}
+              </span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min((task.amountPaid / task.total) * 100, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round((task.amountPaid / task.total) * 100)}% completed
+            </p>
           </div>
-          <div className="w-full bg-muted rounded-full h-2">
-            <div
-              className="bg-primary h-2 rounded-full transition-all duration-500"
-              style={{ width: `${Math.min((task.amountPaid / task.total) * 100, 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {Math.round((task.amountPaid / task.total) * 100)}% completed
-          </p>
-        </div>
+        )}
 
         {/* Assignee */}
-        {task.assignee && (
+        {task.assigneeName && (
           <div className="flex items-center gap-2 text-sm">
             <User className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-muted-foreground text-xs">Assignee</p>
-              <p className="font-medium">{task.assignee}</p>
+              <p className="font-medium">{task.assigneeName}</p>
             </div>
           </div>
         )}
@@ -194,16 +207,16 @@ export default function ClientTaskCard({ task, clientId, className }: ClientTask
 
         {/* File Links */}
         <div className="flex flex-wrap gap-2">
-          {task.projectFileUrl && (
-            <a href={task.projectFileUrl} target="_blank" rel="noopener noreferrer">
+          {task.projectFileLink && (
+            <a href={task.projectFileLink} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm" className="text-xs">
                 <FileText className="h-3 w-3 mr-1" />
                 Project File
               </Button>
             </a>
           )}
-          {task.outputFileUrl && (
-            <a href={task.outputFileUrl} target="_blank" rel="noopener noreferrer">
+          {task.outputFileLink && (
+            <a href={task.outputFileLink} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm" className="text-xs">
                 <Download className="h-3 w-3 mr-1" />
                 Download Output

@@ -318,24 +318,85 @@ export async function addTask(task: Omit<Task, 'id' | 'slNo'> & { projectNo?: st
     };
 
     const docRef = await addDoc(tasksCol, taskWithIds);
+    const taskId = docRef.id;
+
+    // Notify Client
+    await createNotification({
+        userId: task.clientId,
+        message: `New project initiated: ${task.projectName} (${projectNo}).`,
+        link: `/client/${task.clientId}/projects/${taskId}`,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+    }).catch(err => console.error("Client notification failed:", err));
+
+    // Notify Admin
+    await createNotification({
+        userId: 'admin',
+        message: `Project ${projectNo} [${task.projectName}] created for ${task.clientName}.`,
+        link: `/admin/tasks/${taskId}`,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+    }).catch(err => console.error("Admin notification failed:", err));
+
     revalidatePath('/admin/tasks');
-    return { id: docRef.id, ...taskWithIds };
+    return { id: taskId, ...taskWithIds };
 }
 
 
 export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'slNo' | 'clientId'>>) {
-    const taskDocRef = doc(db, 'tasks', id);
-    const existingTask = await getTask(id);
-    if (!existingTask) throw new Error("Task not found");
+    const docRef = doc(db, 'tasks', id);
+    const oldTaskSnap = await getDoc(docRef);
+    const oldTask = oldTaskSnap.exists() ? oldTaskSnap.data() as Task : null;
 
-    const total = (task.pages ?? existingTask.pages) * (task.rate ?? existingTask.rate);
+    if (!oldTask) {
+        throw new Error("Task not found");
+    }
 
-    await updateDoc(taskDocRef, { ...task, total });
+    const total = (task.pages ?? oldTask.pages) * (task.rate ?? oldTask.rate);
+
+    await updateDoc(docRef, { ...task, total });
+
+    if (oldTask) {
+        // 1. Notify Creator if newly assigned
+        if (task.assigneeId && task.assigneeId !== oldTask.assigneeId) {
+            await createNotification({
+                userId: task.assigneeId,
+                message: `New Assignment: ${task.projectName || oldTask.projectName} (${oldTask.projectNo}).`,
+                link: `/creator/${task.assigneeId}/tasks/${id}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            }).catch(() => { });
+        }
+
+        // 2. Notify Client if completed
+        if (task.workStatus === 'Completed' && oldTask.workStatus !== 'Completed') {
+            await createNotification({
+                userId: oldTask.clientId,
+                message: `Project Completed! ${oldTask.projectName} is ready for review.`,
+                link: `/client/${oldTask.clientId}/projects/${id}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            }).catch(() => { });
+
+            // Also notify Admin
+            await createNotification({
+                userId: 'admin',
+                message: `Project ${oldTask.projectNo} marked as completed by creator/admin.`,
+                link: `/admin/tasks/${id}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            }).catch(() => { });
+        }
+    }
+
     revalidatePath('/admin/tasks');
     revalidatePath(`/admin/tasks/${id}`);
     revalidatePath(`/admin/tasks/${id}/edit`);
-    revalidatePath(`/client/${existingTask.clientId}/projects`);
-    revalidatePath(`/client/${existingTask.clientId}/projects/${id}`);
+    if (oldTask) {
+        revalidatePath(`/client/${oldTask.clientId}/projects`);
+        revalidatePath(`/client/${oldTask.clientId}/projects/${id}`);
+        if (oldTask.assigneeId) revalidatePath(`/creator/${oldTask.assigneeId}/tasks/${id}`);
+    }
 }
 
 // Assignee Functions
@@ -554,9 +615,25 @@ export async function addTransactionAndUpdateTask(
             revalidatePath(`/client/${taskData.clientId}/projects`);
             revalidatePath(`/client/${taskData.clientId}/projects/${taskId}`);
             revalidatePath(`/client/${taskData.clientId}/transactions`);
+
+            // Notify Client
+            await createNotification({
+                userId: taskData.clientId,
+                message: `Payment confirmed! ₹${amountPaid} received for project: ${taskData.projectName}.`,
+                link: `/client/${taskData.clientId}/projects/${taskId}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            }).catch(() => { });
+
+            // Notify Admin
+            await createNotification({
+                userId: 'admin',
+                message: `Payment Received: ₹${amountPaid} for ${taskData.projectName} (Ref: ${taskData.projectNo}).`,
+                link: `/admin/tasks/${taskId}`,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+            }).catch(() => { });
         }
-
-
     } catch (e) {
         console.error("Transaction failed: ", e);
         throw new Error("Failed to process transaction.");

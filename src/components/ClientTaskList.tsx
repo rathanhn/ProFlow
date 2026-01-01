@@ -14,7 +14,9 @@ import {
 import { INRIcon } from '@/components/ui/inr-icon';
 import { Task } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import ClientTaskCard from './ClientTaskCard';
+import TaskCard from './TaskCard';
+import { useAuth } from './AuthProvider';
+import { MetricCard } from './ui/charts';
 
 interface ClientTaskListProps {
   tasks: Task[];
@@ -25,8 +27,8 @@ interface ClientTaskListProps {
   className?: string;
 }
 
-export default function ClientTaskList({ 
-  tasks, 
+export default function ClientTaskList({
+  tasks,
   clientId,
   title = "Your Projects",
   emptyStateMessage = "No projects found",
@@ -36,14 +38,15 @@ export default function ClientTaskList({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const { user } = useAuth();
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.notes?.toLowerCase().includes(searchTerm.toLowerCase());
+      task.notes?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || task.workStatus === statusFilter;
     const matchesPayment = paymentFilter === 'all' || task.paymentStatus === paymentFilter;
-    
+
     return matchesSearch && matchesStatus && matchesPayment;
   });
 
@@ -67,76 +70,41 @@ export default function ClientTaskList({
     <div className={cn("space-y-6", className)}>
       {/* Statistics */}
       {tasks.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Projects</p>
-                  <p className="text-2xl font-bold transition-all-smooth">{stats.totalProjects}</p>
-                </div>
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+          <MetricCard
+            title="Total Projects"
+            value={stats.totalProjects}
+            icon={<FileText className="h-6 w-6 text-primary" />}
+            className="glass-card border-primary/20"
+          />
 
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                  <p className="text-2xl font-bold text-success transition-all-smooth">{stats.completedProjects}</p>
-                </div>
-                <div className="p-2 bg-success/10 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-success" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <MetricCard
+            title="Completed"
+            value={stats.completedProjects}
+            icon={<TrendingUp className="h-6 w-6 text-emerald-500" />}
+            className="glass-card border-emerald-500/20"
+          />
 
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Value</p>
-                  <p className="text-2xl font-bold transition-all-smooth">₹{stats.totalValue.toLocaleString()}</p>
-                </div>
-                <div className="p-2 bg-accent/10 rounded-lg">
-                  <INRIcon className="h-6 w-6 text-accent" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {user && (
+            <>
+              <MetricCard
+                title="Investment"
+                value={`₹${stats.totalValue.toLocaleString()}`}
+                icon={<INRIcon className="h-6 w-6 text-blue-500" />}
+                className="glass-card border-blue-500/20"
+              />
 
-          <Card className="hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {stats.overdueProjects > 0 ? 'Overdue' : 'Pending Payment'}
-                  </p>
-                  <p className={cn(
-                    "text-2xl font-bold transition-all-smooth",
-                    stats.overdueProjects > 0 ? "text-destructive" : "text-warning"
-                  )}>
-                    {stats.overdueProjects > 0 ? stats.overdueProjects : `₹${stats.unpaidAmount.toLocaleString()}`}
-                  </p>
-                </div>
-                <div className={cn(
-                  "p-2 rounded-lg",
-                  stats.overdueProjects > 0 ? "bg-destructive/10" : "bg-warning/10"
-                )}>
-                  {stats.overdueProjects > 0 ? (
-                    <Clock className="h-6 w-6 text-destructive" />
-                  ) : (
-                    <INRIcon className="h-6 w-6 text-warning" />
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <MetricCard
+                title={stats.overdueProjects > 0 ? 'Overdue projects' : 'Pending Payment'}
+                value={stats.overdueProjects > 0 ? stats.overdueProjects : `₹${stats.unpaidAmount.toLocaleString()}`}
+                icon={stats.overdueProjects > 0 ? <Clock className="h-6 w-6 text-rose-500" /> : <INRIcon className="h-6 w-6 text-amber-500" />}
+                className={cn(
+                  "glass-card",
+                  stats.overdueProjects > 0 ? "border-rose-500/20" : "border-amber-500/20"
+                )}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -159,7 +127,7 @@ export default function ClientTaskList({
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             {/* Filters */}
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="flex-1">
@@ -175,19 +143,21 @@ export default function ClientTaskList({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex-1">
-                <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Payment Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Payments</SelectItem>
-                    <SelectItem value="Paid">Paid</SelectItem>
-                    <SelectItem value="Partially Paid">Partially Paid</SelectItem>
-                    <SelectItem value="Unpaid">Unpaid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {user && (
+                <div className="flex-1">
+                  <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Payment Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Payments</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+                      <SelectItem value="Unpaid">Unpaid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -209,8 +179,8 @@ export default function ClientTaskList({
                 {emptyStateDescription}
               </p>
               {tasks.length > 0 && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setSearchTerm('');
                     setStatusFilter('all');
@@ -226,14 +196,13 @@ export default function ClientTaskList({
       ) : (
         <div className="grid gap-4">
           {filteredTasks.map((task, index) => (
-            <div 
-              key={task.id} 
+            <div
+              key={task.id}
               className="animate-slide-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <ClientTaskCard 
-                task={task} 
-                clientId={clientId}
+              <TaskCard
+                task={task}
               />
             </div>
           ))}

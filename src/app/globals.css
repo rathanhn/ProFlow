@@ -355,6 +355,32 @@ body {
     min-width: 0;
     flex-shrink: 1;
   }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Premium Design System Utilities */
+  .premium-label {
+    @apply text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60 leading-none;
+  }
+
+  .premium-heading {
+    @apply text-2xl font-black tracking-tighter uppercase leading-tight;
+  }
+
+  .premium-value {
+    @apply font-black tracking-tighter tabular-nums;
+  }
+
+  .premium-stat-label {
+    @apply text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none mb-1.5;
+  }
 }
 
 @keyframes fadeIn {

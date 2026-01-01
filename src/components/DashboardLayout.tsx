@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -48,7 +48,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
-import { useTheme } from 'next-themes';
+import { usePersistedTheme } from '@/hooks/usePersistedTheme';
+import OfflineBadge from '@/components/OfflineBadge';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 // Import notification service
@@ -60,6 +61,154 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
+import NotificationBellComponent from '@/components/NotificationBell';
+
+interface UserProfileProps {
+  user: any;
+  profile: any;
+  isAdminSection: boolean;
+  isCreatorSection: boolean;
+  isClientSection: boolean;
+  isCollapsed: boolean;
+  compact?: boolean;
+  router: any;
+  setTheme: (theme: string) => void;
+  theme: string | undefined;
+  handleSignOut: () => void;
+  id: string | null;
+}
+
+const UserProfile = ({
+  user, profile, isAdminSection, isCreatorSection, isClientSection,
+  isCollapsed, compact, router, setTheme, theme, handleSignOut, id
+}: UserProfileProps) => {
+  if (!user) {
+    return (
+      <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")} onClick={(e) => e.stopPropagation()}>
+        <Button
+          variant="ghost"
+          className="relative h-10 w-10 rounded-full ring-2 ring-white/10 hover:ring-blue-500/50 transition-all bg-secondary/50"
+          onClick={() => router.push(isAdminSection ? '/admin/login' : '/client-login')}
+        >
+          <User className="h-5 w-5" />
+        </Button>
+        {!isCollapsed && !compact && (
+          <div className="flex flex-col overflow-hidden transition-all duration-300">
+            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">Guest Mode</span>
+            <span className="text-[10px] uppercase font-black text-muted-foreground">Limited View</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")} onClick={(e) => e.stopPropagation()}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full ring-2 ring-white/20 hover:ring-blue-500/50 transition-all active:scale-95 duration-200">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={profile?.avatar || user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=random`} alt={user?.email || ''} />
+              <AvatarFallback>{(profile?.name || user?.email || 'U').charAt(0)}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-64 p-0 overflow-hidden border-none bg-transparent shadow-none" align="end" forceMount>
+          <div className="glass-card dark:bg-slate-900/95 border border-white/20 shadow-2xl rounded-2xl overflow-hidden mt-2">
+            <div className="p-5 bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-transparent border-b border-white/10">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl ring-2 ring-white/20 overflow-hidden shadow-lg shadow-blue-500/10 shrink-0">
+                  <Avatar className="h-full w-full">
+                    <AvatarImage src={profile?.avatar || user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=random`} alt={user?.email || ''} />
+                    <AvatarFallback className="bg-blue-600 text-white font-black">{(profile?.name || user?.email || 'U').charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <p className="text-sm font-black truncate tracking-tight uppercase leading-snug">
+                    {profile?.name || 'Authorized User'}
+                  </p>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 truncate leading-tight">
+                    {user?.email}
+                  </p>
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <div className={cn(
+                      "h-1.5 w-1.5 rounded-full animate-pulse",
+                      isAdminSection ? "bg-violet-500" : isCreatorSection ? "bg-emerald-500" : "bg-blue-500"
+                    )}></div>
+                    <span className={cn(
+                      "text-[9px] font-black uppercase tracking-widest",
+                      isAdminSection ? "text-violet-500" : isCreatorSection ? "text-emerald-500" : "text-blue-500"
+                    )}>
+                      {isAdminSection ? 'Nexus Overseer' : isCreatorSection ? 'Lead Creator' : 'Elite Partner'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-2 space-y-1">
+              <DropdownMenuLabel className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
+                Control Center
+              </DropdownMenuLabel>
+
+              <DropdownMenuItem className="h-10 px-3 rounded-lg focus:bg-blue-600/10 focus:text-blue-600 cursor-pointer font-bold" onClick={() => {
+                if (isAdminSection) router.push('/admin/settings');
+                else if (isClientSection && id) router.push(`/client/${id}/settings`);
+                else if (isCreatorSection && id) router.push(`/creator/${id}/settings`);
+              }}>
+                <Settings className="mr-3 h-4 w-4 opacity-60" />
+                <span className="text-xs">Account Settings</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="h-10 px-3 rounded-lg focus:bg-primary/10 transition-colors cursor-pointer font-bold"
+                onSelect={(e) => e.preventDefault()}
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? <Sun className="mr-3 h-4 w-4 opacity-60" /> : <Moon className="mr-3 h-4 w-4 opacity-60" />}
+                <span className="text-xs">{theme === 'dark' ? 'Daylight Mode' : 'Nightfall Mode'}</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator className="bg-white/10 mx-2 my-2" />
+
+              <DropdownMenuItem onClick={handleSignOut} className="h-10 px-3 rounded-lg text-rose-500 focus:text-rose-600 focus:bg-rose-500/10 cursor-pointer font-black transition-all">
+                <LogOut className="mr-3 h-4 w-4 opacity-60" />
+                <span className="text-xs uppercase tracking-widest">Terminate</span>
+              </DropdownMenuItem>
+            </div>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {!isCollapsed && !compact && (
+        <div className="flex flex-col overflow-hidden transition-all duration-300">
+          <span className="text-sm font-bold truncate tracking-tight">{profile?.name || 'My Account'}</span>
+          <span className="text-[10px] text-muted-foreground/60 truncate font-medium">{user?.email}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const NotificationBell = () => (
+  <div onClick={(e) => e.stopPropagation()}>
+    <NotificationBellComponent />
+  </div>
+);
+
+const FullscreenToggle = ({ isFullscreen, toggleFullscreen }: { isFullscreen: boolean, toggleFullscreen: () => void }) => (
+  <Button
+    variant="ghost"
+    size="icon"
+    onClick={(e) => {
+      e.stopPropagation();
+      toggleFullscreen();
+    }}
+    className="hover:bg-secondary/50 rounded-full"
+    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+  >
+    {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+  </Button>
+);
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -71,7 +220,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = usePersistedTheme();
   const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [profile, setProfile] = useState<{ name?: string, avatar?: string } | null>(null);
@@ -88,8 +237,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Fetch real profile data from Firestore AND Enforce Access Control
   useEffect(() => {
     async function verifyAccessAndLoadProfile() {
+      // 1. GUEST ACCESS for Client Section
       if (!user) {
-        setProfile(null);
+        if (isClientSection && id) {
+          try {
+            const targetClient = await getClient(id);
+            if (targetClient) setProfile({ name: targetClient.name, avatar: targetClient.avatar });
+          } catch (e) {
+            console.error("Guest profile load failed", e);
+          }
+        } else {
+          setProfile(null);
+        }
         return;
       }
 
@@ -104,7 +263,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         const isUserClient = !!clientData;
         const isUserAdmin = !isUserCreator && !isUserClient;
 
-        // 1. Protection for Admin Portal
+        // 2. Protection for Admin Portal
         if (isAdminSection && !isUserAdmin) {
           console.warn("Unauthorized admin portal access attempt.");
           if (isUserCreator) router.push(`/creator/${user.uid}`);
@@ -112,7 +271,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           return;
         }
 
-        // 2. Protection for Personal Portals (Ownership check for non-admins)
+        // 3. Ownership check for logged-in non-admins
+        // If logged in as client A, trying to view client B -> redirect to A
+        // HOWEVER, if the user explicitly wants "view without login", we might allow it?
+        // Let's keep the ownership check for now to prevent cross-account viewing WHILE logged in.
         if (!isUserAdmin) {
           if (isClientSection && id && id !== user.uid) {
             router.push(`/client/${user.uid}`);
@@ -124,7 +286,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           }
         }
 
-        // 3. Load Profile Information
+        // 4. Load Profile Information
         if (isAdminSection) {
           setProfile({ name: user.displayName || 'Admin', avatar: user.photoURL || '' });
         } else if (isClientSection && id) {
@@ -245,66 +407,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <nav className="space-y-1">{children}</nav>
   );
 
-  const UserProfile = ({ compact = false }: { compact?: boolean }) => (
-    <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full ring-2 ring-white/20 hover:ring-blue-500/50 transition-all">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={profile?.avatar || user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=random`} alt={user?.email || ''} />
-              <AvatarFallback>{(profile?.name || user?.email || 'U').charAt(0)}</AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 glass-card" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{profile?.name || 'Account'}</p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {user?.email}
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-            {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-            <span>Toggle Theme</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      {!isCollapsed && !compact && (
-        <div className="flex flex-col overflow-hidden transition-all duration-300">
-          <span className="text-sm font-medium truncate">{profile?.name || 'My Account'}</span>
-          <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
-        </div>
-      )}
-    </div>
-  );
-
-  // Fetch notifications
-  const [notifications, setNotifications] = useState<any[]>([]); // Using any to avoid strict type issues for now, matching fetched structure
-
-  useEffect(() => {
-    const loadNotifications = async () => {
-      if (isAdminSection) {
-        try {
-          const data = await getAdminNotifications();
-          setNotifications(data);
-        } catch (e) {
-          console.error("Failed to load notifications", e);
-        }
-      }
-    };
-    loadNotifications();
-    // Poll every 30 seconds
-    const interval = setInterval(loadNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [isAdminSection, pathname]);
-
   // Page Title Logic
   const getPageTitle = () => {
     if (pathname === '/admin') return 'Dashboard';
@@ -322,47 +424,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return 'ProFlow Panel';
   };
 
-  const NotificationBell = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative hover:bg-secondary/50 rounded-full">
-          <Bell className="h-5 w-5" />
-          {notifications.length > 0 && (
-            <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 glass-card z-[100]">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {notifications.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground text-sm">
-            No new notifications
-          </div>
-        ) : (
-          <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-            {notifications.map((n) => (
-              <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 p-3 cursor-pointer">
-                <div className="font-medium text-sm">{n.message}</div>
-                <div className="text-xs text-muted-foreground">{new Date(n.createdAt).toLocaleDateString()}</div>
-              </DropdownMenuItem>
-            ))}
-          </div>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
-  const FullscreenToggle = () => (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleFullscreen}
-      className="hover:bg-secondary/50 rounded-full"
-      title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-    >
-      {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-    </Button>
+  const TitleLabel = () => (
+    <h1 className="premium-heading text-xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+      {getPageTitle()}
+    </h1>
   );
 
   const MobileTabs = () => {
@@ -375,6 +440,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <TooltipProvider delayDuration={300}>
+      <OfflineBadge />
       <div className="min-h-screen bg-background flex flex-col lg:flex-row">
         {/* Mobile Header */}
         <header className="lg:hidden h-16 flex items-center justify-between px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -390,9 +456,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <FullscreenToggle />
+            <FullscreenToggle isFullscreen={isFullscreen} toggleFullscreen={toggleFullscreen} />
             <NotificationBell />
-            <UserProfile compact />
+            <UserProfile
+              user={user}
+              profile={profile}
+              isAdminSection={isAdminSection}
+              isCreatorSection={isCreatorSection}
+              isClientSection={isClientSection}
+              isCollapsed={false}
+              compact={true}
+              router={router}
+              setTheme={setTheme}
+              theme={theme}
+              handleSignOut={handleSignOut}
+              id={id}
+            />
           </div>
         </header>
 
@@ -487,7 +566,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </SidebarMenuItem>
                 </>
               )}
-              {isClientSection && user && id && (
+              {isClientSection && id && (
                 <>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === `/client/${id}`}>
@@ -505,30 +584,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/transactions`)}>
-                      <Link href={`/client/${id}/transactions`}>
-                        <Banknote />
-                        <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === `/client/${id}/achievements`}>
-                      <Link href={`/client/${id}/achievements`}>
-                        <Trophy />
-                        <span className={isCollapsed ? 'hidden' : ''}>Achievements</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)}>
-                      <Link href={`/client/${id}/settings`}>
-                        <Settings />
-                        <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  {user && (
+                    <>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/transactions`)}>
+                          <Link href={`/client/${id}/transactions`}>
+                            <Banknote />
+                            <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname === `/client/${id}/achievements`}>
+                          <Link href={`/client/${id}/achievements`}>
+                            <Trophy />
+                            <span className={isCollapsed ? 'hidden' : ''}>Achievements</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)}>
+                          <Link href={`/client/${id}/settings`}>
+                            <Settings />
+                            <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </>
+                  )}
                 </>
               )}
               {isCreatorSection && user && id && (
@@ -570,7 +653,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            <UserProfile />
+            <div className={cn("flex flex-col gap-1", isCollapsed ? "items-center" : "px-2")}>
+              <p className={cn("text-[9px] font-black uppercase tracking-widest text-muted-foreground/30", isCollapsed && "hidden")}>Session Active</p>
+              <div className="h-1 w-full bg-gradient-to-r from-blue-500/20 to-transparent rounded-full" />
+            </div>
           </SidebarFooter>
         </Sidebar>
 
@@ -580,13 +666,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         )}>
           <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6 glass-card border-b border-white/20 dark:border-white/10">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight">
-                {getPageTitle()}
-              </h1>
+              <TitleLabel />
             </div>
             <div className="flex items-center gap-4">
-              <FullscreenToggle />
+              <FullscreenToggle isFullscreen={isFullscreen} toggleFullscreen={toggleFullscreen} />
               <NotificationBell />
+              <UserProfile
+                user={user}
+                profile={profile}
+                isAdminSection={isAdminSection}
+                isCreatorSection={isCreatorSection}
+                isClientSection={isClientSection}
+                isCollapsed={false}
+                compact={true}
+                router={router}
+                setTheme={setTheme}
+                theme={theme}
+                handleSignOut={handleSignOut}
+                id={id}
+              />
             </div>
           </header>
 

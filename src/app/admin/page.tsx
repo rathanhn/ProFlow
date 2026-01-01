@@ -171,41 +171,38 @@ export default function AdminDashboardPage() {
         <div className="space-y-8 fab-safe-bottom pt-4">
 
           {/* Welcome Hero Section */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-8 text-white shadow-2xl transition-all duration-500 hover:shadow-blue-500/20">
+          <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-6 md:p-12 text-white shadow-2xl transition-all duration-500 hover:shadow-blue-500/20">
             <div className="absolute top-0 right-0 -m-8 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
             <div className="absolute bottom-0 left-0 -m-8 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-4">
+            <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6 md:gap-8">
+              <div className="space-y-4 md:space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-inner">
-                    <Sparkles className="h-7 w-7 text-yellow-300 animate-pulse" />
+                  <div className="h-10 w-10 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-inner shrink-0 text-yellow-300">
+                    <Sparkles className="h-5 w-5 md:h-7 md:w-7 animate-pulse" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-white/80 text-xs font-black uppercase tracking-widest leading-none">
-                        {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      <span className="text-white/80 text-[10px] md:text-xs font-black uppercase tracking-widest leading-none">
+                        {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </span>
-                      <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[10px] uppercase font-bold px-2 py-0 h-4">
-                        Premium Partner
+                      <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-[9px] md:text-[10px] uppercase font-bold px-2 py-0 h-4">
+                        Elite
                       </Badge>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
-                      Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-white">{user?.displayName?.split(' ')[0] || 'Admin'}</span>
+                    <h1 className="text-2xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
+                      Hi, <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-white">{user?.displayName?.split(' ')[0] || 'Admin'}</span>
                     </h1>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 pt-2">
-                  <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg">
-                    <Clock className="h-5 w-5 text-yellow-300" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] uppercase font-black text-white/40 leading-none">Standard Time</span>
-                      <span className="text-xl font-mono tabular-nums font-bold leading-tight">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                    </div>
+                <div className="flex flex-row items-center gap-3 pt-1">
+                  <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/5 rounded-xl md:rounded-2xl backdrop-blur-md border border-white/10 shadow-lg">
+                    <Clock className="h-3.5 w-3.5 md:h-5 md:w-5 text-yellow-300" />
+                    <span className="text-base md:text-xl font-mono tabular-nums font-bold leading-tight">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
 
-                  <div className="max-w-md">
+                  <div className="hidden lg:block max-w-md">
                     <p className="italic opacity-70 text-sm leading-relaxed border-l-2 border-white/20 pl-4 py-1">
                       &quot;{quote}&quot;
                     </p>
@@ -213,12 +210,12 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 min-w-[200px]">
-                <Button variant="outline" className="h-12 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-xl border-none shadow-lg active:scale-95 transition-all text-base font-bold" onClick={() => router.push('/admin/tasks/new')}>
-                  <Plus className="mr-2 h-5 w-5" /> Quick Project
+              <div className="flex flex-row xl:flex-col gap-2 md:gap-3 min-w-0 xl:min-w-[200px]">
+                <Button variant="outline" className="flex-1 sm:flex-none h-10 md:h-12 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-xl border-none shadow-lg active:scale-95 transition-all text-sm md:text-base font-bold rounded-xl md:rounded-2xl" onClick={() => router.push('/admin/tasks/new')}>
+                  <Plus className="mr-1.5 md:mr-2 h-4 w-4 md:h-5 md:w-5" /> Quick
                 </Button>
-                <Button className="h-12 bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 transition-transform font-black shadow-xl shadow-blue-900/10 text-base" onClick={() => router.push('/admin/tasks/report')}>
-                  <FileText className="mr-2 h-5 w-5" /> Intelligence Report
+                <Button className="flex-1 sm:flex-none h-10 md:h-12 bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 transition-transform font-black shadow-xl shadow-blue-900/10 text-sm md:text-base px-3 md:px-6 rounded-xl md:rounded-2xl" onClick={() => router.push('/admin/tasks/report')}>
+                  <FileText className="mr-1.5 md:mr-2 h-4 w-4 md:h-5 md:w-5" /> Report
                 </Button>
               </div>
             </div>
