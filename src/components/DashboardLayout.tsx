@@ -63,6 +63,7 @@ import {
 import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
 import NotificationBellComponent from '@/components/NotificationBell';
 import { useHapticFeedback } from '@/lib/haptic-feedback';
+import { useTouchGestures } from '@/hooks/use-touch-gestures';
 
 interface UserProfileProps {
   user: any;
@@ -226,6 +227,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [profile, setProfile] = useState<{ name?: string, avatar?: string } | null>(null);
   const haptics = useHapticFeedback();
+  const mainContentRef = React.useRef<HTMLDivElement>(null);
+
+  // Swipe gesture handlers for mobile menu
+  const handleSwipeRight = useCallback(() => {
+    if (!isMobileMenuOpen && window.innerWidth < 1024) {
+      setIsMobileMenuOpen(true);
+      haptics.light();
+    }
+  }, [isMobileMenuOpen, haptics]);
+
+  const handleSwipeLeft = useCallback(() => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+      haptics.light();
+    }
+  }, [isMobileMenuOpen, haptics]);
+
+  // Get touch gesture handlers
+  const { bindGestures } = useTouchGestures({
+    onSwipeLeft: handleSwipeLeft,
+    onSwipeRight: handleSwipeRight,
+  });
+
+  // Bind swipe gestures to main content area
+  useEffect(() => {
+    const element = mainContentRef.current;
+    if (!element) return;
+    return bindGestures(element);
+  }, [bindGestures]);
 
   // Determine user role based on path
   const isAdminSection = pathname.startsWith('/admin');
@@ -703,7 +733,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
 
-          <main className="flex-1 scrollable-content py-8 px-4 sm:py-10 sm:px-6 lg:py-12 lg:px-8 animate-fade-in">
+          <main ref={mainContentRef} className="flex-1 scrollable-content py-8 px-4 sm:py-10 sm:px-6 lg:py-12 lg:px-8 animate-fade-in">
             <div className="max-w-7xl mx-auto pb-32 md:pb-16">
               {children}
             </div>

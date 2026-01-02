@@ -215,17 +215,67 @@ export default function TicketSnapshotModal({ task, client, isOpen, onClose }: T
                 });
                 pdf.addImage(data, 'JPEG', 0, 0, canvas.width, canvas.height);
                 pdf.save(`${name}.pdf`);
+            } else if (type === 'whatsapp') {
+                // Convert canvas to blob for native sharing
+                canvas.toBlob(async (blob) => {
+                    if (!blob) return;
+
+                    // Check if native Web Share API is available (mobile devices)
+                    if (navigator.share && navigator.canShare) {
+                        try {
+                            const file = new File([blob], `${name}.jpg`, { type: 'image/jpeg' });
+                            const shareData = {
+                                title: `Project: ${task.projectName}`,
+                                text: `Hi ${client?.name || 'there'}, here is your ticket for project: ${task.projectName}`,
+                                files: [file]
+                            };
+
+                            // Check if we can share files
+                            if (navigator.canShare(shareData)) {
+                                await navigator.share(shareData);
+                            } else {
+                                // Fallback: share without file
+                                await navigator.share({
+                                    title: shareData.title,
+                                    text: shareData.text
+                                });
+                            }
+                        } catch (err: any) {
+                            // User cancelled or share failed
+                            if (err.name !== 'AbortError') {
+                                // Fallback to WhatsApp web
+                                const link = document.createElement('a');
+                                link.href = data;
+                                link.download = `${name}.jpg`;
+                                link.click();
+
+                                if (client?.phone) {
+                                    const phone = client.phone.replace(/\D/g, '');
+                                    const msg = encodeURIComponent(`Hi ${client.name}, here is your ticket for project: ${task.projectName}. Attached snapshot for your records.`);
+                                    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+                                }
+                            }
+                        }
+                    } else {
+                        // Desktop or unsupported browser - use WhatsApp web
+                        const link = document.createElement('a');
+                        link.href = data;
+                        link.download = `${name}.jpg`;
+                        link.click();
+
+                        if (client?.phone) {
+                            const phone = client.phone.replace(/\D/g, '');
+                            const msg = encodeURIComponent(`Hi ${client.name}, here is your ticket for project: ${task.projectName}. Attached snapshot for your records.`);
+                            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+                        }
+                    }
+                }, 'image/jpeg', 0.95);
             } else {
+                // Regular JPG download
                 const link = document.createElement('a');
                 link.href = data;
                 link.download = `${name}.jpg`;
                 link.click();
-
-                if (type === 'whatsapp' && client?.phone) {
-                    const phone = client.phone.replace(/\D/g, '');
-                    const msg = encodeURIComponent(`Hi ${client.name}, here is your ticket for project: ${task.projectName}. Attached snapshot for your records.`);
-                    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-                }
             }
         } catch (e) {
             console.error(e);
