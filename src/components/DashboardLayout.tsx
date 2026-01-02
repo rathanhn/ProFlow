@@ -688,8 +688,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
 
-          <main className="flex-1 scrollable-content p-4 sm:p-6 lg:p-8 animate-fade-in">
-            <div className="max-w-7xl mx-auto pb-32 md:pb-8">
+          <main className="flex-1 scrollable-content py-8 px-4 sm:py-10 sm:px-6 lg:py-12 lg:px-8 animate-fade-in">
+            <div className="max-w-7xl mx-auto pb-32 md:pb-16">
               {children}
             </div>
           </main>

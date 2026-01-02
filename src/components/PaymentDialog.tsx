@@ -35,7 +35,7 @@ export default function PaymentDialog({ task, isOpen, onClose }: PaymentDialogPr
   const [amount, setAmount] = React.useState('');
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('UPI');
   const [notes, setNotes] = React.useState('');
-  
+
   const totalAmount = task.total || 0;
   const amountPaid = task.amountPaid || 0;
   const remainingAmount = totalAmount - amountPaid;
@@ -43,7 +43,7 @@ export default function PaymentDialog({ task, isOpen, onClose }: PaymentDialogPr
   // Pre-fill amount when dialog opens
   React.useEffect(() => {
     if (isOpen) {
-        setAmount(remainingAmount.toString());
+      setAmount(remainingAmount.toString());
     }
   }, [isOpen, remainingAmount]);
 
@@ -64,7 +64,7 @@ export default function PaymentDialog({ task, isOpen, onClose }: PaymentDialogPr
       setAmount('');
       setPaymentMethod('UPI');
       setNotes('');
-      onClose(); 
+      onClose();
       router.refresh();
     } catch (error) {
       console.error('Failed to add transaction:', error);
@@ -82,9 +82,9 @@ export default function PaymentDialog({ task, isOpen, onClose }: PaymentDialogPr
         <DialogHeader>
           <DialogTitle>Record a Payment for {task.projectName}</DialogTitle>
           <DialogDescription>
-              The total amount for this project is ₹{totalAmount.toLocaleString()}. 
-              So far, ₹{amountPaid.toLocaleString()} has been paid. 
-              Remaining: ₹{remainingAmount.toLocaleString()}.
+            The total amount for this project is ₹{totalAmount.toLocaleString()}.
+            So far, ₹{amountPaid.toLocaleString()} has been paid.
+            Remaining: ₹{remainingAmount.toLocaleString()}.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -97,6 +97,9 @@ export default function PaymentDialog({ task, isOpen, onClose }: PaymentDialogPr
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
             />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Currently suggesting the full remaining balance of ₹{remainingAmount.toLocaleString()}.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="payment-method">Payment Method</Label>
@@ -114,13 +117,13 @@ export default function PaymentDialog({ task, isOpen, onClose }: PaymentDialogPr
             </Select>
           </div>
           <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea 
-                  id="notes" 
-                  value={notes} 
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Cleared 50% of the payment." 
-              />
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. Cleared 50% of the payment."
+            />
           </div>
         </div>
         <DialogFooter>

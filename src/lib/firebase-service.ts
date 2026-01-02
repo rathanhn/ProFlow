@@ -203,6 +203,7 @@ export async function getTasksByClientId(clientId: string): Promise<Task[]> {
             submissionDate: new Date(data.submissionDate).toISOString(),
         } as Task;
     });
+    taskList.sort((a, b) => (b.slNo || 0) - (a.slNo || 0));
     return taskList;
 }
 
@@ -218,6 +219,7 @@ export async function getTasksByAssigneeId(assigneeId: string): Promise<Task[]> 
             submissionDate: new Date(data.submissionDate).toISOString(),
         } as Task;
     });
+    taskList.sort((a, b) => (b.slNo || 0) - (a.slNo || 0));
     return taskList;
 }
 
@@ -314,7 +316,8 @@ export async function addTask(task: Omit<Task, 'id' | 'slNo'> & { projectNo?: st
     const taskWithIds = {
         ...task,
         slNo: nextSlNo,
-        projectNo: projectNo
+        projectNo: projectNo,
+        updatedAt: new Date().toISOString(),
     };
 
     const docRef = await addDoc(tasksCol, taskWithIds);
@@ -353,8 +356,9 @@ export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'sl
     }
 
     const total = (task.pages ?? oldTask.pages) * (task.rate ?? oldTask.rate);
+    const updatedAt = new Date().toISOString();
 
-    await updateDoc(docRef, { ...task, total });
+    await updateDoc(docRef, { ...task, total, updatedAt });
 
     if (oldTask) {
         // 1. Notify Creator if newly assigned
@@ -597,6 +601,7 @@ export async function addTransactionAndUpdateTask(
                 clientId: currentTaskData.clientId,
                 projectName: currentTaskData.projectName,
                 clientName: currentTaskData.clientName,
+                projectNo: currentTaskData.projectNo,
                 amount: amountPaid,
                 paymentMethod: paymentMethod,
                 transactionDate: new Date().toISOString(),

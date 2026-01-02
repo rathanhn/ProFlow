@@ -38,6 +38,13 @@ export default async function GlobalReportPage({ searchParams }: PageProps) {
         return true;
     });
 
+    // Sort by last modified (updatedAt fallback to acceptedDate)
+    tasks.sort((a, b) => {
+        const timeA = new Date(a.updatedAt || a.acceptedDate).getTime();
+        const timeB = new Date(b.updatedAt || b.acceptedDate).getTime();
+        return timeB - timeA;
+    });
+
     // Serialize data
     const serializedTasks = JSON.parse(JSON.stringify(tasks)) as Task[];
 

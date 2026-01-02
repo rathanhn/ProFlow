@@ -102,7 +102,11 @@ export default function AdminDashboardPage() {
     .slice(0, 5);
 
   const recentActivities = [...tasks]
-    .sort((a, b) => new Date(b.acceptedDate).getTime() - new Date(a.acceptedDate).getTime())
+    .sort((a, b) => {
+      const timeA = new Date(a.updatedAt || a.acceptedDate).getTime();
+      const timeB = new Date(b.updatedAt || b.acceptedDate).getTime();
+      return timeB - timeA;
+    })
     .slice(0, 5);
 
   // FAB actions

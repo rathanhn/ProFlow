@@ -25,6 +25,7 @@ export interface Task {
   assigneeName?: string;
   projectFileLink?: string;
   outputFileLink?: string;
+  updatedAt?: string;
 }
 
 export interface ClientRate {
@@ -73,6 +74,7 @@ export interface Transaction {
   clientId: string;
   projectName: string;
   clientName: string;
+  projectNo?: string;
   amount: number;
   paymentMethod: PaymentMethod;
   transactionDate: string;

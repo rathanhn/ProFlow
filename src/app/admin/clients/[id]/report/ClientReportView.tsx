@@ -3,11 +3,10 @@
 import React from 'react';
 import { Client, Task } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Printer, ArrowLeft, Download } from 'lucide-react';
+import { Printer, ArrowLeft, Download, FileText, Layout, Mail, Phone, MapPin, ChevronRight, Maximize2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ClientReportViewProps {
     client?: Client;
@@ -22,12 +21,15 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
     const totalDue = totalAmount - totalPaid;
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        return new Date(dateString).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
         });
     };
+
+    const isPendingOnly = tasks.length > 0 && tasks.every(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial');
+    const displayTitle = isPendingOnly && reportTitle === "Statement" ? "Pending Payment Statement" : reportTitle;
 
     const handleDownloadPDF = async () => {
         const element = document.getElementById('report-content');
@@ -37,14 +39,34 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
             const html2canvas = (await import('html2canvas')).default;
             const { jsPDF } = (await import('jspdf'));
 
-            // Upscale: scale 4 for high quality
+            // Store original styles
+            const originalStyle = element.style.cssText;
+            const originalParentStyle = element.parentElement?.style.cssText || '';
+
+            // Force the element to be absolute and at full A4 width for capture
+            // This prevents mobile screen clipping
+            element.style.width = '210mm';
+            element.style.minWidth = '210mm';
+            element.style.position = 'absolute';
+            element.style.left = '0';
+            element.style.top = '0';
+            element.style.zIndex = '-1';
+            element.style.backgroundColor = 'white';
+
+            // Upscale: scale 3 for high quality without crashing mobile browsers
             const canvas = await html2canvas(element, {
-                scale: 4,
+                scale: 3,
                 useCORS: true,
-                logging: false
+                logging: false,
+                width: 794, // Fixed A4 width in px at 96 DPI
+                windowWidth: 794,
+                backgroundColor: '#ffffff'
             });
 
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            // Restore original style immediately
+            element.style.cssText = originalStyle;
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
             // A4 dimensions in mm
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -69,7 +91,18 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
                 heightLeft -= pdfHeight;
             }
 
-            pdf.save(`${client ? client.name : 'Global'}_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+            // Dynamic filename
+            let fileName = '';
+            const clientName = client ? client.name.replace(/[^a-z0-9]/gi, '_') : 'Global';
+            const dateStr = new Date().toISOString().split('T')[0];
+
+            if (isPendingOnly) {
+                fileName = `Pending_Payment_${clientName}_${dateStr}.pdf`;
+            } else {
+                fileName = `${clientName}_Project_Report_${dateStr}.pdf`;
+            }
+
+            pdf.save(fileName);
 
         } catch (error) {
             console.error('Failed to generate PDF:', error);
@@ -78,7 +111,7 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8 font-sans print:p-0 print:bg-white">
+        <div className="min-h-screen bg-gray-100 py-8 md:py-16 px-4 md:px-8 font-sans print:p-0 print:bg-white">
             <style jsx global>{`
                 @media print {
                     .no-print {
@@ -96,158 +129,189 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
                     .print-content {
                         width: 210mm;
                         min-height: 297mm;
-                        padding: 20mm;
+                        padding: 20mm !important;
                         margin: 0 auto;
-                        box-shadow: none;
+                        box-shadow: none !important;
+                        position: relative !important;
+                        left: 0 !important;
+                        top: 0 !important;
                     }
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                    height: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #e2e8f0;
+                    border-radius: 10px;
                 }
             `}</style>
 
             {/* Toolbar */}
-            <div className="max-w-[210mm] mx-auto flex justify-between items-center mb-8 no-print">
-                <Button variant="ghost" onClick={() => router.back()}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+            <div className="max-w-[210mm] mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 no-print">
+                <Button variant="ghost" onClick={() => router.back()} className="w-full sm:w-auto">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <div className="flex gap-2">
-                    <Button onClick={handleDownloadPDF} className="bg-white text-black border border-black hover:bg-gray-100">
-                        <Download className="mr-2 h-4 w-4" /> Download PDF
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <Button onClick={handleDownloadPDF} className="flex-1 sm:flex-none bg-white text-black border border-black hover:bg-gray-100">
+                        <Download className="mr-2 h-4 w-4" /> PDF
                     </Button>
-                    <Button onClick={() => window.print()} className="bg-black text-white hover:bg-gray-800">
-                        <Printer className="mr-2 h-4 w-4" /> Print Report
+                    <Button onClick={() => window.print()} className="flex-1 sm:flex-none bg-black text-white hover:bg-gray-800">
+                        <Printer className="mr-2 h-4 w-4" /> Print
                     </Button>
                 </div>
             </div>
 
-            {/* A4 Sheet */}
-            <div
-                id="report-content"
-                className="print-content bg-white shadow-xl mx-auto flex flex-col"
-                style={{ width: '210mm', minHeight: '297mm', padding: '20mm' }}
-            >
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight mb-2 text-black">{reportTitle}</h1>
-                        <p className="text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
-                    </div>
+            {/* A4 Sheet - Scaled Responsive Container for Mobile */}
+            <div className="max-w-full overflow-x-auto pb-4 custom-scrollbar no-print">
+                <div className="md:hidden flex items-center justify-center gap-2 mb-4 text-gray-500 animate-pulse">
+                    <Maximize2 className="h-3 w-3" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Swipe for full statement</span>
+                    <ChevronRight className="h-3 w-3" />
+                </div>
 
-                    {/* Client Profile Card */}
-                    {client ? (
-                        <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 p-4 rounded-xl min-w-[300px] shadow-sm print-border">
-                            <Avatar className="h-16 w-16 border-2 border-white shadow-sm bg-white">
-                                <AvatarImage src={client.avatar} alt={client.name} />
-                                <AvatarFallback className="text-xl bg-primary/10 text-primary">
-                                    {client.name.charAt(0)}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="space-y-1">
-                                <h2 className="text-xl font-bold leading-none text-black">{client.name}</h2>
-                                <div className="text-sm text-gray-500 space-y-0.5">
-                                    <div className="flex items-center gap-2">
-                                        <Mail className="h-3 w-3" />
-                                        <span>{client.email}</span>
-                                    </div>
-                                    {client.phone && (
-                                        <div className="flex items-center gap-2">
-                                            <Phone className="h-3 w-3" />
-                                            <span>{client.phone}</span>
+                <div className="mx-auto bg-white shadow-2xl relative" style={{ width: '210mm' }}>
+                    <div
+                        id="report-content"
+                        className="print-content bg-white flex flex-col"
+                        style={{ width: '210mm', minHeight: '297mm', padding: '20mm' }}
+                    >
+                        {/* Header Section */}
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
+                            <div>
+                                <h1 className="text-4xl font-bold tracking-tight mb-2 text-black">{displayTitle}</h1>
+                                <p className="text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+                            </div>
+
+                            {/* Client Profile Card */}
+                            {client ? (
+                                <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 p-4 rounded-xl min-w-[300px] shadow-sm print-border">
+                                    <Avatar className="h-16 w-16 border-2 border-white shadow-sm bg-white">
+                                        <AvatarImage src={client.avatar} alt={client.name} />
+                                        <AvatarFallback className="text-xl bg-primary/10 text-primary">
+                                            {client.name.charAt(0)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col">
+                                        <h2 className="text-xl font-bold text-black">{client.name}</h2>
+                                        <div className="space-y-0.5 mt-1">
+                                            {client.email && (
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                    <Mail className="h-3 w-3" /> {client.email}
+                                                </div>
+                                            )}
+                                            {client.phone && (
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                    <Phone className="h-3 w-3" /> {client.phone}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
+                            ) : (
+                                <div className="flex flex-col items-end">
+                                    <h2 className="text-xl font-bold text-black tracking-tighter">GLOBAL LEDGER</h2>
+                                    <p className="text-[10px] text-gray-400 font-mono">SECTOR REPORT v4.0</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Summary Stats */}
+                        <div className="grid grid-cols-3 gap-6 mb-12">
+                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl print-border text-center">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Total</p>
+                                <p className="text-xl font-black text-black">₹{totalAmount.toLocaleString()}</p>
+                            </div>
+                            <div className="p-4 bg-green-50 border border-green-100 rounded-xl print-border text-center">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-green-600 mb-1">Paid</p>
+                                <p className="text-xl font-black text-green-700">₹{totalPaid.toLocaleString()}</p>
+                            </div>
+                            <div className="p-4 bg-gray-900 border border-gray-800 rounded-xl text-center">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">BAL</p>
+                                <p className="text-xl font-black text-white">₹{totalDue.toLocaleString()}</p>
                             </div>
                         </div>
-                    ) : (
-                        <div className="text-right">
-                            <h2 className="text-xl font-bold text-black">ProFlow Admin</h2>
-                            <p className="text-sm text-gray-500">Global Report</p>
-                        </div>
-                    )}
-                </div>
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-3 gap-6 mb-12">
-                    <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 print-border">
-                        <p className="text-sm font-medium text-gray-500 mb-1">Total Project Value</p>
-                        <p className="text-2xl font-bold text-black">₹{totalAmount.toLocaleString()}</p>
-                    </div>
-                    <div className="p-4 rounded-xl border border-gray-200 bg-green-50/30 print-border">
-                        <p className="text-sm font-medium text-green-700 mb-1">Total Paid</p>
-                        <p className="text-2xl font-bold text-green-700">₹{totalPaid.toLocaleString()}</p>
-                    </div>
-                    <div className="p-4 rounded-xl border border-gray-200 bg-red-50/30 print-border">
-                        <p className="text-sm font-medium text-red-700 mb-1">Total Due</p>
-                        <p className="text-2xl font-bold text-red-700">₹{totalDue.toLocaleString()}</p>
-                    </div>
-                </div>
-
-                {/* Tasks Table */}
-                <div className="flex-grow mb-8">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-black">
-                        Project History
-                        <span className="text-xs font-normal text-gray-500 px-2 py-0.5 rounded-full bg-gray-100 border">
-                            {tasks.length} {tasks.length === 1 ? 'Record' : 'Records'}
-                        </span>
-                    </h3>
-                    <div className="w-full overflow-hidden rounded-lg border border-gray-200 print-border">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100 text-gray-900 font-semibold">
-                                <tr>
-                                    <th className="p-3">Project</th>
-                                    <th className="p-3">Date</th>
-                                    <th className="p-3 text-center">Status</th>
-                                    <th className="p-3 text-right">Pages</th>
-                                    <th className="p-3 text-right">Rate</th>
-                                    <th className="p-3 text-right">Total</th>
-                                    <th className="p-3 text-right">Paid</th>
-                                    <th className="p-3 text-right">Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {tasks.length > 0 ? tasks.map((task) => {
-                                    const balance = task.total - task.amountPaid;
-                                    return (
-                                        <tr key={task.id} className="hover:bg-gray-50/50">
-                                            <td className="p-3 font-medium text-black">{task.projectName}</td>
-                                            <td className="p-3 text-gray-600">{formatDate(task.submissionDate)}</td>
-                                            <td className="p-3 text-center">
-                                                <span className={`inline-block px-2 py-1 rounded text-xs font-medium border
-                                                    ${task.workStatus === 'Completed' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                        task.workStatus === 'In Progress' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                            'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
-                                                    {task.workStatus}
-                                                </span>
-                                            </td>
-                                            <td className="p-3 text-right text-gray-600">{task.pages}</td>
-                                            <td className="p-3 text-right text-gray-600">₹{task.rate}</td>
-                                            <td className="p-3 text-right font-medium text-black">₹{task.total.toLocaleString()}</td>
-                                            <td className="p-3 text-right text-green-600">₹{task.amountPaid.toLocaleString()}</td>
-                                            <td className="p-3 text-right font-bold text-gray-900">
-                                                {balance > 0 ? `₹${balance.toLocaleString()}` : '-'}
-                                            </td>
+                        {/* Projects Table */}
+                        <div className="flex-grow mb-8">
+                            <h3 className="text-base font-bold mb-4 flex items-center gap-2 text-black uppercase tracking-tight">
+                                Project Ledger
+                                <span className="text-[10px] font-normal text-gray-400 normal-case bg-gray-50 px-2 py-0.5 rounded-full border">{tasks.length} entries</span>
+                            </h3>
+                            <div className="w-full overflow-hidden rounded-lg border border-gray-200 print-border">
+                                <table className="w-full text-[11px] text-left">
+                                    <thead className="bg-gray-100 text-gray-900 font-bold uppercase tracking-tighter">
+                                        <tr>
+                                            <th className="p-3">Project</th>
+                                            <th className="p-3">PRJ#</th>
+                                            <th className="p-3">Date</th>
+                                            <th className="p-3 text-center">STAT</th>
+                                            <th className="p-3 text-right">PGS</th>
+                                            <th className="p-3 text-right">Rate</th>
+                                            <th className="p-3 text-right text-black">Total</th>
+                                            <th className="p-3 text-right text-green-700">Paid</th>
+                                            <th className="p-3 text-right text-black">BAL</th>
                                         </tr>
-                                    );
-                                }) : (
-                                    <tr>
-                                        <td colSpan={8} className="p-8 text-center text-gray-500">No projects found for this client.</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                            <tfoot className="bg-gray-50 font-semibold text-gray-900">
-                                <tr>
-                                    <td colSpan={5} className="p-3 text-right">Totals</td>
-                                    <td className="p-3 text-right">₹{totalAmount.toLocaleString()}</td>
-                                    <td className="p-3 text-right text-green-600">₹{totalPaid.toLocaleString()}</td>
-                                    <td className="p-3 text-right text-red-600">₹{totalDue.toLocaleString()}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {tasks.length > 0 ? tasks.map((task) => {
+                                            const balance = task.total - task.amountPaid;
+                                            return (
+                                                <tr key={task.id} className="hover:bg-gray-50/50">
+                                                    <td className="p-3 font-semibold text-black leading-tight max-w-[150px]">{task.projectName}</td>
+                                                    <td className="p-3 font-mono text-gray-400">{task.projectNo || 'N/A'}</td>
+                                                    <td className="p-3 text-gray-500 whitespace-nowrap">{formatDate(task.submissionDate)}</td>
+                                                    <td className="p-3 text-center">
+                                                        <span className={cn(
+                                                            "inline-block px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-tighter border",
+                                                            task.workStatus === 'Completed' ? 'bg-green-50 text-green-700 border-green-200' :
+                                                                task.workStatus === 'In Progress' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                                    'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                                        )}>
+                                                            {task.workStatus === 'Completed' ? 'DONE' : task.workStatus === 'In Progress' ? 'IP' : 'PEND'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3 text-right font-medium">{task.pages}</td>
+                                                    <td className="p-3 text-right font-medium">₹{task.rate}</td>
+                                                    <td className="p-3 text-right font-bold text-black border-l border-gray-50">₹{task.total.toLocaleString()}</td>
+                                                    <td className="p-3 text-right font-bold text-green-600">₹{task.amountPaid.toLocaleString()}</td>
+                                                    <td className="p-3 text-right font-black text-black bg-gray-50/50">
+                                                        {balance > 0 ? `₹${balance.toLocaleString()}` : '0'}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }) : (
+                                            <tr>
+                                                <td colSpan={9} className="p-12 text-center text-gray-400 italic">No project units located in current partition.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                    <tfoot className="bg-gray-900 text-white font-black uppercase tracking-tighter text-[12px]">
+                                        <tr>
+                                            <td colSpan={6} className="p-4 text-right pr-8">AGGREGATE TOTALS</td>
+                                            <td className="p-4 text-right">₹{totalAmount.toLocaleString()}</td>
+                                            <td className="p-4 text-right text-green-400">₹{totalPaid.toLocaleString()}</td>
+                                            <td className="p-4 text-right text-red-400">₹{totalDue.toLocaleString()}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
 
-                {/* Footer Notes */}
-                <div className="pt-8 border-t border-gray-200 text-sm text-gray-500 mt-auto">
-                    <p className="mb-2 font-semibold">Payment Terms: {client?.paymentTerms || 'Net 5'}</p>
-                    <p>This is a computer-generated statement. For any queries, please contact support.</p>
+                        {/* Footer Notes */}
+                        <div className="pt-8 border-t border-gray-200 text-[10px] text-gray-400 mt-auto flex justify-between items-end">
+                            <div className="space-y-1">
+                                <p className="font-bold text-gray-600 uppercase tracking-widest">Protocol Intelligence</p>
+                                <p>System-generated audit statement. Authorized signature not required.</p>
+                                <p>Payment Threshold: {client?.paymentTerms || 'Net 5 Cycles'}</p>
+                            </div>
+                            <div className="text-right italic font-medium">
+                                ProFlow Operations Command
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
