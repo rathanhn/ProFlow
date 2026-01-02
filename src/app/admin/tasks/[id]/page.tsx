@@ -45,24 +45,17 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         <div className="space-y-8 fab-safe-bottom w-full">
           {/* Navigation & Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild className="rounded-2xl bg-secondary/50 hover:bg-secondary">
-                <Link href="/admin/tasks">
-                  <ArrowLeft className="h-5 w-5" />
-                </Link>
-              </Button>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest px-2 py-0 h-4 border-blue-500/20 text-blue-600 bg-blue-500/5">
-                    Operational Intelligence
-                  </Badge>
-                  <div className="h-1 w-1 rounded-full bg-border"></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    {task.projectNo || 'Global Project'}
-                  </span>
-                </div>
-                <h1 className="text-3xl font-black tracking-tighter">{task.projectName}</h1>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest px-2 py-0 h-4 border-blue-500/20 text-blue-600 bg-blue-500/5">
+                  Operational Intelligence
+                </Badge>
+                <div className="h-1 w-1 rounded-full bg-border"></div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  {task.projectNo || 'Global Project'}
+                </span>
               </div>
+              <h1 className="text-3xl font-black tracking-tighter">{task.projectName}</h1>
             </div>
             <div className="flex items-center gap-3">
               <Badge className="bg-blue-500 hover:bg-blue-600 border-none px-4 py-1.5 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-lg shadow-blue-500/10">

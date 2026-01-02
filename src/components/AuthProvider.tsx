@@ -96,9 +96,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 2. If NOT LOGGED IN and on PROTECTED path -> Redirect to Login
     if (!user && !isLoginPage && !isPublicPath) {
-      // Small delay to ensure auth state is truly settled. 
-      // PWAs on cold start can sometimes take a moment to read from IndexedDB.
-      const delay = isStandalone ? 1000 : 200;
+      // Increased delay for PWAs to ensure auth state is fully loaded from IndexedDB.
+      // PWAs on cold start can take longer to read from IndexedDB.
+      const delay = isStandalone ? 2000 : 300;
       const timeout = setTimeout(() => {
         // One final check of the actual auth state
         if (!auth.currentUser && !isLoginPage && !isPublicPath) {
