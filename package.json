@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor/preferences": "^8.0.0",
     "@genkit-ai/firebase": "^1.15.5",
     "@genkit-ai/googleai": "^1.15.5",
     "@genkit-ai/next": "^1.15.5",

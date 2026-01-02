@@ -36,7 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
+    // Special check for Capacitor/Hybrid apps:
+    // Sometimes onAuthStateChanged takes a moment to fire even if there is a persisted user.
+    // We trust that 'loading' stays true until the first callback fires.
     return () => unsubscribe();
+
+
   }, []);
 
   const refreshUser = async () => {
@@ -79,20 +84,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isCreatorPath = pathname.startsWith('/creator');
     const isPublicPath = pathname.startsWith('/p/');
 
-    // Auto‑forward from login pages disabled to keep the login view until the user submits credentials.
-    // if (user && isLoginPage) {
-    //   if (pathname === '/admin/login') {
-    //     router.push('/admin');
-    //   } else if (pathname === '/client-login') {
-    //     router.push(`/client/${user.uid}`);
-    //   } else if (pathname === '/creator/login') {
-    //     router.push(`/creator/${user.uid}`);
-    //   } else if (pathname === '/') {
-    //     // On the very front page, if logged in, go to admin by default or try to guess
-    //     router.push('/admin');
-    //   }
-    //   return;
-    // }
+    // Auto-forward from login pages
+    if (user && isLoginPage) {
+      if (pathname === '/admin/login') {
+        router.push('/admin');
+      } else if (pathname === '/client-login') {
+        router.push(`/client/${user.uid}`);
+      } else if (pathname === '/creator/login') {
+        router.push(`/creator/${user.uid}`);
+      } else if (pathname === '/') {
+        // Default to admin if hitting root logged in
+        router.push('/admin');
+      }
+      return;
+    }
 
     // 2. If NOT LOGGED IN and on PROTECTED path -> Redirect to Login
     if (!user && !isLoginPage && !isPublicPath) {

@@ -36,7 +36,7 @@ if (typeof window !== "undefined") {
   // We use the default app persistence which is IndexedDB -> LocalStorage -> Session
   try {
     auth = initializeAuth(app, {
-      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+      persistence: [browserLocalPersistence, indexedDBLocalPersistence],
     });
     console.log("[Firebase] Auth initialized with multi-persistence.");
   } catch (error) {
