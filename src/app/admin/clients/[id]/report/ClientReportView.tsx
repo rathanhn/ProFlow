@@ -39,34 +39,37 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
             const html2canvas = (await import('html2canvas')).default;
             const { jsPDF } = (await import('jspdf'));
 
-            // Store original styles
+            // Store original styles to restore later
             const originalStyle = element.style.cssText;
-            const originalParentStyle = element.parentElement?.style.cssText || '';
 
-            // Force the element to be absolute and at full A4 width for capture
-            // This prevents mobile screen clipping
+            // Prepare element for high-res capture without mobile viewport interference
             element.style.width = '210mm';
             element.style.minWidth = '210mm';
-            element.style.position = 'absolute';
+            element.style.maxWidth = '210mm';
+            element.style.position = 'relative'; // Change from absolute to relative for better height calculation
             element.style.left = '0';
             element.style.top = '0';
-            element.style.zIndex = '-1';
             element.style.backgroundColor = 'white';
 
-            // Upscale: scale 3 for high quality without crashing mobile browsers
+            // Capture the canvas with explicit dimensions
             const canvas = await html2canvas(element, {
-                scale: 3,
+                scale: 2.5, // Reduced slightly for cross-device stability
                 useCORS: true,
                 logging: false,
-                width: 794, // Fixed A4 width in px at 96 DPI
-                windowWidth: 794,
-                backgroundColor: '#ffffff'
+                width: element.scrollWidth,
+                height: element.scrollHeight,
+                windowWidth: 1200, // Use a wider window width during capture to prevent text wrapping issues
+                backgroundColor: '#ffffff',
+                y: 0,
+                x: 0,
+                scrollX: 0,
+                scrollY: 0
             });
 
-            // Restore original style immediately
+            // Restore original style
             element.style.cssText = originalStyle;
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgData = canvas.toDataURL('image/jpeg', 0.9);
 
             // A4 dimensions in mm
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -74,39 +77,37 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
             const pdfHeight = pdf.internal.pageSize.getHeight(); // 297
 
             const imgProps = pdf.getImageProperties(imgData);
-            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            const totalImgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-            let heightLeft = imgHeight;
+            let heightRemaining = totalImgHeight;
             let position = 0;
 
-            // First page
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-            heightLeft -= pdfHeight;
+            // Add pages until all content is rendered
+            while (heightRemaining > 0) {
+                // Add the image slice to the current page
+                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeight, undefined, 'FAST');
 
-            // Subsequent pages
-            while (heightLeft > 0) {
+                heightRemaining -= pdfHeight;
                 position -= pdfHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-                heightLeft -= pdfHeight;
+
+                // If content remains, add a new page
+                if (heightRemaining > 0.5) { // Threshold to avoid empty pages from tiny slivers
+                    pdf.addPage();
+                }
             }
 
-            // Dynamic filename
-            let fileName = '';
+            // High-precision filename
             const clientName = client ? client.name.replace(/[^a-z0-9]/gi, '_') : 'Global';
             const dateStr = new Date().toISOString().split('T')[0];
-
-            if (isPendingOnly) {
-                fileName = `Pending_Payment_${clientName}_${dateStr}.pdf`;
-            } else {
-                fileName = `${clientName}_Project_Report_${dateStr}.pdf`;
-            }
+            const fileName = isPendingOnly
+                ? `Pending_Payment_${clientName}_${dateStr}.pdf`
+                : `${clientName}_Project_Report_${dateStr}.pdf`;
 
             pdf.save(fileName);
 
         } catch (error) {
             console.error('Failed to generate PDF:', error);
-            alert('Failed to generate PDF. Please try again.');
+            alert('PDF Transmission Error: Please try again or use Print to Save as PDF.');
         }
     };
 
@@ -127,14 +128,20 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
                         margin: 0;
                     }
                     .print-content {
-                        width: 210mm;
+                        width: 210mm !important;
                         min-height: 297mm;
                         padding: 20mm !important;
                         margin: 0 auto;
                         box-shadow: none !important;
                         position: relative !important;
-                        left: 0 !important;
-                        top: 0 !important;
+                        background: white !important;
+                    }
+                    tr {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                    }
+                    thead {
+                        display: table-header-group !important;
                     }
                 }
                 .custom-scrollbar::-webkit-scrollbar {
@@ -260,7 +267,7 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
                                             const balance = task.total - task.amountPaid;
                                             return (
                                                 <tr key={task.id} className="hover:bg-gray-50/50">
-                                                    <td className="p-3 font-semibold text-black leading-tight max-w-[150px]">{task.projectName}</td>
+                                                    <td className="p-3 font-semibold text-black leading-tight">{task.projectName}</td>
                                                     <td className="p-3 font-mono text-gray-400">{task.projectNo || 'N/A'}</td>
                                                     <td className="p-3 text-gray-500 whitespace-nowrap">{formatDate(task.submissionDate)}</td>
                                                     <td className="p-3 text-center">
