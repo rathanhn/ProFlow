@@ -90,49 +90,48 @@ export default function ClientTasksView({ client, tasks, assignees = [] }: Clien
           </Button>
         </div>
       </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MetricCard
+          title="Total Projects"
+          value={tasks.length}
+          icon={<Briefcase className="h-6 w-6 text-indigo-500" />}
+          className="glass-card border-indigo-500/20 shadow-indigo-500/5"
+        />
+        <MetricCard
+          title="Settled Value"
+          value={`₹${totalRevenue.toLocaleString()}`}
+          icon={<INRIcon className="h-6 w-6 text-emerald-500" />}
+          className="glass-card border-emerald-500/20 shadow-emerald-500/5"
+        />
+        <MetricCard
+          title="Outstanding"
+          value={`₹${pendingRevenue.toLocaleString()}`}
+          icon={<DollarSign className="h-6 w-6 text-amber-500" />}
+          className="glass-card border-amber-500/20 shadow-amber-500/5"
+        />
+        <MetricCard
+          title="Standard Rate"
+          value={client.defaultRate ? `₹${client.defaultRate}/PG` : 'N/A'}
+          icon={<Sparkles className="h-6 w-6 text-violet-500" />}
+          className="glass-card border-violet-500/20 shadow-violet-500/5"
+        />
+      </div>
+
+      {/* Tasks List */}
+      <div className="glass-card border-white/20 shadow-2xl overflow-hidden rounded-[2.5rem]">
+        <TaskList
+          tasks={tasks}
+          title={`${client.name}'s Protocol Board`}
+          showClient={false}
+          showAddButton={true}
+          addButtonLink={`/admin/tasks/new?clientId=${client.id}&redirect=/admin/clients/${client.id}`}
+          emptyStateMessage="NO DATA DETECTED"
+          emptyStateDescription={`${client.name} has no projects registered in the current sector.`}
+        />
+      </div>
     </div>
-    </div >
-
-    {/* Stats Grid */ }
-    < div className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" >
-      <MetricCard
-        title="Total Projects"
-        value={tasks.length}
-        icon={<Briefcase className="h-6 w-6 text-indigo-500" />}
-        className="glass-card border-indigo-500/20 shadow-indigo-500/5"
-      />
-      <MetricCard
-        title="Settled Value"
-        value={`₹${totalRevenue.toLocaleString()}`}
-        icon={<INRIcon className="h-6 w-6 text-emerald-500" />}
-        className="glass-card border-emerald-500/20 shadow-emerald-500/5"
-      />
-      <MetricCard
-        title="Outstanding"
-        value={`₹${pendingRevenue.toLocaleString()}`}
-        icon={<DollarSign className="h-6 w-6 text-amber-500" />}
-        className="glass-card border-amber-500/20 shadow-amber-500/5"
-      />
-      <MetricCard
-        title="Standard Rate"
-        value={client.defaultRate ? `₹${client.defaultRate}/PG` : 'N/A'}
-        icon={<Sparkles className="h-6 w-6 text-violet-500" />}
-        className="glass-card border-violet-500/20 shadow-violet-500/5"
-      />
-    </div >
-
-    {/* Tasks List */ }
-    < div className = "glass-card border-white/20 shadow-2xl overflow-hidden rounded-[2.5rem]" >
-      <TaskList
-        tasks={tasks}
-        title={`${client.name}'s Protocol Board`}
-        showClient={false}
-        showAddButton={true}
-        addButtonLink={`/admin/tasks/new?clientId=${client.id}&redirect=/admin/clients/${client.id}`}
-        emptyStateMessage="NO DATA DETECTED"
-        emptyStateDescription={`${client.name} has no projects registered in the current sector.`}
-      />
-    </div >
   </div >
   );
 }
