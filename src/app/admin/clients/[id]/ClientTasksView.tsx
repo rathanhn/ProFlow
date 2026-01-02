@@ -132,6 +132,5 @@ export default function ClientTasksView({ client, tasks, assignees = [] }: Clien
         />
       </div>
     </div>
-  </div >
   );
-}
+};
