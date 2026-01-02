@@ -12,6 +12,7 @@ body {
   /* Gradient background for better contrast */
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   background-attachment: fixed;
+  overscroll-behavior-y: contain;
 }
 
 .dark body {
@@ -250,22 +251,16 @@ body {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
-  /* Custom scrollbar */
+  /* Custom scrollbar - Hide globally for native app experience */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    display: none;
+    width: 0;
+    height: 0;
   }
 
-  ::-webkit-scrollbar-track {
-    @apply bg-muted;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+  body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

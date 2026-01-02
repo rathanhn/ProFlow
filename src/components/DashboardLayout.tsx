@@ -62,6 +62,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ProfileImageViewer, useProfileImageViewer } from '@/components/ui/profile-image-viewer';
 import NotificationBellComponent from '@/components/NotificationBell';
+import { useHapticFeedback } from '@/lib/haptic-feedback';
 
 interface UserProfileProps {
   user: any;
@@ -224,6 +225,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isOpen, imageData, openViewer, closeViewer } = useProfileImageViewer();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [profile, setProfile] = useState<{ name?: string, avatar?: string } | null>(null);
+  const haptics = useHapticFeedback();
 
   // Determine user role based on path
   const isAdminSection = pathname.startsWith('/admin');
@@ -308,8 +310,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  const toggleSidebar = () => {
+    haptics.light();
+    setIsCollapsed(!isCollapsed);
+  };
+  const toggleMobileMenu = () => {
+    haptics.medium();
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -349,22 +357,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     asChild,
     isActive,
     children,
-    className
+    className,
+    onClick
   }: {
     asChild?: boolean;
     isActive?: boolean;
     children: React.ReactNode;
     className?: string;
+    onClick?: () => void;
   }) => {
     const Comp = asChild ? React.Fragment : 'button';
     return (
-      <div className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden",
-        isActive
-          ? "bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-600 dark:text-blue-400 font-medium shadow-sm border border-blue-100 dark:border-blue-900/30"
-          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
-        className
-      )}>
+      <div
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden",
+          isActive
+            ? "bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-600 dark:text-blue-400 font-medium shadow-sm border border-blue-100 dark:border-blue-900/30"
+            : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+          className
+        )}>
         {isActive && (
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-r-full" />
         )}
@@ -456,7 +468,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <FullscreenToggle isFullscreen={isFullscreen} toggleFullscreen={toggleFullscreen} />
+            {/* Fullscreen button hidden on mobile for native app feel */}
+            <div className="hidden sm:block">
+              <FullscreenToggle isFullscreen={isFullscreen} toggleFullscreen={toggleFullscreen} />
+            </div>
             <NotificationBell />
             <UserProfile
               user={user}
@@ -501,7 +516,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {isAdminSection && (
                 <>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/admin'}>
+                    <SidebarMenuButton asChild isActive={pathname === '/admin'} onClick={() => haptics.selection()}>
                       <Link href="/admin">
                         <LayoutDashboard />
                         <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
@@ -509,7 +524,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/tasks')} onClick={() => haptics.selection()}>
                       <Link href="/admin/tasks">
                         <ListChecks />
                         <span className={isCollapsed ? 'hidden' : ''}>All Tasks</span>
@@ -517,7 +532,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/clients')} onClick={() => haptics.selection()}>
                       <Link href="/admin/clients">
                         <Users />
                         <span className={isCollapsed ? 'hidden' : ''}>Partner Matrix</span>
@@ -525,7 +540,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/team')} onClick={() => haptics.selection()}>
                       <Link href="/admin/team">
                         <UserPlus />
                         <span className={isCollapsed ? 'hidden' : ''}>Creator Network</span>
@@ -533,7 +548,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/transactions')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/transactions')} onClick={() => haptics.selection()}>
                       <Link href="/admin/transactions">
                         <Banknote />
                         <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
@@ -541,7 +556,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/analytics')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/analytics')} onClick={() => haptics.selection()}>
                       <Link href="/admin/analytics">
                         <BarChart3 />
                         <span className={isCollapsed ? 'hidden' : ''}>Analytics</span>
@@ -549,7 +564,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/reports')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/reports')} onClick={() => haptics.selection()}>
                       <Link href="/admin/reports">
                         <FileText />
                         <span className={isCollapsed ? 'hidden' : ''}>Reports</span>
@@ -557,7 +572,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin/settings')} onClick={() => haptics.selection()}>
                       <Link href="/admin/settings">
                         <Settings />
                         <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
@@ -569,7 +584,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {isClientSection && id && (
                 <>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === `/client/${id}`}>
+                    <SidebarMenuButton asChild isActive={pathname === `/client/${id}`} onClick={() => haptics.selection()}>
                       <Link href={`/client/${id}`}>
                         <Briefcase />
                         <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
@@ -577,7 +592,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')}>
+                    <SidebarMenuButton asChild isActive={pathname.endsWith('/projects') || pathname.includes('/projects/')} onClick={() => haptics.selection()}>
                       <Link href={`/client/${id}/projects`}>
                         <ListChecks />
                         <span className={isCollapsed ? 'hidden' : ''}>My Projects</span>
@@ -587,7 +602,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {user && (
                     <>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/transactions`)}>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/transactions`)} onClick={() => haptics.selection()}>
                           <Link href={`/client/${id}/transactions`}>
                             <Banknote />
                             <span className={isCollapsed ? 'hidden' : ''}>Transactions</span>
@@ -595,7 +610,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname === `/client/${id}/achievements`}>
+                        <SidebarMenuButton asChild isActive={pathname === `/client/${id}/achievements`} onClick={() => haptics.selection()}>
                           <Link href={`/client/${id}/achievements`}>
                             <Trophy />
                             <span className={isCollapsed ? 'hidden' : ''}>Achievements</span>
@@ -603,7 +618,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)}>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith(`/client/${id}/settings`)} onClick={() => haptics.selection()}>
                           <Link href={`/client/${id}/settings`}>
                             <Settings />
                             <span className={isCollapsed ? 'hidden' : ''}>Settings</span>
@@ -617,7 +632,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {isCreatorSection && user && id && (
                 <>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === `/creator/${id}`}>
+                    <SidebarMenuButton asChild isActive={pathname === `/creator/${id}`} onClick={() => haptics.selection()}>
                       <Link href={`/creator/${id}`}>
                         <Briefcase />
                         <span className={isCollapsed ? 'hidden' : ''}>Dashboard</span>
@@ -625,7 +640,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/tasks`)}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/tasks`)} onClick={() => haptics.selection()}>
                       <Link href={`/creator/${id}/tasks`}>
                         <ListChecks />
                         <span className={isCollapsed ? 'hidden' : ''}>My Tasks</span>
@@ -633,7 +648,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === `/creator/${id}/achievements`}>
+                    <SidebarMenuButton asChild isActive={pathname === `/creator/${id}/achievements`} onClick={() => haptics.selection()}>
                       <Link href={`/creator/${id}/achievements`}>
                         <Trophy />
                         <span className={isCollapsed ? 'hidden' : ''}>Achievements</span>
@@ -641,7 +656,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/settings`)}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(`/creator/${id}/settings`)} onClick={() => haptics.selection()}>
                       <Link href={`/creator/${id}/settings`}>
                         <Settings />
                         <span className={isCollapsed ? 'hidden' : ''}>Settings</span>

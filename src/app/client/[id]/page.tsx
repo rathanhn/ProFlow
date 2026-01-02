@@ -159,7 +159,7 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
         <div className="space-y-8 fab-safe-bottom pt-4">
 
           {/* Premium Hero Section */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-700 p-8 text-white shadow-2xl transition-all duration-500 hover:shadow-indigo-500/20">
+          <div className="relative overflow-hidden rounded-[2rem] md:rounded-3xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-700 p-6 md:p-8 text-white shadow-2xl transition-all duration-500 hover:shadow-indigo-500/20">
             <div className="absolute top-0 right-0 -m-8 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
             <div className="absolute bottom-0 left-0 -m-8 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
 
@@ -183,7 +183,7 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
                         Elite Client
                       </Badge>
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-black tracking-tighter mt-1 leading-tight">
+                    <h1 className="text-2xl md:text-5xl font-black tracking-tighter mt-1 leading-tight whitespace-nowrap overflow-hidden">
                       Greetings, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-white">{client.name.split(' ')[0]}</span>
                     </h1>
                   </div>
@@ -214,44 +214,44 @@ export default function ClientDashboardPage({ params }: { params: Promise<{ id: 
             </div>
           </div>
 
-          {/* Metrics Grid - Hidden for Guests */}
+          {/* Metrics Grid - Optimized for Mobile (2 columns) */}
           {user ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
               <MetricCard
-                title="Total Investment"
+                title="Investment"
                 value={`₹${(totalSpent || 0).toLocaleString()}`}
                 icon={<INRIcon className="h-6 w-6 text-indigo-500" />}
                 className="glass-card border-indigo-500/20 shadow-indigo-500/5 hover:border-indigo-500/40"
               />
               <MetricCard
-                title="Pending Balance"
+                title="Pending"
                 value={`₹${(outstandingBalance || 0).toLocaleString()}`}
                 icon={<CreditCard className="h-6 w-6 text-cyan-500" />}
                 className="glass-card border-cyan-500/20 shadow-cyan-500/5 hover:border-cyan-500/40"
               />
               <MetricCard
-                title="Successful Deliveries"
+                title="Deliveries"
                 value={clientTasks.filter(t => t.workStatus === 'Completed').length}
                 icon={<CalendarCheck2 className="h-6 w-6 text-emerald-500" />}
                 className="glass-card border-emerald-500/20 shadow-emerald-500/5 hover:border-emerald-500/40"
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
               <MetricCard
-                title="Production Velocity"
+                title="Production"
                 value={`${Math.round((clientTasks.filter(t => t.workStatus === 'Completed').length / (clientTasks.length || 1)) * 100)}%`}
                 icon={<Zap className="h-6 w-6 text-yellow-500" />}
                 className="glass-card border-yellow-500/20 shadow-yellow-500/5"
               />
               <MetricCard
-                title="Verified milestones"
+                title="Milestones"
                 value={clientTasks.filter(t => t.workStatus === 'Completed').length}
                 icon={<CheckCircle2 className="h-6 w-6 text-emerald-500" />}
                 className="glass-card border-emerald-500/20 shadow-emerald-500/5"
               />
               <MetricCard
-                title="Pipeline Volume"
+                title="Pipeline"
                 value={clientTasks.length}
                 icon={<ListChecks className="h-6 w-6 text-blue-500" />}
                 className="glass-card border-blue-500/20 shadow-blue-500/5"

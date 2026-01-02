@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/components/AuthProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import PWAProvider from '@/components/PWAProvider';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   title: 'ProFlow - Work Tracking App',
@@ -68,6 +69,7 @@ export default function RootLayout({
               {children}
             </AuthProvider>
           </ErrorBoundary>
+          <Toaster />
           <ToastProvider />
         </ThemeProvider>
       </body>

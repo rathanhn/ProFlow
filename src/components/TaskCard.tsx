@@ -269,8 +269,14 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
 
   return (
     <div
-      className="glass-card rounded-[2rem] p-8 hover-lift relative group transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-xl cursor-pointer"
-      onClick={() => router.push(getTaskLink(localTask.id))}
+      className="glass-card rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-8 hover-lift relative group transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent backdrop-blur-xl cursor-pointer"
+      onClick={(e) => {
+        // Only navigate if we didn't click an action button or the kebab menu
+        const isClickable = (e.target as HTMLElement).closest('button, a, [role="menuitem"]');
+        if (!isClickable) {
+          router.push(getTaskLink(localTask.id));
+        }
+      }}
     >
       {/* Decorative Background Element */}
       <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/5 blur-[80px] rounded-full transition-all duration-1000 group-hover:bg-primary/10 group-hover:scale-125"></div>
@@ -278,17 +284,19 @@ export default function TaskCard({ task, showClient = false, onDelete, onUpdate 
 
       <div className="relative z-10 flex flex-col gap-8">
         {/* Header Row: Project ID, Client, and Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center flex-wrap gap-2 md:gap-3">
             {localTask.projectNo && (
-              <span className="text-xs font-black tracking-[0.2em] uppercase py-2 px-4 bg-primary text-white rounded-xl shadow-xl shadow-primary/20 ring-4 ring-primary/5">
+              <span className="text-[10px] md:text-xs font-black tracking-[0.1em] md:tracking-[0.2em] uppercase py-1.5 md:py-2 px-3 md:px-4 bg-primary text-white rounded-lg md:rounded-xl shadow-lg shadow-primary/20 ring-2 md:ring-4 ring-primary/5 whitespace-nowrap">
                 {localTask.projectNo}
               </span>
             )}
-            <div className="h-4 w-[1px] bg-border/50 mx-1"></div>
-            <div className="flex items-center gap-2 text-muted-foreground group/client">
-              <User className="h-4 w-4 text-primary/60" />
-              <span className="text-sm font-bold tracking-tight group-hover/client:text-primary transition-colors">{localTask.clientName}</span>
+            <div className="hidden sm:block h-4 w-[1px] bg-border/50 mx-1"></div>
+            <div className="flex items-center gap-2 text-muted-foreground group/client overflow-hidden">
+              <User className="h-4 w-4 text-primary/60 shrink-0" />
+              <span className="text-sm font-bold tracking-tight group-hover/client:text-primary transition-colors whitespace-nowrap truncate max-w-[120px] md:max-w-none">
+                {localTask.clientName}
+              </span>
             </div>
           </div>
 

@@ -60,7 +60,7 @@ export const SwipeActionItem: React.FC<SwipeActionItemProps> = ({
 
   const executeAction = React.useCallback(async (action: SwipeAction) => {
     if (isActionTriggered) return;
-    
+
     setIsActionTriggered(true);
     haptic.androidClick();
 
@@ -85,7 +85,7 @@ export const SwipeActionItem: React.FC<SwipeActionItemProps> = ({
 
       const { deltaX, direction } = state;
       const maxSwipe = threshold * 2;
-      
+
       // Determine which actions to show based on swipe direction
       let actions: SwipeAction[] = [];
       let offset = 0;
@@ -129,8 +129,10 @@ export const SwipeActionItem: React.FC<SwipeActionItemProps> = ({
 
   // Temporarily disable swipe gestures to prevent scroll interference
   React.useEffect(() => {
-    // Swipe actions are temporarily disabled to ensure smooth scrolling
-  }, []);
+    if (contentRef.current) {
+      return gestures.bindGestures(contentRef.current);
+    }
+  }, [gestures.bindGestures]);
 
   const renderActions = (actions: SwipeAction[], side: 'left' | 'right') => {
     if (actions.length === 0) return null;
@@ -181,7 +183,7 @@ export const SwipeActionItem: React.FC<SwipeActionItemProps> = ({
     >
       {/* Left actions */}
       {renderActions(leftActions, 'left')}
-      
+
       {/* Right actions */}
       {renderActions(rightActions, 'right')}
 

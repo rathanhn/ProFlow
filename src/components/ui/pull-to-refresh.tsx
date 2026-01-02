@@ -51,12 +51,42 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
     }
   }, [onRefresh, disabled, isRefreshing, haptic]);
 
-  // Disable pull-to-refresh gesture handling to prevent scroll interference
-  // Pull-to-refresh is temporarily disabled to ensure smooth scrolling
+  const gestures = useTouchGestures({
+    onPan: (state) => {
+      if (disabled || isRefreshing || window.scrollY > 0) return;
+
+      const { deltaY } = state;
+      if (deltaY > 0) {
+        const dampenedDelta = Math.pow(deltaY, 0.8);
+        setPullDistance(dampenedDelta);
+        const shouldRefresh = dampenedDelta >= threshold;
+
+        if (shouldRefresh && !canRefresh) {
+          haptic.selection();
+          setCanRefresh(true);
+        } else if (!shouldRefresh && canRefresh) {
+          setCanRefresh(false);
+        }
+      }
+    },
+    onPanEnd: () => {
+      if (disabled || isRefreshing) return;
+      if (canRefresh) {
+        handleRefresh();
+      } else {
+        setPullDistance(0);
+        setCanRefresh(false);
+      }
+    },
+  }, {
+    preventScroll: false,
+  });
+
   React.useEffect(() => {
-    // This effect is intentionally empty - pull-to-refresh is disabled
-    // to prevent interference with normal scrolling behavior
-  }, []);
+    if (containerRef.current) {
+      return gestures.bindGestures(containerRef.current);
+    }
+  }, [gestures.bindGestures]);
 
   const pullProgress = Math.min(pullDistance / threshold, 1);
   const iconRotation = pullProgress * 180;

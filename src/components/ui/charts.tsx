@@ -204,16 +204,16 @@ interface MetricCardProps {
 export function MetricCard({ title, value, change, icon, className }: MetricCardProps) {
   return (
     <div className={cn(
-      'p-6 rounded-3xl glass-card border-white/20 hover-lift transition-all duration-500 relative overflow-hidden group',
+      'p-4 md:p-6 rounded-2xl md:rounded-3xl glass-card border-white/20 hover-lift transition-all duration-500 relative overflow-hidden group',
       className
     )}>
       <div className="absolute -right-8 -top-8 h-24 w-24 bg-primary/5 blur-2xl rounded-full group-hover:bg-primary/10 transition-all duration-500"></div>
 
       <div className="relative z-10 flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="premium-label leading-none mb-2">{title}</p>
-          <div className="flex items-baseline gap-2">
-            <p className="premium-value text-3xl leading-none">{value}</p>
+        <div className="space-y-1 flex-1 min-w-0">
+          <p className="premium-label leading-none mb-1 md:mb-2 truncate">{title}</p>
+          <div className="flex items-baseline gap-1 md:gap-2">
+            <p className="premium-value text-xl md:text-3xl leading-none truncate">{value}</p>
             {change && (
               <div className={cn(
                 'flex items-center text-[10px] font-black px-2 py-0.5 rounded-full',
@@ -228,7 +228,7 @@ export function MetricCard({ title, value, change, icon, className }: MetricCard
           </div>
         </div>
         {icon && (
-          <div className="h-12 w-12 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
+          <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-white/50 dark:bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500 shrink-0">
             {icon}
           </div>
         )}

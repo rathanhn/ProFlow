@@ -98,14 +98,6 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 
   // Handle FAB gestures
   const gestures = useTouchGestures({
-    onTap: () => {
-      haptic.androidClick();
-      if (actions.length > 0) {
-        setIsExpanded(!isExpanded);
-      } else {
-        onClick?.({} as React.MouseEvent<HTMLButtonElement>);
-      }
-    },
     onLongPress: () => {
       haptic.androidLongPress();
       if (actions.length > 0) {
@@ -213,8 +205,12 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           !extended && 'p-0',
           className
         )}
+        style={{ touchAction: 'manipulation' }}
         onClick={(e) => {
-          if (actions.length > 0) {
+          if (actions.length === 1) {
+            haptic.androidClick();
+            handleActionClick(actions[0]);
+          } else if (actions.length > 1) {
             haptic.androidClick();
             setIsExpanded(!isExpanded);
           } else {

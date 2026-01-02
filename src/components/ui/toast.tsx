@@ -6,6 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { X, CheckCircle2, AlertCircle, Info, Flame } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { hapticFeedback } from "@/lib/haptic-feedback"
 
 const ToastProvider = ToastPrimitives.Provider
 
@@ -16,7 +17,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 md:max-w-[420px]",
+      "fixed bottom-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 md:bottom-auto md:top-0 md:right-0 md:flex-col md:max-w-[420px] safe-area-pb",
       className
     )}
     {...props}
@@ -48,6 +49,13 @@ const Toast = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
   VariantProps<typeof toastVariants>
 >(({ className, variant, children, ...props }, ref) => {
+  React.useEffect(() => {
+    if (variant === 'success') hapticFeedback.success();
+    else if (variant === 'destructive') hapticFeedback.error();
+    else if (variant === 'warning') hapticFeedback.warning();
+    else hapticFeedback.light();
+  }, [variant]);
+
   return (
     <ToastPrimitives.Root
       ref={ref}

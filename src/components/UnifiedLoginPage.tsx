@@ -71,7 +71,11 @@ export default function UnifiedLoginPage({ defaultTab = 'client' }: { defaultTab
                     await signOut(auth);
                     throw new Error("You do not have administrative permissions.");
                 }
-                toast({ title: 'Success', description: 'Welcome to Admin Nexus.' });
+                toast({
+                    title: 'Success',
+                    description: 'Welcome to Admin Nexus.',
+                    variant: 'success'
+                });
                 router.push('/admin');
             } else if (activeTab === 'client') {
                 const clientRecord = await getClientByEmail(email);
@@ -83,7 +87,11 @@ export default function UnifiedLoginPage({ defaultTab = 'client' }: { defaultTab
                 if (checkFirstTime(user)) {
                     setShowResetDialog(true);
                 } else {
-                    toast({ title: 'Success', description: `Welcome back, ${clientRecord.name.split(' ')[0]}!` });
+                    toast({
+                        title: 'Success',
+                        description: `Welcome back, ${clientRecord.name.split(' ')[0]}!`,
+                        variant: 'success'
+                    });
                     router.push(`/client/${user.uid}`);
                 }
             } else if (activeTab === 'creator') {
@@ -96,7 +104,11 @@ export default function UnifiedLoginPage({ defaultTab = 'client' }: { defaultTab
                 if (checkFirstTime(user)) {
                     setShowResetDialog(true);
                 } else {
-                    toast({ title: 'Success', description: `Welcome back, ${creatorRecord.name.split(' ')[0]}!` });
+                    toast({
+                        title: 'Success',
+                        description: `Welcome back, ${creatorRecord.name.split(' ')[0]}!`,
+                        variant: 'success'
+                    });
                     router.push(`/creator/${creatorRecord.id}`);
                 }
             }
@@ -137,7 +149,7 @@ export default function UnifiedLoginPage({ defaultTab = 'client' }: { defaultTab
             if (user) {
                 await updatePassword(user, newPassword);
                 setIsResetSuccess(true);
-                toast({ title: 'Success', description: 'Password updated successfully!' });
+                toast({ title: 'Success', description: 'Password updated successfully!', variant: 'success' });
 
                 // Wait for animation
                 setTimeout(() => {

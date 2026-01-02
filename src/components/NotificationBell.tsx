@@ -14,6 +14,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import { useHapticFeedback } from '@/lib/haptic-feedback';
 
 
 // This function was moved here from firebase-service.ts because it sets up a client-side listener
@@ -47,6 +48,7 @@ export default function NotificationBell() {
     const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
     const [deletingNotificationId, setDeletingNotificationId] = React.useState<string | null>(null);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+    const haptics = useHapticFeedback();
 
 
     React.useEffect(() => {
@@ -74,15 +76,23 @@ export default function NotificationBell() {
     React.useEffect(() => {
         if (currentUserId) {
             const unsubscribe = getNotifications(currentUserId, (notifs) => {
+                const prevCount = notifications.filter(n => !n.isRead).length;
+                const newCount = notifs.filter(n => !n.isRead).length;
+
+                if (newCount > prevCount) {
+                    haptics.androidNotification();
+                }
+
                 setNotifications(notifs);
-                setUnreadCount(notifs.filter(n => !n.isRead).length);
+                setUnreadCount(newCount);
             });
             return () => unsubscribe();
         }
-    }, [currentUserId]);
+    }, [currentUserId, notifications.length]);
 
 
     const handleNotificationClick = async (notification: Notification) => {
+        haptics.selection();
         if (!notification.isRead && currentUserId) {
             await markNotificationAsRead(notification.id);
         }
@@ -91,7 +101,8 @@ export default function NotificationBell() {
     };
 
     const handleDeleteNotification = (e: React.MouseEvent, notificationId: string) => {
-        e.stopPropagation(); // Prevent popover from closing or navigating
+        e.stopPropagation();
+        haptics.impact();
         setDeletingNotificationId(notificationId);
 
         setTimeout(async () => {
@@ -109,6 +120,7 @@ export default function NotificationBell() {
     };
 
     const handleClearAllNotifications = async () => {
+        haptics.warning();
         try {
             if (currentUserId) {
                 await clearNotifications(currentUserId);
@@ -122,7 +134,10 @@ export default function NotificationBell() {
     if (!currentUserId) return null;
 
     return (
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <Popover open={isPopoverOpen} onOpenChange={(open) => {
+            if (open) haptics.light();
+            setIsPopoverOpen(open);
+        }}>
             <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative rounded-xl h-10 w-10 bg-background/50 backdrop-blur-md border border-white/20 shadow-lg hover:shadow-primary/20 transition-all duration-300">
                     <Bell className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />

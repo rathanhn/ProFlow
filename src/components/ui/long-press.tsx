@@ -77,17 +77,17 @@ export const LongPressMenu: React.FC<LongPressMenuProps> = ({
   const gestures = useTouchGestures({
     onPanStart: (state) => {
       if (disabled) return;
-      
+
       onLongPressStart?.();
       setPressProgress(0);
-      
+
       // Start progress animation
       const startTime = Date.now();
       const updateProgress = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / delay, 1);
         setPressProgress(progress);
-        
+
         if (progress < 1) {
           progressTimer.current = setTimeout(updateProgress, 16); // ~60fps
         }
@@ -103,9 +103,9 @@ export const LongPressMenu: React.FC<LongPressMenuProps> = ({
     },
     onLongPress: (state) => {
       if (disabled) return;
-      
+
       haptic.androidLongPress();
-      
+
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect && state.startPoint) {
         const position = calculateMenuPosition(
@@ -122,8 +122,10 @@ export const LongPressMenu: React.FC<LongPressMenuProps> = ({
 
   // Temporarily disable long press gestures to prevent scroll interference
   React.useEffect(() => {
-    // Long press gestures are temporarily disabled to ensure smooth scrolling
-  }, []);
+    if (containerRef.current) {
+      return gestures.bindGestures(containerRef.current);
+    }
+  }, [gestures.bindGestures]);
 
   // Close menu when clicking outside
   React.useEffect(() => {
@@ -160,7 +162,7 @@ export const LongPressMenu: React.FC<LongPressMenuProps> = ({
         }}
       >
         {children}
-        
+
         {/* Progress indicator */}
         {pressProgress > 0 && (
           <div className="absolute inset-0 pointer-events-none">
@@ -189,7 +191,7 @@ export const LongPressMenu: React.FC<LongPressMenuProps> = ({
             className="fixed inset-0 z-50 bg-transparent"
             onClick={closeMenu}
           />
-          
+
           {/* Menu */}
           <div
             data-long-press-menu
@@ -266,74 +268,74 @@ export const LongPressWrapper: React.FC<{
   className,
   showProgress = true,
 }) => {
-  const [pressProgress, setPressProgress] = React.useState(0);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const haptic = useHapticFeedback();
-  const progressTimer = React.useRef<NodeJS.Timeout | null>(null);
+    const [pressProgress, setPressProgress] = React.useState(0);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const haptic = useHapticFeedback();
+    const progressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
-  const gestures = useTouchGestures({
-    onPanStart: () => {
-      if (disabled || !showProgress) return;
-      
-      setPressProgress(0);
-      const startTime = Date.now();
-      const updateProgress = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / delay, 1);
-        setPressProgress(progress);
-        
-        if (progress < 1) {
-          progressTimer.current = setTimeout(updateProgress, 16);
+    const gestures = useTouchGestures({
+      onPanStart: () => {
+        if (disabled || !showProgress) return;
+
+        setPressProgress(0);
+        const startTime = Date.now();
+        const updateProgress = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / delay, 1);
+          setPressProgress(progress);
+
+          if (progress < 1) {
+            progressTimer.current = setTimeout(updateProgress, 16);
+          }
+        };
+        updateProgress();
+      },
+      onPanEnd: () => {
+        if (progressTimer.current) {
+          clearTimeout(progressTimer.current);
+          progressTimer.current = null;
         }
-      };
-      updateProgress();
-    },
-    onPanEnd: () => {
-      if (progressTimer.current) {
-        clearTimeout(progressTimer.current);
-        progressTimer.current = null;
-      }
-      setPressProgress(0);
-    },
-    onLongPress: () => {
-      if (!disabled) {
-        haptic.androidLongPress();
-        onLongPress();
-      }
-    },
-  }, {
-    longPressDelay: delay,
-  });
+        setPressProgress(0);
+      },
+      onLongPress: () => {
+        if (!disabled) {
+          haptic.androidLongPress();
+          onLongPress();
+        }
+      },
+    }, {
+      longPressDelay: delay,
+    });
 
-  // Temporarily disable long press wrapper gestures to prevent scroll interference
-  React.useEffect(() => {
-    // Long press wrapper gestures are temporarily disabled to ensure smooth scrolling
-  }, []);
+    // Temporarily disable long press wrapper gestures to prevent scroll interference
+    React.useEffect(() => {
+      // Long press wrapper gestures are temporarily disabled to ensure smooth scrolling
+    }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      className={cn(
-        'relative select-none',
-        pressProgress > 0 && showProgress && 'bg-muted/30 rounded-md',
-        className
-      )}
-    >
-      {children}
-      
-      {/* Progress indicator */}
-      {showProgress && pressProgress > 0 && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div
-            className="absolute bottom-0 left-0 h-1 bg-primary rounded-b-md transition-all duration-75 ease-out"
-            style={{
-              width: `${pressProgress * 100}%`,
-            }}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
+    return (
+      <div
+        ref={containerRef}
+        className={cn(
+          'relative select-none',
+          pressProgress > 0 && showProgress && 'bg-muted/30 rounded-md',
+          className
+        )}
+      >
+        {children}
+
+        {/* Progress indicator */}
+        {showProgress && pressProgress > 0 && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div
+              className="absolute bottom-0 left-0 h-1 bg-primary rounded-b-md transition-all duration-75 ease-out"
+              style={{
+                width: `${pressProgress * 100}%`,
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
 
 export default LongPressMenu;

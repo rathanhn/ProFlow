@@ -79,10 +79,10 @@ export default function ClientTaskList({
           />
 
           <MetricCard
-            title="Completed"
-            value={stats.completedProjects}
-            icon={<TrendingUp className="h-6 w-6 text-emerald-500" />}
-            className="glass-card border-emerald-500/20"
+            title="In Progress"
+            value={stats.inProgressProjects}
+            icon={<Clock className="h-6 w-6 text-blue-500" />}
+            className="glass-card border-blue-500/20"
           />
 
           {user && (
