@@ -255,8 +255,8 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
                                             <th className="p-3">PRJ#</th>
                                             <th className="p-3">Date</th>
                                             <th className="p-3 text-center">STAT</th>
-                                            <th className="p-3 text-right">PGS</th>
-                                            <th className="p-3 text-right">Rate</th>
+                                            <th className="p-3 text-right text-black">PGS</th>
+                                            <th className="p-3 text-right text-black">Rate</th>
                                             <th className="p-3 text-right text-black">Total</th>
                                             <th className="p-3 text-right text-green-700">Paid</th>
                                             <th className="p-3 text-right text-black">BAL</th>
@@ -280,8 +280,8 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
                                                             {task.workStatus === 'Completed' ? 'DONE' : task.workStatus === 'In Progress' ? 'IP' : 'PEND'}
                                                         </span>
                                                     </td>
-                                                    <td className="p-3 text-right font-medium">{task.pages}</td>
-                                                    <td className="p-3 text-right font-medium">₹{task.rate}</td>
+                                                    <td className="p-3 text-right font-medium text-black">{task.pages}</td>
+                                                    <td className="p-3 text-right font-medium text-black">₹{task.rate}</td>
                                                     <td className="p-3 text-right font-bold text-black border-l border-gray-50">₹{task.total.toLocaleString()}</td>
                                                     <td className="p-3 text-right font-bold text-green-600">₹{task.amountPaid.toLocaleString()}</td>
                                                     <td className="p-3 text-right font-black text-black bg-gray-50/50">
