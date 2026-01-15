@@ -20,7 +20,10 @@ import {
   Settings,
   CalendarCheck2,
   Sparkles,
-  Zap
+  Zap,
+  TrendingUp,
+  ShieldAlert,
+  Wallet
 } from 'lucide-react';
 import { INRIcon } from '@/components/ui/inr-icon';
 import { getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
@@ -75,9 +78,10 @@ export default function CreatorDashboardClient({
   };
 
   // Calculate statistics
-  const totalEarnings = creatorTasks
-    .filter(task => task.paymentStatus === 'Paid')
-    .reduce((sum, task) => sum + task.amountPaid, 0);
+  const totalAmount = creatorTasks.reduce((sum, task) => sum + (task.total || 0), 0);
+  const amountPaid = creatorTasks.reduce((sum, task) => sum + (task.amountPaid || 0), 0);
+  const amountPending = Math.max(0, totalAmount - amountPaid);
+  const totalEarnings = amountPaid; // Keep this for Achievements compatibility if needed
 
   const projectsInProgress = creatorTasks.filter(task =>
     task.workStatus === 'In Progress'
@@ -149,22 +153,28 @@ export default function CreatorDashboardClient({
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
-            title="Lifetime Earnings"
-            value={`₹${(totalEarnings || 0).toLocaleString()}`}
+            title="Total Revenue"
+            value={`₹${totalAmount.toLocaleString()}`}
+            icon={<Wallet className="h-6 w-6 text-purple-500" />}
+            className="glass-card border-purple-500/20 shadow-purple-500/5 hover:border-purple-500/40"
+          />
+          <MetricCard
+            title="Paid Earnings"
+            value={`₹${amountPaid.toLocaleString()}`}
             icon={<INRIcon className="h-6 w-6 text-emerald-500" />}
             className="glass-card border-emerald-500/20 shadow-emerald-500/5 hover:border-emerald-500/40"
           />
           <MetricCard
-            title="In Production"
-            value={projectsInProgress}
-            icon={<Clock className="h-6 w-6 text-blue-500" />}
-            className="glass-card border-blue-500/20 shadow-blue-500/5 hover:border-blue-500/40"
+            title="Pending Settlement"
+            value={`₹${amountPending.toLocaleString()}`}
+            icon={<ShieldAlert className="h-6 w-6 text-amber-500" />}
+            className="glass-card border-amber-500/20 shadow-amber-500/5 hover:border-amber-500/40"
           />
           <MetricCard
-            title="Total Milestones"
-            value={completedProjects}
+            title="Success Rate"
+            value={`${Math.round((completedProjects / (creatorTasks.length || 1)) * 100)}%`}
             icon={<CheckCircle2 className="h-6 w-6 text-indigo-500" />}
             className="glass-card border-indigo-500/20 shadow-indigo-500/5 hover:border-indigo-500/40"
           />

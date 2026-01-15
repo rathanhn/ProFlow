@@ -35,8 +35,9 @@ interface ClientTasksViewProps {
 export default function ClientTasksView({ client, tasks, assignees = [] }: ClientTasksViewProps) {
   const router = useRouter();
 
-  const totalRevenue = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, t) => acc + (t.total || 0), 0);
-  const pendingRevenue = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, t) => acc + ((t.total || 0) - (t.amountPaid || 0)), 0);
+  const totalRevenue = tasks.reduce((acc, t) => acc + (t.amountPaid || 0), 0);
+  const totalWeight = tasks.reduce((acc, t) => acc + (t.total || 0), 0);
+  const pendingRevenue = Math.max(0, totalWeight - totalRevenue);
 
   return (
     <div className="space-y-8 fab-safe-bottom pt-4">

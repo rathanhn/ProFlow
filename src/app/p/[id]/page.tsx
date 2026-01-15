@@ -23,12 +23,17 @@ import {
     Calendar,
     User,
     ExternalLink,
+    DollarSign,
     Search,
     SlidersHorizontal,
-    ArrowUpDown
+    ArrowUpDown,
+    Wallet,
+    TrendingUp,
+    ShieldAlert
 } from 'lucide-react';
+import { INRIcon } from '@/components/ui/inr-icon';
 import { MetricCard, DonutChart } from '@/components/ui/charts';
-import { getClient, getTasksByClientId, getAssignees } from '@/lib/firebase-service';
+import { getClient, getTasksByClientId, getAssignees, getAssignee, getTasksByAssigneeId } from '@/lib/firebase-service';
 import { Task, Client, Assignee, WorkStatus } from '@/lib/types';
 import { ClickableAvatar } from '@/components/ClickableAvatar';
 import { Button } from '@/components/ui/button';
@@ -53,37 +58,57 @@ import {
 export default function PublicClientDashboardPage() {
     const params = useParams();
     const clientId = params.id as string;
-    const [client, setClient] = useState<Client | null>(null);
+    const [client, setClient] = useState<any>(null); // Polymorphic for Client or Creator
     const [clientTasks, setClientTasks] = useState<Task[]>([]);
     const [assignees, setAssignees] = useState<Assignee[]>([]);
+    const [portalType, setPortalType] = useState<'client' | 'creator'>('client');
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortBy, setBy] = useState('newest');
+    const [error, setError] = useState<string | null>(null);
     const haptic = useHapticFeedback();
 
     const loadData = async () => {
         if (!clientId) return;
+        setIsLoading(true);
+        setError(null);
 
         try {
-            const rawClient = await getClient(clientId);
-            if (!rawClient) {
-                notFound();
+            // 1. Try fetching as Client
+            let rawEntity = await getClient(clientId) as any;
+            let rawTasks: Task[] = [];
+            let type: 'client' | 'creator' = 'client';
+
+            if (rawEntity) {
+                rawTasks = await getTasksByClientId(clientId);
+            } else {
+                // 2. Try fetching as Creator (Assignee)
+                rawEntity = await getAssignee(clientId);
+                if (rawEntity) {
+                    type = 'creator';
+                    rawTasks = await getTasksByAssigneeId(clientId);
+                }
+            }
+
+            if (!rawEntity) {
+                setError("The requested portal link is invalid or expired.");
                 return;
             }
 
-            const rawClientTasks = await getTasksByClientId(clientId);
             const allAssignees = await getAssignees();
 
-            // Filter unique assignees who are actually working on this client's tasks
-            const activeAssigneeIds = useMemo(() => new Set(rawClientTasks.map(t => t.assigneeId).filter(Boolean)), [rawClientTasks]);
-            const activeAssignees = useMemo(() => allAssignees.filter(a => activeAssigneeIds.has(a.id)), [allAssignees, activeAssigneeIds]);
+            // Filter unique assignees who are actually working on these tasks
+            const activeAssigneeIds = new Set(rawTasks.map(t => t.assigneeId).filter(Boolean));
+            const activeAssignees = allAssignees.filter(a => activeAssigneeIds.has(a.id));
 
-            setClient(JSON.parse(JSON.stringify(rawClient)) as Client);
-            setClientTasks(JSON.parse(JSON.stringify(rawClientTasks)) as Task[]);
-            setAssignees(JSON.parse(JSON.stringify(activeAssignees)) as Assignee[]);
+            setPortalType(type);
+            setClient(JSON.parse(JSON.stringify(rawEntity)));
+            setClientTasks(JSON.parse(JSON.stringify(rawTasks)));
+            setAssignees(JSON.parse(JSON.stringify(activeAssignees)));
         } catch (error) {
             console.error('Failed to load data:', error);
+            setError('System synchronization failed. Please try again.');
             haptic.error();
         } finally {
             setIsLoading(false);
@@ -134,16 +159,46 @@ export default function PublicClientDashboardPage() {
         return result;
     }, [clientTasks, searchTerm, statusFilter, sortBy]);
 
-    if (isLoading || !client) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Syncing Portal...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !client) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 px-6 text-center">
+                <div className="bg-red-500/10 p-6 rounded-[2.5rem] border border-red-500/20 max-w-md w-full">
+                    <Lock className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <h1 className="text-2xl font-black tracking-tight mb-2 uppercase">Access Denied</h1>
+                    <p className="text-muted-foreground text-sm font-medium mb-6">
+                        {error || "The requested portal does not exist or has been moved. Use the full login portal for secure access."}
+                    </p>
+                    <div className="space-y-3">
+                        <Button className="w-full h-12 rounded-xl bg-slate-900 font-bold" onClick={() => window.location.reload()}>
+                            Retry Sync
+                        </Button>
+                        <Button variant="outline" className="w-full h-12 rounded-xl font-bold" asChild>
+                            <Link href="/client-login">Secure Member Login</Link>
+                        </Button>
+                    </div>
+                </div>
             </div>
         );
     }
 
     const projectsInProgress = clientTasks.filter(t => t.workStatus === 'In Progress').length;
     const projectsCompleted = clientTasks.filter(t => t.workStatus === 'Completed').length;
+
+    // Financial calculations
+    const totalAmount = clientTasks.reduce((sum, t) => sum + (t.total || 0), 0);
+    const amountPaid = clientTasks.reduce((sum, t) => sum + (t.amountPaid || 0), 0);
+    const amountPending = Math.max(0, totalAmount - amountPaid);
 
     return (
         <TooltipProvider delayDuration={300}>
@@ -173,16 +228,16 @@ export default function PublicClientDashboardPage() {
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div className="flex items-center gap-5">
                                     <ClickableAvatar
-                                        src={client.avatar}
-                                        fallback={client.name.charAt(0)}
+                                        src={client.avatar || client.profilePicture}
+                                        fallback={client.name?.charAt(0) || 'U'}
                                         userName={client.name}
                                         userEmail={client.email}
                                         size="xl"
                                         className="h-20 w-20 border-2 border-white/20 shadow-2xl"
                                     />
                                     <div>
-                                        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] uppercase font-black tracking-[0.2em] px-3 py-0.5 mb-2">
-                                            Client Portal
+                                        <Badge className={`${portalType === 'creator' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'} text-[10px] uppercase font-black tracking-[0.2em] px-3 py-0.5 mb-2`}>
+                                            {portalType === 'creator' ? 'Creator Node' : 'Client Portal'}
                                         </Badge>
                                         <h1 className="text-3xl sm:text-4xl font-black tracking-tighter">
                                             {client.name}
@@ -227,6 +282,28 @@ export default function PublicClientDashboardPage() {
                                     )}
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Financial Analytics */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <MetricCard
+                                title="Total Volume"
+                                value={`₹${totalAmount.toLocaleString()}`}
+                                icon={<Wallet className="h-6 w-6 text-indigo-500" />}
+                                className="glass-card border-indigo-500/20 shadow-indigo-500/5"
+                            />
+                            <MetricCard
+                                title="Settled Amount"
+                                value={`₹${amountPaid.toLocaleString()}`}
+                                icon={<TrendingUp className="h-6 w-6 text-emerald-500" />}
+                                className="glass-card border-emerald-500/20 shadow-emerald-500/5"
+                            />
+                            <MetricCard
+                                title="Outstanding"
+                                value={`₹${amountPending.toLocaleString()}`}
+                                icon={<ShieldAlert className="h-6 w-6 text-amber-500" />}
+                                className="glass-card border-amber-500/20 shadow-amber-500/5"
+                            />
                         </div>
 
                         {/* Quick Analytics */}

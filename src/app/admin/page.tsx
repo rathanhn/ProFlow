@@ -87,8 +87,9 @@ export default function AdminDashboardPage() {
     await loadData();
   };
 
-  const totalEarnings = tasks.filter(t => t.paymentStatus === 'Paid').reduce((acc, task) => acc + (task.total || 0), 0);
-  const pendingPayments = tasks.filter(t => t.paymentStatus !== 'Paid').reduce((acc, task) => acc + ((task.total || 0) - (task.amountPaid || 0)), 0);
+  const totalEarnings = tasks.reduce((acc, task) => acc + (task.amountPaid || 0), 0);
+  const totalValue = tasks.reduce((acc, task) => acc + (task.total || 0), 0);
+  const pendingPayments = Math.max(0, totalValue - totalEarnings);
   const completedProjects = tasks.filter(t => t.workStatus === 'Completed').length;
   const totalClients = clients.length;
 

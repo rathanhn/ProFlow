@@ -14,7 +14,10 @@ import {
     CheckCircle2,
     Clock,
     Sparkles,
-    Briefcase
+    Briefcase,
+    TrendingUp,
+    ShieldAlert,
+    Wallet
 } from 'lucide-react';
 import { Assignee, Task } from '@/lib/types';
 import TaskList from '@/components/TaskList';
@@ -32,8 +35,9 @@ export default function CreatorTasksView({ creator, tasks }: CreatorTasksViewPro
 
     const completedTasks = tasks.filter(t => t.workStatus === 'Completed').length;
     const inProgressTasks = tasks.filter(t => t.workStatus === 'In Progress').length;
-    const pendingTasks = tasks.filter(t => t.workStatus === 'Pending').length;
-    const totalValue = tasks.reduce((acc, t) => acc + (t.total || 0), 0);
+    const totalAmount = tasks.reduce((sum, t) => sum + (t.total || 0), 0);
+    const amountPaid = tasks.reduce((sum, t) => sum + (t.amountPaid || 0), 0);
+    const amountPending = Math.max(0, totalAmount - amountPaid);
 
     return (
         <div className="space-y-8 fab-safe-bottom pt-4">
@@ -86,7 +90,7 @@ export default function CreatorTasksView({ creator, tasks }: CreatorTasksViewPro
 
             {/* Assignments Board Section */}
             <div className="glass-card border-white/20 shadow-2xl overflow-hidden rounded-[2.5rem] p-6 md:p-8 space-y-8">
-                {/* Stats Grid */}
+                {/* Operational Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <MetricCard
                         title="Total Assignments"
@@ -110,6 +114,28 @@ export default function CreatorTasksView({ creator, tasks }: CreatorTasksViewPro
                         title="Success Rate"
                         value={`${Math.round((completedTasks / (tasks.length || 1)) * 100)}%`}
                         icon={<Sparkles className="h-6 w-6 text-amber-500" />}
+                        className="bg-white/5 border-white/10 shadow-none hover:bg-white/10 transition-colors"
+                    />
+                </div>
+
+                {/* Financial Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
+                    <MetricCard
+                        title="Cumulative Volume"
+                        value={`₹${totalAmount.toLocaleString()}`}
+                        icon={<Wallet className="h-6 w-6 text-purple-400" />}
+                        className="bg-white/5 border-white/10 shadow-none hover:bg-white/10 transition-colors"
+                    />
+                    <MetricCard
+                        title="Paid Status"
+                        value={`₹${amountPaid.toLocaleString()}`}
+                        icon={<TrendingUp className="h-6 w-6 text-emerald-400" />}
+                        className="bg-white/5 border-white/10 shadow-none hover:bg-white/10 transition-colors"
+                    />
+                    <MetricCard
+                        title="Pending Settlement"
+                        value={`₹${amountPending.toLocaleString()}`}
+                        icon={<ShieldAlert className="h-6 w-6 text-amber-400" />}
                         className="bg-white/5 border-white/10 shadow-none hover:bg-white/10 transition-colors"
                     />
                 </div>
