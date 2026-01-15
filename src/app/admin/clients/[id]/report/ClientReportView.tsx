@@ -51,19 +51,23 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
             element.style.top = '0';
             element.style.backgroundColor = 'white';
 
-            // Capture the canvas with explicit dimensions
+            // Capture the canvas with optimized settings
             const canvas = await html2canvas(element, {
-                scale: 2.5, // Reduced slightly for cross-device stability
+                scale: 2.5,
                 useCORS: true,
                 logging: false,
-                width: element.scrollWidth,
-                height: element.scrollHeight,
-                windowWidth: 1200, // Use a wider window width during capture to prevent text wrapping issues
+                width: element.offsetWidth,
+                height: element.offsetHeight,
+                windowWidth: 1200,
                 backgroundColor: '#ffffff',
-                y: 0,
-                x: 0,
-                scrollX: 0,
-                scrollY: 0
+                onclone: (clonedDoc) => {
+                    const clonedElement = clonedDoc.getElementById('report-content');
+                    if (clonedElement) {
+                        clonedElement.style.margin = '0';
+                        clonedElement.style.padding = '20mm';
+                        clonedElement.style.width = '210mm';
+                    }
+                }
             });
 
             // Restore original style
@@ -172,8 +176,8 @@ export default function ClientReportView({ client, tasks, reportTitle = "Stateme
             </div>
 
             {/* A4 Sheet - Scaled Responsive Container for Mobile */}
-            <div className="max-w-full overflow-x-auto pb-4 custom-scrollbar no-print">
-                <div className="md:hidden flex items-center justify-center gap-2 mb-4 text-gray-500 animate-pulse">
+            <div className="max-w-full overflow-x-auto pb-4 custom-scrollbar">
+                <div className="md:hidden flex items-center justify-center gap-2 mb-4 text-gray-500 animate-pulse no-print">
                     <Maximize2 className="h-3 w-3" />
                     <span className="text-[10px] font-bold uppercase tracking-widest">Swipe for full statement</span>
                     <ChevronRight className="h-3 w-3" />

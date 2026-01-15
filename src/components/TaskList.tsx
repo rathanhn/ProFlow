@@ -34,6 +34,7 @@ interface TaskListProps {
   onTaskDelete?: (taskId: string) => void;
   emptyStateMessage?: string;
   emptyStateDescription?: string;
+  showStats?: boolean;
 }
 
 export default function TaskList({
@@ -44,7 +45,8 @@ export default function TaskList({
   addButtonLink = "/admin/tasks/new",
   onTaskDelete,
   emptyStateMessage = "No tasks found",
-  emptyStateDescription = "There are no tasks to display."
+  emptyStateDescription = "There are no tasks to display.",
+  showStats = true
 }: TaskListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -90,7 +92,7 @@ export default function TaskList({
   return (
     <div className="space-y-6">
       {/* Statistics Overlay */}
-      {tasks.length > 0 && (
+      {showStats && tasks.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in mb-8">
           <MetricCard
             title="Total Ventures"

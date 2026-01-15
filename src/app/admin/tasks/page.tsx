@@ -85,6 +85,7 @@ export default async function AdminTasksPage() {
             title="Operational Pipeline"
             showClient={true}
             showAddButton={true}
+            showStats={false}
             addButtonLink="/admin/tasks/new?redirect=/admin/tasks"
             emptyStateMessage="No Initiatives Found"
             emptyStateDescription="Your command center is clear. Begin by architecting a new project or assigning creative briefs to your team."
