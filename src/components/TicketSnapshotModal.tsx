@@ -75,10 +75,28 @@ export default function TicketSnapshotModal({ task, client, isOpen, onClose }: T
         ctx.fillStyle = '#3b82f6';
         ctx.fillText('PROJECT MATRIX', 160 * scale, 75 * scale);
 
-        // Title (Project Name)
-        ctx.font = `bold ${28 * scale}px Arial, sans-serif`;
+        // Title (Project Name) - FIXED OVERFLOW
+        const maxTitleWidth = 560 * scale;
+        let fontSize = 28 * scale;
+        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+
+        // Shrink font size if too long
+        while (ctx.measureText(task.projectName).width > maxTitleWidth && fontSize > 18 * scale) {
+            fontSize -= 2 * scale;
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+        }
+
+        let displayTitle = task.projectName;
+        // If still too long, add ellipsis
+        if (ctx.measureText(displayTitle).width > maxTitleWidth) {
+            while (ctx.measureText(displayTitle + '...').width > maxTitleWidth && displayTitle.length > 0) {
+                displayTitle = displayTitle.slice(0, -1);
+            }
+            displayTitle += '...';
+        }
+
         ctx.fillStyle = '#fff';
-        ctx.fillText(task.projectName, 160 * scale, 108 * scale);
+        ctx.fillText(displayTitle, 160 * scale, 108 * scale);
 
         // Subtitle
         ctx.font = `bold ${10 * scale}px Arial, sans-serif`;
@@ -109,7 +127,16 @@ export default function TicketSnapshotModal({ task, client, isOpen, onClose }: T
 
             ctx.fillStyle = s.c;
             ctx.font = `bold ${15 * scale}px Arial, sans-serif`;
-            ctx.fillText(s.v, x + 15 * scale, y + 45 * scale);
+
+            const maxStatWidth = 135 * scale;
+            let displayStat = s.v || 'N/A';
+            if (ctx.measureText(displayStat).width > maxStatWidth) {
+                while (ctx.measureText(displayStat + '...').width > maxStatWidth && displayStat.length > 0) {
+                    displayStat = displayStat.slice(0, -1);
+                }
+                displayStat += '...';
+            }
+            ctx.fillText(displayStat, x + 15 * scale, y + 45 * scale);
         });
 
         // 4. Detailed Sections
@@ -140,9 +167,20 @@ export default function TicketSnapshotModal({ task, client, isOpen, onClose }: T
                 ctx.fillText(item.l, x + 20 * scale, iy + 28 * scale);
 
                 ctx.fillStyle = item.c || '#fff';
-                ctx.font = `bold ${item.c && i === 2 ? 22 * scale : 12 * scale}px Arial, sans-serif`;
+                const valFontSize = (item.c && i === 2) ? 22 * scale : 12 * scale;
+                ctx.font = `bold ${valFontSize}px Arial, sans-serif`;
                 ctx.textAlign = 'right';
-                ctx.fillText(item.v, x + 325 * scale, iy + 28 * scale);
+
+                const maxValWidth = 200 * scale; // Leave space for labels
+                let displayVal = item.v;
+                if (ctx.measureText(displayVal).width > maxValWidth) {
+                    while (ctx.measureText(displayVal + '...').width > maxValWidth && displayVal.length > 0) {
+                        displayVal = displayVal.slice(0, -1);
+                    }
+                    displayVal += '...';
+                }
+
+                ctx.fillText(displayVal, x + 325 * scale, iy + 28 * scale);
                 ctx.textAlign = 'left';
 
                 if (i < items.length - 1 && !(large && i === 1)) {
