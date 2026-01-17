@@ -580,6 +580,11 @@ export async function addTransactionAndUpdateTask(
 
             const currentTaskData = taskDoc.data() as Task;
             const newAmountPaid = (currentTaskData.amountPaid || 0) + amountPaid;
+
+            if (newAmountPaid > currentTaskData.total) {
+                throw new Error("Overpayment not allowed: amount exceeds project total.");
+            }
+
             const remainingAmount = currentTaskData.total - newAmountPaid;
 
             let newPaymentStatus = currentTaskData.paymentStatus;

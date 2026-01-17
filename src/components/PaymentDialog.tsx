@@ -54,6 +54,15 @@ export default function PaymentDialog({ task, isOpen, onClose }: PaymentDialogPr
       return;
     }
 
+    if (paidAmountValue > remainingAmount) {
+      toast({
+        title: 'Overpayment Detected',
+        description: `The maximum allowed payment for this project is ₹${remainingAmount.toLocaleString()}.`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       await addTransactionAndUpdateTask(task.id, paidAmountValue, paymentMethod, notes);
       toast({

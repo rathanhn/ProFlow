@@ -63,6 +63,12 @@ const formSchema = z.object({
   outputFileLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   acceptedDate: z.string().optional(),
   submissionDate: z.string().optional(),
+}).refine((data) => {
+  // We can't easily access 'task' here, so we handle this in onSubmit or via a custom check
+  return true;
+}, {
+  message: "Total amount cannot be less than the amount already paid.",
+  path: ["pages"],
 });
 
 const newAssigneeSchema = z.object({
@@ -260,10 +266,21 @@ export default function TaskForm({ task, redirectPath, initialClientId }: TaskFo
       };
 
       if (task) {
+        const total = values.pages * values.rate;
+        if (total < (task.amountPaid || 0)) {
+          toast({
+            title: 'Invalid Adjustment',
+            description: `Total (₹${total}) cannot be less than the amount already paid (₹${task.amountPaid}).`,
+            variant: 'destructive'
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
         const taskData = {
           ...finalValues,
           clientId: client.id,
-          total: values.pages * values.rate,
+          total: total,
           workStatus: values.workStatus as WorkStatus,
         };
         await updateTask(task.id, taskData);
