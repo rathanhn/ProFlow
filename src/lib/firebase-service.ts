@@ -6,7 +6,7 @@
 
 import { auth, db, createSecondaryAuth } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, setDoc, orderBy, writeBatch, runTransaction, limit } from 'firebase/firestore';
-import { Client, Task, Assignee, Notification, Transaction, PaymentMethod, Feedback } from './types';
+import { Client, Task, Assignee, Notification, Transaction, PaymentMethod, Feedback, TaskComment, TaskActivity } from './types';
 import { revalidatePath } from 'next/cache';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 
@@ -342,6 +342,16 @@ export async function addTask(task: Omit<Task, 'id' | 'slNo'> & { projectNo?: st
     }).catch(err => console.error("Admin notification failed:", err));
 
     revalidatePath('/admin/tasks');
+
+    // Log Activity
+    await addTaskActivity({
+        taskId: taskId,
+        action: 'Task Created',
+        description: `Project ${task.projectName} created.`,
+        userType: 'admin',
+        createdAt: new Date().toISOString()
+    });
+
     return { id: taskId, ...taskWithIds };
 }
 
@@ -359,6 +369,22 @@ export async function updateTask(id: string, task: Partial<Omit<Task, 'id' | 'sl
     const updatedAt = new Date().toISOString();
 
     await updateDoc(docRef, { ...task, total, updatedAt });
+
+    // Activity Logs
+    const changes: string[] = [];
+    if (task.workStatus && task.workStatus !== oldTask.workStatus) changes.push(`Status changed to ${task.workStatus}`);
+    if (task.assigneeId && task.assigneeId !== oldTask.assigneeId) changes.push(`Assigned to new creator`);
+    if (task.paymentStatus && task.paymentStatus !== oldTask.paymentStatus) changes.push(`Payment status changed to ${task.paymentStatus}`);
+
+    if (changes.length > 0) {
+        await addTaskActivity({
+            taskId: id,
+            action: 'Task Updated',
+            description: changes.join(', '),
+            userType: 'system',
+            createdAt: new Date().toISOString()
+        });
+    }
 
     if (oldTask) {
         // 1. Notify Creator if newly assigned
@@ -643,6 +669,15 @@ export async function addTransactionAndUpdateTask(
                 isRead: false,
                 createdAt: new Date().toISOString(),
             }).catch(() => { });
+
+            // Log activity
+            await addTaskActivity({
+                taskId,
+                action: 'Payment Added',
+                description: `₹${amountPaid} payment added via ${paymentMethod}.`,
+                userType: 'admin', // usually admin adds this
+                createdAt: new Date().toISOString()
+            });
         }
     } catch (e) {
         console.error("Transaction failed: ", e);
@@ -772,4 +807,48 @@ export async function getFeedbacksByCreatorId(creatorId: string): Promise<Feedba
         } as Feedback;
     });
     return feedbackList;
+}
+
+// Activity & Comments
+export async function getTaskComments(taskId: string): Promise<TaskComment[]> {
+    const q = query(collection(db, 'task_comments'), where('taskId', '==', taskId));
+    const snap = await getDocs(q);
+    const comments = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as TaskComment));
+    comments.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    return comments;
+}
+
+export async function addTaskComment(comment: Omit<TaskComment, 'id'>) {
+    const commentsCol = collection(db, 'task_comments');
+    const docRef = await addDoc(commentsCol, comment);
+
+    // Log comment activity
+    await addTaskActivity({
+        taskId: comment.taskId,
+        action: 'Comment Added',
+        description: `${comment.userName} added a comment.`,
+        userId: comment.userId,
+        userName: comment.userName,
+        userType: comment.userType,
+        createdAt: new Date().toISOString()
+    });
+
+    return { id: docRef.id, ...comment };
+}
+
+export async function getTaskActivity(taskId: string): Promise<TaskActivity[]> {
+    const q = query(collection(db, 'task_activities'), where('taskId', '==', taskId));
+    const snap = await getDocs(q);
+    const activities = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as TaskActivity));
+    activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return activities;
+}
+
+export async function addTaskActivity(activity: Omit<TaskActivity, 'id'>) {
+    const activityCol = collection(db, 'task_activities');
+    try {
+        await addDoc(activityCol, activity);
+    } catch (e) {
+        console.error("Failed to log activity:", e);
+    }
 }

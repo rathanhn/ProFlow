@@ -1,0 +1,27 @@
+src/app/admin/calendar/page.tsx(67,17): error TS2367: This comparison appears to be unintentional because the types 'WorkStatus' and '"completed"' have no overlap.
+src/app/admin/demo/page.tsx(18,3): error TS2724: '"lucide-react"' has no exported member named 'SwipeIcon'. Did you mean 'ShipIcon'?
+src/app/admin/notifications/page.tsx(36,3): error TS2305: Module '"lucide-react"' has no exported member 'MarkAsUnread'.
+src/app/admin/notifications/page.tsx(39,10): error TS2724: '"@/lib/firebase-service"' has no exported member named 'getNotifications'. Did you mean 'getAdminNotifications'?
+src/app/admin/tasks/[id]/AdminActions.tsx(16,56): error TS2304: Cannot find name 'Task'.
+src/app/admin/tasks/import/page.tsx(204,63): error TS2345: Argument of type 'PaymentStatus' is not assignable to parameter of type '"Unpaid" | "Paid" | "Partially Paid" | undefined'.
+  Type '"Partial"' is not assignable to type '"Unpaid" | "Paid" | "Partially Paid" | undefined'.
+src/app/admin/tasks/import/page.tsx(211,65): error TS2345: Argument of type 'PaymentStatus' is not assignable to parameter of type '"Unpaid" | "Paid" | "Partially Paid" | undefined'.
+  Type '"Partial"' is not assignable to type '"Unpaid" | "Paid" | "Partially Paid" | undefined'.
+src/app/admin/tasks/import/page.tsx(254,24): error TS2339: Property 'isValid' does not exist on type '{ projectName: any; pages: number; rate: number; workStatus: WorkStatus; paymentStatus: PaymentStatus; notes: any; acceptedDate: any; submissionDate: any; }'.
+src/app/admin/tasks/import/page.tsx(345,15): error TS2741: Property 'projectNo' is missing in type '{ slNo: number; clientName: string; clientId: string; acceptedDate: string; projectName: string; pages: number; rate: number; workStatus: WorkStatus; paymentStatus: PaymentStatus; ... 7 more ...; outputFileLink: string; }' but required in type 'Omit<Task, "id">'.
+src/app/admin/tasks/import/page.tsx(448,54): error TS2322: Type 'Dispatch<SetStateAction<PaymentStatus>>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<PaymentStatus>'.
+src/app/api/admin/client-deletion-info/route.ts(34,27): error TS2339: Property 'date' does not exist on type 'Transaction'.
+src/app/api/admin/client-deletion-info/route.ts(35,27): error TS2339: Property 'type' does not exist on type 'Transaction'.
+src/app/api/admin/delete-creator/route.ts(61,13): error TS2561: Object literal may only specify known properties, but 'assignee' does not exist in type 'Partial<Omit<Task, "id" | "clientId" | "slNo">>'. Did you mean to write 'assigneeId'?
+src/app/api/admin/delete-creator/route.ts(73,13): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+src/app/profile/[assigneeId]/page.tsx(70,43): error TS2339: Property 'phone' does not exist on type 'Assignee'.
+src/app/profile/[assigneeId]/page.tsx(73,57): error TS2339: Property 'phone' does not exist on type 'Assignee'.
+src/app/profile/[assigneeId]/page.tsx(76,43): error TS2339: Property 'location' does not exist on type 'Assignee'.
+src/app/profile/[assigneeId]/page.tsx(79,57): error TS2339: Property 'location' does not exist on type 'Assignee'.
+src/app/profile/[assigneeId]/page.tsx(138,87): error TS2339: Property 'title' does not exist on type 'Task'.
+src/app/profile/[assigneeId]/page.tsx(139,104): error TS2339: Property 'description' does not exist on type 'Task'.
+src/components/ErrorReportButton.tsx(142,35): error TS2339: Property 'errorStack' does not exist on type '{ page?: string | undefined; component?: string | undefined; action?: string | undefined; errorMessage?: string | undefined; }'.
+src/components/ErrorReportButton.tsx(143,39): error TS2339: Property 'componentStack' does not exist on type '{ page?: string | undefined; component?: string | undefined; action?: string | undefined; errorMessage?: string | undefined; }'.
+src/components/ui/toast-system.tsx(205,9): error TS18048: 'toast.duration' is possibly 'undefined'.

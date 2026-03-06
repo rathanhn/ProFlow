@@ -105,7 +105,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose, position }) => {
         'h-5 w-5 flex-shrink-0 mt-0.5',
         style === 'android' ? 'text-white' : `text-${toast.type === 'warning' ? 'yellow' : toast.type}-600`
       )} />
-      
+
       <div className="flex-1 min-w-0">
         {toast.title && (
           <h4 className={cn(
@@ -121,7 +121,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose, position }) => {
         )}>
           {toast.message}
         </p>
-        
+
         {toast.action && (
           <button
             onClick={toast.action.onClick}
@@ -154,10 +154,10 @@ interface ToastContainerProps {
   position?: ToastPosition;
 }
 
-const ToastContainer: React.FC<ToastContainerProps> = ({ 
-  toasts, 
-  onClose, 
-  position = 'top-right' 
+const ToastContainer: React.FC<ToastContainerProps> = ({
+  toasts,
+  onClose,
+  position = 'top-right'
 }) => {
   if (toasts.length === 0) return null;
 
@@ -184,10 +184,10 @@ interface ToastProviderProps {
   defaultDuration?: number;
 }
 
-export const ToastProvider: React.FC<ToastProviderProps> = ({ 
-  children, 
+export const ToastProvider: React.FC<ToastProviderProps> = ({
+  children,
   position = 'top-right',
-  defaultDuration = 5000 
+  defaultDuration = 5000
 }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -202,7 +202,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     setToasts(prev => [...prev, toast]);
 
     // Auto-remove toast after duration
-    if (toast.duration > 0) {
+    if (toast.duration !== undefined && toast.duration > 0) {
       setTimeout(() => {
         hideToast(id);
       }, toast.duration);

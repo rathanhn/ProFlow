@@ -111,3 +111,24 @@ export interface Feedback {
   errorStack?: string;
   componentStack?: string;
 }
+
+export interface TaskComment {
+  id: string;
+  taskId: string;
+  userId: string;
+  userName: string;
+  userType: 'admin' | 'client' | 'creator';
+  content: string;
+  createdAt: string;
+}
+
+export interface TaskActivity {
+  id: string;
+  taskId: string;
+  action: string;
+  description: string;
+  userId?: string;
+  userName?: string;
+  userType?: 'admin' | 'client' | 'creator' | 'system';
+  createdAt: string;
+}

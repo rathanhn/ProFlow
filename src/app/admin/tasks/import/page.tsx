@@ -241,7 +241,8 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
           paymentStatus: (task.paymentStatus || defaultPaymentStatus) as PaymentStatus,
           notes: task.notes || '',
           acceptedDate: task.acceptedDate || new Date().toISOString().split('T')[0],
-          submissionDate: task.submissionDate || new Date(new Date().setDate(new Date().getDate() + 14)).toISOString().split('T')[0]
+          submissionDate: task.submissionDate || new Date(new Date().setDate(new Date().getDate() + 14)).toISOString().split('T')[0],
+          isValid: (task as any).isValid !== false
         };
       });
 
@@ -251,7 +252,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
       const editableTasks: EditableTask[] = validatedTasks.map((task, index) => ({
         ...task,
         id: `task-${index}`,
-        selected: task.isValid !== false, // Auto-select valid tasks
+        selected: task.isValid, // Auto-select valid tasks
       }));
 
       setEditableTasks(editableTasks);
@@ -342,12 +343,12 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
       let slNo = existingTasks.length + 1;
 
       for (const taskData of selectedTasks) {
-        const newTask: Omit<Task, 'id'> = {
-          slNo: slNo++,
+        const newTask: Omit<Task, 'id' | 'slNo'> & { projectNo?: string } = {
           clientName: selectedClient.name,
           clientId: selectedClientId,
           acceptedDate: new Date(taskData.acceptedDate!).toISOString(),
           projectName: taskData.projectName,
+          projectNo: "",
           pages: taskData.pages,
           rate: taskData.rate,
           workStatus: taskData.workStatus,
@@ -445,14 +446,14 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
 
               <div className="space-y-2">
                 <Label htmlFor="defaultPaymentStatus">Default Payment Status</Label>
-                <Select value={defaultPaymentStatus} onValueChange={setDefaultPaymentStatus}>
+                <Select value={defaultPaymentStatus} onValueChange={(value) => setDefaultPaymentStatus(value as PaymentStatus)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Unpaid">Unpaid</SelectItem>
                     <SelectItem value="Paid">Paid</SelectItem>
-                    <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+                    <SelectItem value="Partial">Partial</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
@@ -506,8 +507,8 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`;
                 <Label>Upload CSV or JSON File</Label>
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragOver
-                      ? 'border-primary bg-primary/5'
-                      : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted-foreground/25 hover:border-muted-foreground/50'
                     }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -692,10 +693,10 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                   <div
                     key={task.id}
                     className={`border rounded-lg p-4 transition-all ${task.selected
-                        ? 'border-primary bg-primary/5'
-                        : task.isValid === false
-                          ? 'border-destructive bg-destructive/5'
-                          : 'border-muted'
+                      ? 'border-primary bg-primary/5'
+                      : task.isValid === false
+                        ? 'border-destructive bg-destructive/5'
+                        : 'border-muted'
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -788,7 +789,7 @@ Mobile App UI,12,120,Completed,iOS and Android interface,2024-01-01,2024-01-25`)
                               <SelectContent>
                                 <SelectItem value="Unpaid">Unpaid</SelectItem>
                                 <SelectItem value="Paid">Paid</SelectItem>
-                                <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+                                <SelectItem value="Partial">Partial</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>

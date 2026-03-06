@@ -32,11 +32,10 @@ import {
   CheckCircle,
   Info,
   Clock,
-  Trash2,
-  MarkAsUnread
+  Trash2
 } from 'lucide-react';
 import { useToast, ToastProvider } from '@/components/ui/toast-system';
-import { getNotifications, markNotificationAsRead, deleteNotification } from '@/lib/firebase-service';
+import { getAdminNotifications, markNotificationAsRead, deleteNotification } from '@/lib/firebase-service';
 
 interface Notification {
   id: string;
@@ -119,7 +118,7 @@ function AdminNotificationsPageContent() {
           userId: 'admin'
         }
       ];
-      
+
       setNotifications(mockNotifications);
     } catch (error) {
       console.error('Failed to load notifications:', error);
@@ -135,10 +134,10 @@ function AdminNotificationsPageContent() {
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
       );
-      
+
       showToast({
         type: 'success',
         message: 'Marked as read',
@@ -152,7 +151,7 @@ function AdminNotificationsPageContent() {
   const handleDelete = async (notificationId: string) => {
     try {
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      
+
       showToast({
         type: 'success',
         message: 'Notification deleted',
@@ -166,7 +165,7 @@ function AdminNotificationsPageContent() {
   const handleMarkAllAsRead = async () => {
     try {
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      
+
       showToast({
         type: 'success',
         message: 'All notifications marked as read',
@@ -199,7 +198,7 @@ function AdminNotificationsPageContent() {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 60) {
       return `${diffInMinutes}m ago`;
     } else if (diffInMinutes < 1440) {
@@ -210,12 +209,12 @@ function AdminNotificationsPageContent() {
   };
 
   const filteredNotifications = notifications.filter(notification => {
-    const matchesReadFilter = filter === 'all' || 
-      (filter === 'read' && notification.isRead) || 
+    const matchesReadFilter = filter === 'all' ||
+      (filter === 'read' && notification.isRead) ||
       (filter === 'unread' && !notification.isRead);
-    
+
     const matchesTypeFilter = typeFilter === 'all' || notification.type === typeFilter;
-    
+
     return matchesReadFilter && matchesTypeFilter;
   });
 
@@ -239,7 +238,7 @@ function AdminNotificationsPageContent() {
               Manage your alerts and notification settings
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={handleMarkAllAsRead} disabled={unreadCount === 0}>
               <Check className="h-4 w-4 mr-2" />
@@ -303,20 +302,19 @@ function AdminNotificationsPageContent() {
               ) : (
                 filteredNotifications.map(notification => {
                   const Icon = getNotificationIcon(notification.type);
-                  
+
                   return (
-                    <Card 
+                    <Card
                       key={notification.id}
-                      className={`transition-all duration-200 hover:shadow-md ${
-                        !notification.isRead ? 'border-l-4 border-l-primary bg-primary/5' : ''
-                      }`}
+                      className={`transition-all duration-200 hover:shadow-md ${!notification.isRead ? 'border-l-4 border-l-primary bg-primary/5' : ''
+                        }`}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div className={`p-2 rounded-lg border ${getNotificationColor(notification.type)}`}>
                             <Icon className="h-4 w-4" />
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0">
@@ -338,7 +336,7 @@ function AdminNotificationsPageContent() {
                                   )}
                                 </div>
                               </div>
-                              
+
                               <div className="flex items-center gap-1">
                                 {!notification.isRead && (
                                   <Button
@@ -450,7 +448,7 @@ function AdminNotificationsPageContent() {
                   <div className="flex justify-between text-sm">
                     <span>Today</span>
                     <span className="font-semibold">
-                      {notifications.filter(n => 
+                      {notifications.filter(n =>
                         new Date(n.createdAt).toDateString() === new Date().toDateString()
                       ).length}
                     </span>

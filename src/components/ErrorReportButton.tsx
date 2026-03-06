@@ -54,14 +54,16 @@ interface ErrorReportButtonProps {
     component?: string;
     action?: string;
     errorMessage?: string;
+    errorStack?: string;
+    componentStack?: string;
   };
 }
 
-export default function ErrorReportButton({ 
-  variant = 'outline', 
-  size = 'sm', 
+export default function ErrorReportButton({
+  variant = 'outline',
+  size = 'sm',
   className = '',
-  errorContext 
+  errorContext
 }: ErrorReportButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,7 +100,7 @@ export default function ErrorReportButton({
       const now = new Date().toISOString();
       const browserInfo = `${navigator.userAgent}`;
       const url = window.location.href;
-      
+
       setReportData(prev => ({
         ...prev,
         browserInfo,
@@ -106,8 +108,8 @@ export default function ErrorReportButton({
         userAgent: navigator.userAgent,
         timestamp: now,
         title: errorContext?.errorMessage ? `Error: ${errorContext.errorMessage}` : '',
-        description: errorContext ? 
-          `Page: ${errorContext.page || 'Unknown'}\nComponent: ${errorContext.component || 'Unknown'}\nAction: ${errorContext.action || 'Unknown'}` : 
+        description: errorContext ?
+          `Page: ${errorContext.page || 'Unknown'}\nComponent: ${errorContext.component || 'Unknown'}\nAction: ${errorContext.action || 'Unknown'}` :
           ''
       }));
     }
@@ -175,7 +177,7 @@ export default function ErrorReportButton({
         userAgent: '',
         timestamp: ''
       });
-      
+
       setIsOpen(false);
     } catch (error) {
       safeShowToast({
@@ -257,7 +259,7 @@ export default function ErrorReportButton({
                 <Label htmlFor="priority">Priority</Label>
                 <Select
                   value={reportData.priority}
-                  onValueChange={(value: 'low' | 'medium' | 'high' | 'critical') => 
+                  onValueChange={(value: 'low' | 'medium' | 'high' | 'critical') =>
                     setReportData(prev => ({ ...prev, priority: value }))
                   }
                 >

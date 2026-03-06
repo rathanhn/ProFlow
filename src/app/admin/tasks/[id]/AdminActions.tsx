@@ -11,7 +11,7 @@ import confetti from 'canvas-confetti';
 import React from 'react';
 import PaymentDialog from '@/components/PaymentDialog';
 import TicketSnapshotModal from '@/components/TicketSnapshotModal';
-import { Client } from '@/lib/types';
+import { Client, Task } from '@/lib/types';
 
 export default function AdminActions({ task }: { task: Task }) {
     const { toast } = useToast();

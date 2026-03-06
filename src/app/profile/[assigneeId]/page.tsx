@@ -23,7 +23,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ assign
 
     const rawTasks = await getTasksByAssigneeId(assigneeId);
     const tasks = JSON.parse(JSON.stringify(rawTasks)) as Task[];
-    
+
     return (
         <DashboardLayout>
             <div className="space-y-6">
@@ -61,22 +61,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ assign
                                     <p className="text-sm">{assignee.bio}</p>
                                 </div>
                             )}
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-sm">
                                     <Mail className="h-4 w-4 text-muted-foreground" />
                                     <span>{assignee.email}</span>
                                 </div>
-                                {assignee.phone && (
+                                {assignee.mobile && (
                                     <div className="flex items-center gap-2 text-sm">
                                         <Phone className="h-4 w-4 text-muted-foreground" />
-                                        <span>{assignee.phone}</span>
-                                    </div>
-                                )}
-                                {assignee.location && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                                        <span>{assignee.location}</span>
+                                        <span>{assignee.mobile}</span>
                                     </div>
                                 )}
                             </div>
@@ -135,13 +129,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ assign
                                         {tasks.slice(0, 5).map((task) => (
                                             <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg">
                                                 <div className="flex-1">
-                                                    <h4 className="font-medium">{task.title}</h4>
-                                                    <p className="text-sm text-muted-foreground">{task.description}</p>
+                                                    <h4 className="font-medium">{task.projectName}</h4>
+                                                    <p className="text-sm text-muted-foreground">{task.notes || 'No description provided.'}</p>
                                                 </div>
                                                 <Badge variant={
                                                     task.workStatus === 'Completed' ? 'default' :
-                                                    task.workStatus === 'In Progress' ? 'secondary' :
-                                                    'outline'
+                                                        task.workStatus === 'In Progress' ? 'secondary' :
+                                                            'outline'
                                                 }>
                                                     {task.workStatus}
                                                 </Badge>

@@ -8,14 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { ModernPopup, SuccessPopup, ErrorPopup, WarningPopup, InfoPopup, usePopup } from '@/components/ui/modern-popup';
 import { ToastProvider, useToast } from '@/components/ui/toast-system';
 import { INRIcon, SimpleINRIcon, INRSymbol } from '@/components/ui/inr-icon';
-import { 
-  Smartphone, 
-  Palette, 
-  Bell, 
+import {
+  Smartphone,
+  Palette,
+  Bell,
   Zap,
   ArrowLeft,
-  ArrowRight,
-  SwipeIcon as Swipe
+  ArrowRight
 } from 'lucide-react';
 
 function DemoContent() {
@@ -103,7 +102,7 @@ function DemoContent() {
                     <p>• <strong>Visual:</strong> See swipe indicator during gesture</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Swipe Gestures</h4>
@@ -118,7 +117,7 @@ function DemoContent() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Keyboard Shortcuts</h4>
                     <div className="space-y-2 text-sm">
@@ -155,13 +154,13 @@ function DemoContent() {
                     <h4 className="font-medium">INR Icon</h4>
                     <p className="text-sm text-muted-foreground">Detailed rupee symbol</p>
                   </div>
-                  
+
                   <div className="p-4 border rounded-lg text-center">
                     <SimpleINRIcon className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                     <h4 className="font-medium">Simple INR</h4>
                     <p className="text-sm text-muted-foreground">Simplified version</p>
                   </div>
-                  
+
                   <div className="p-4 border rounded-lg text-center">
                     <INRSymbol className="h-8 w-8 mx-auto mb-2 text-purple-600" />
                     <h4 className="font-medium">INR Symbol</h4>
@@ -180,7 +179,7 @@ function DemoContent() {
                           <p className="text-sm text-muted-foreground">₹2,45,000</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
                         <SimpleINRIcon className="h-5 w-5 text-blue-600" />
                         <div>
@@ -189,7 +188,7 @@ function DemoContent() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
                         <INRSymbol className="h-5 w-5 text-purple-600" />
@@ -198,7 +197,7 @@ function DemoContent() {
                           <p className="text-sm text-muted-foreground">₹1,20,000</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
                         <INRIcon className="h-5 w-5 text-orange-600" />
                         <div>

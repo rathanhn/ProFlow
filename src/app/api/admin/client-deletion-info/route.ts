@@ -31,17 +31,17 @@ export async function GET(request: NextRequest) {
       transactionDetails: clientTransactions.map(transaction => ({
         id: transaction.id,
         amount: transaction.amount,
-        date: transaction.date,
-        type: transaction.type
+        date: transaction.transactionDate,
+        type: transaction.paymentMethod
       }))
     });
 
   } catch (error) {
     console.error('[CLIENT DELETION INFO] Error:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to get client deletion info', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
+      {
+        error: 'Failed to get client deletion info',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

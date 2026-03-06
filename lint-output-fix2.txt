@@ -1,0 +1,600 @@
+
+> nextn@0.1.0 lint
+> next lint
+
+
+./src/ai/flows/generateChartFlow.ts
+14:10  Warning: 'Client' is defined but never used.  @typescript-eslint/no-unused-vars
+14:18  Warning: 'Task' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/calendar/page.tsx
+8:3  Warning: 'CardDescription' is defined but never used.  @typescript-eslint/no-unused-vars
+13:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+29:3  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+48:10  Warning: 'loading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+49:10  Warning: 'viewMode' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+49:20  Warning: 'setViewMode' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+166:9  Warning: 'formatDate' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/clients/ClientActions.tsx
+35:22  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/clients/page.tsx
+3:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
+30:5  Warning: 'PlusCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+35:5  Warning: 'Plus' is defined but never used.  @typescript-eslint/no-unused-vars
+38:5  Warning: 'DollarSign' is defined but never used.  @typescript-eslint/no-unused-vars
+58:10  Warning: 'RippleButton' is defined but never used.  @typescript-eslint/no-unused-vars
+74:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+104:8  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/admin/clients/[id]/ClientTasksView.tsx
+4:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+6:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+6:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+6:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'ArrowLeft' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'Printer' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'ShieldCheck' is defined but never used.  @typescript-eslint/no-unused-vars
+19:3  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/clients/[id]/report/ClientReportView.tsx
+6:40  Warning: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+6:50  Warning: 'Layout' is defined but never used.  @typescript-eslint/no-unused-vars
+6:71  Warning: 'MapPin' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/demo/page.tsx
+8:23  Warning: 'SuccessPopup' is defined but never used.  @typescript-eslint/no-unused-vars
+8:37  Warning: 'ErrorPopup' is defined but never used.  @typescript-eslint/no-unused-vars
+8:49  Warning: 'WarningPopup' is defined but never used.  @typescript-eslint/no-unused-vars
+8:63  Warning: 'InfoPopup' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/export/page.tsx
+5:10  Warning: 'Task' is defined but never used.  @typescript-eslint/no-unused-vars
+13:9  Error: 'rawTasks' is never reassigned. Use 'const' instead.  prefer-const
+14:9  Error: 'rawTransactions' is never reassigned. Use 'const' instead.  prefer-const
+46:28  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+46:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+52:79  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+58:9  Error: 'taskFilename' is never reassigned. Use 'const' instead.  prefer-const
+59:9  Error: 'transFilename' is never reassigned. Use 'const' instead.  prefer-const
+61:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+77:65  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/admin/feedback/page.tsx
+15:10  Warning: 'Textarea' is defined but never used.  @typescript-eslint/no-unused-vars
+44:3  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+45:3  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+168:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+174:82  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+218:6  Warning: React Hook useEffect has a missing dependency: 'showResolved'. Either include it or remove the dependency array. You can also replace multiple useState variables with useReducer if 'setFilteredFeedbacks' needs the current value of 'showResolved'.  react-hooks/exhaustive-deps
+285:67  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+290:32  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+295:64  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+312:32  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+352:67  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+359:67  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/admin/help/page.tsx
+13:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+149:9  Warning: 'getPriorityColor' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+236:22  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+236:38  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/app/admin/more/page.tsx
+23:3  Warning: 'Palette' is defined but never used.  @typescript-eslint/no-unused-vars
+26:3  Warning: 'LogOut' is defined but never used.  @typescript-eslint/no-unused-vars
+27:3  Warning: 'User' is defined but never used.  @typescript-eslint/no-unused-vars
+28:3  Warning: 'Building' is defined but never used.  @typescript-eslint/no-unused-vars
+31:3  Warning: 'Mail' is defined but never used.  @typescript-eslint/no-unused-vars
+32:3  Warning: 'Phone' is defined but never used.  @typescript-eslint/no-unused-vars
+34:10  Warning: 'RippleButton' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/notifications/page.tsx
+27:3  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+38:10  Warning: 'getAdminNotifications' is defined but never used.  @typescript-eslint/no-unused-vars
+38:33  Warning: 'markNotificationAsRead' is defined but never used.  @typescript-eslint/no-unused-vars
+38:57  Warning: 'deleteNotification' is defined but never used.  @typescript-eslint/no-unused-vars
+64:6  Warning: React Hook useEffect has a missing dependency: 'loadNotifications'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/admin/page.tsx
+15:3  Warning: 'File' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'PlusCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+27:3  Warning: 'BarChart3' is defined but never used.  @typescript-eslint/no-unused-vars
+37:8  Warning: 'EarningsChart' is defined but never used.  @typescript-eslint/no-unused-vars
+38:22  Warning: 'ProgressRing' is defined but never used.  @typescript-eslint/no-unused-vars
+44:10  Warning: 'RippleButton' is defined but never used.  @typescript-eslint/no-unused-vars
+59:11  Warning: 'toast' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+83:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/admin/reports/page.tsx
+21:10  Warning: 'Input' is defined but never used.  @typescript-eslint/no-unused-vars
+34:3  Warning: 'Mail' is defined but never used.  @typescript-eslint/no-unused-vars
+36:3  Warning: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+37:3  Warning: 'Award' is defined but never used.  @typescript-eslint/no-unused-vars
+157:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+169:9  Warning: 'getCategoryColor' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/settings/page.tsx
+20:10  Warning: 'updateClientPassword' is defined but never used.  @typescript-eslint/no-unused-vars
+21:96  Warning: 'Sparkles' is defined but never used.  @typescript-eslint/no-unused-vars
+61:12  Warning: 'isLoggingOut' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+88:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+95:37  Warning: 'values' is defined but never used.  @typescript-eslint/no-unused-vars
+99:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+111:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/StatusUpdater.tsx
+6:10  Warning: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/tasks/import/page.tsx
+15:28  Warning: 'Plus' is defined but never used.  @typescript-eslint/no-unused-vars
+15:102  Warning: 'EyeOff' is defined but never used.  @typescript-eslint/no-unused-vars
+29:13  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+245:29  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+343:11  Warning: 'slNo' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+343:11  Error: 'slNo' is never reassigned. Use 'const' instead.  prefer-const
+692:43  Warning: 'index' is defined but never used.  @typescript-eslint/no-unused-vars
+1010:51  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1010:59  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1010:62  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1010:74  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1010:77  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1010:87  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1022:25  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1022:38  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1022:41  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1022:47  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1022:50  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+1022:55  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/app/admin/tasks/page.tsx
+7:58  Warning: 'TrendingUp' is defined but never used.  @typescript-eslint/no-unused-vars
+20:9  Warning: 'clients' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/tasks/[id]/AdminActions.tsx
+7:64  Warning: 'Camera' is defined but never used.  @typescript-eslint/no-unused-vars
+7:89  Warning: 'Download' is defined but never used.  @typescript-eslint/no-unused-vars
+39:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/tasks/[id]/page.tsx
+13:10  Warning: 'ArrowLeft' is defined but never used.  @typescript-eslint/no-unused-vars
+13:64  Warning: 'User' is defined but never used.  @typescript-eslint/no-unused-vars
+21:10  Warning: 'Avatar' is defined but never used.  @typescript-eslint/no-unused-vars
+21:18  Warning: 'AvatarFallback' is defined but never used.  @typescript-eslint/no-unused-vars
+21:34  Warning: 'AvatarImage' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/team/TeamActions.tsx
+9:10  Warning: 'Trash2' is defined but never used.  @typescript-eslint/no-unused-vars
+18:11  Warning: 'handleDelete' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+28:22  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/team/TeamMemberCard.tsx
+6:29  Warning: 'CardDescription' is defined but never used.  @typescript-eslint/no-unused-vars
+6:46  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+6:58  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/team/TeamPageClient.tsx
+54:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/admin/team/[id]/CreatorTasksView.tsx
+12:5  Warning: 'DollarSign' is defined but never used.  @typescript-eslint/no-unused-vars
+15:5  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+26:10  Warning: 'INRIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/admin/transactions/page.tsx
+24:10  Warning: 'RippleButton' is defined but never used.  @typescript-eslint/no-unused-vars
+28:3  Warning: 'Eye' is defined but never used.  @typescript-eslint/no-unused-vars
+29:3  Warning: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+30:3  Warning: 'Plus' is defined but never used.  @typescript-eslint/no-unused-vars
+33:3  Warning: 'Award' is defined but never used.  @typescript-eslint/no-unused-vars
+35:3  Warning: 'ArrowUpRight' is defined but never used.  @typescript-eslint/no-unused-vars
+36:3  Warning: 'TrendingDown' is defined but never used.  @typescript-eslint/no-unused-vars
+37:3  Warning: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+39:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+63:6  Warning: React Hook useEffect has a missing dependency: 'loadTransactions'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/api/admin/delete-client/route.ts
+31:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+91:27  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/api/admin/delete-creator/route.ts
+7:3  Warning: 'getTasks' is defined but never used.  @typescript-eslint/no-unused-vars
+30:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+88:27  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/client/settings/page.tsx
+22:10  Warning: 'updateClientPassword' is defined but never used.  @typescript-eslint/no-unused-vars
+49:12  Warning: 'client' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+81:37  Warning: 'values' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/client/[id]/achievements/page.tsx
+11:10  Warning: 'Sparkles' is defined but never used.  @typescript-eslint/no-unused-vars
+20:13  Warning: 'user' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+51:8  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/client/[id]/auth/page.tsx
+14:33  Warning: 'DialogDescription' is defined but never used.  @typescript-eslint/no-unused-vars
+14:52  Warning: 'DialogHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+14:66  Warning: 'DialogTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+15:46  Warning: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+15:71  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/client/[id]/export/page.tsx
+52:28  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+52:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+58:79  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+65:9  Error: 'taskFilename' is never reassigned. Use 'const' instead.  prefer-const
+66:9  Error: 'transFilename' is never reassigned. Use 'const' instead.  prefer-const
+68:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+82:65  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/client/[id]/page.tsx
+7:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
+37:10  Warning: 'RippleButton' is defined but never used.  @typescript-eslint/no-unused-vars
+87:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/client/[id]/projects/page.tsx
+8:21  Warning: 'Sparkles' is defined but never used.  @typescript-eslint/no-unused-vars
+8:52  Warning: 'TrendingUp' is defined but never used.  @typescript-eslint/no-unused-vars
+26:9  Warning: 'pendingCount' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/client/[id]/projects/[taskId]/ClientActions.tsx
+10:10  Warning: 'Bell' is defined but never used.  @typescript-eslint/no-unused-vars
+11:106  Warning: 'DialogTrigger' is defined but never used.  @typescript-eslint/no-unused-vars
+59:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+96:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/client/[id]/projects/[taskId]/page.tsx
+16:21  Warning: 'User' is defined but never used.  @typescript-eslint/no-unused-vars
+17:10  Warning: 'Separator' is defined but never used.  @typescript-eslint/no-unused-vars
+27:7  Warning: 'statusColors' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+36:99  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/client/[id]/settings/page.tsx
+21:10  Warning: 'updateClientPassword' is defined but never used.  @typescript-eslint/no-unused-vars
+22:96  Warning: 'Sparkles' is defined but never used.  @typescript-eslint/no-unused-vars
+62:13  Warning: 'user' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+68:12  Warning: 'isLoggingOut' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+103:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+110:37  Warning: 'values' is defined but never used.  @typescript-eslint/no-unused-vars
+114:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+127:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/creator/settings/page.tsx
+9:3  Warning: 'Form' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'FormControl' is defined but never used.  @typescript-eslint/no-unused-vars
+11:3  Warning: 'FormItem' is defined but never used.  @typescript-eslint/no-unused-vars
+12:3  Warning: 'FormLabel' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Warning: 'FormMessage' is defined but never used.  @typescript-eslint/no-unused-vars
+20:10  Warning: 'KeyRound' is defined but never used.  @typescript-eslint/no-unused-vars
+80:12  Warning: 'assignee' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+80:37  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+81:39  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+84:29  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+85:27  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+86:33  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+89:51  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+90:43  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+91:51  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+92:59  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+93:51  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+94:59  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+95:45  Error: React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+98:5  Error: React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
+
+./src/app/creator/[id]/achievements/page.tsx
+10:28  Warning: 'Target' is defined but never used.  @typescript-eslint/no-unused-vars
+49:8  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/creator/[id]/CreatorDashboardClient.tsx
+4:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'Plus' is defined but never used.  @typescript-eslint/no-unused-vars
+19:3  Warning: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+24:3  Warning: 'TrendingUp' is defined but never used.  @typescript-eslint/no-unused-vars
+35:10  Warning: 'RippleButton' is defined but never used.  @typescript-eslint/no-unused-vars
+51:10  Warning: 'isLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/creator/[id]/settings/page.tsx
+22:10  Warning: 'KeyRound' is defined but never used.  @typescript-eslint/no-unused-vars
+22:51  Warning: 'Sparkles' is defined but never used.  @typescript-eslint/no-unused-vars
+121:29  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+145:29  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+162:29  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/creator/[id]/tasks/page.tsx
+19:9  Warning: 'creator' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/creator/[id]/tasks/[taskId]/CreatorActions.tsx
+40:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+81:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+106:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/creator/[id]/tasks/[taskId]/page.tsx
+13:21  Warning: 'User' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/layout.tsx
+57:9  Warning: Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+./src/app/p/[id]/page.tsx
+7:10  Warning: 'notFound' is defined but never used.  @typescript-eslint/no-unused-vars
+11:5  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+12:5  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+26:5  Warning: 'DollarSign' is defined but never used.  @typescript-eslint/no-unused-vars
+34:10  Warning: 'INRIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+37:16  Warning: 'Client' is defined but never used.  @typescript-eslint/no-unused-vars
+37:34  Warning: 'WorkStatus' is defined but never used.  @typescript-eslint/no-unused-vars
+61:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+79:58  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+122:8  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+269:65  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+485:73  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/profile/[assigneeId]/page.tsx
+11:34  Warning: 'MapPin' is defined but never used.  @typescript-eslint/no-unused-vars
+11:42  Warning: 'Calendar' is defined but never used.  @typescript-eslint/no-unused-vars
+11:52  Warning: 'Star' is defined but never used.  @typescript-eslint/no-unused-vars
+11:58  Warning: 'Award' is defined but never used.  @typescript-eslint/no-unused-vars
+11:65  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+11:82  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+11:89  Warning: 'CheckCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+90:69  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/app/profile/[assigneeId]/ReportCreatorButton.tsx
+45:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Achievements.tsx
+21:5  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+25:10  Warning: 'Progress' is defined but never used.  @typescript-eslint/no-unused-vars
+434:29  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+547:61  Warning: 'type' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/AuthProvider.tsx
+79:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/ClientForm.tsx
+273:91  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/ClientLoginPage.tsx
+11:69  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ClientTaskList.tsx
+11:3  Warning: 'TrendingUp' is defined but never used.  @typescript-eslint/no-unused-vars
+32:3  Warning: 'clientId' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/DashboardLayout.tsx
+8:3  Warning: 'CheckSquare' is defined but never used.  @typescript-eslint/no-unused-vars
+12:3  Warning: 'X' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'Bell' is defined but never used.  @typescript-eslint/no-unused-vars
+19:3  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+20:3  Warning: 'Plus' is defined but never used.  @typescript-eslint/no-unused-vars
+23:3  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+27:3  Warning: 'FileDown' is defined but never used.  @typescript-eslint/no-unused-vars
+28:3  Warning: 'MessageSquare' is defined but never used.  @typescript-eslint/no-unused-vars
+29:3  Warning: 'HelpCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+30:3  Warning: 'Home' is defined but never used.  @typescript-eslint/no-unused-vars
+32:3  Warning: 'Calendar' is defined but never used.  @typescript-eslint/no-unused-vars
+33:3  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+53:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+54:10  Warning: 'Separator' is defined but never used.  @typescript-eslint/no-unused-vars
+56:10  Warning: 'getAdminNotifications' is defined but never used.  @typescript-eslint/no-unused-vars
+58:3  Warning: 'Tooltip' is defined but never used.  @typescript-eslint/no-unused-vars
+59:3  Warning: 'TooltipContent' is defined but never used.  @typescript-eslint/no-unused-vars
+61:3  Warning: 'TooltipTrigger' is defined but never used.  @typescript-eslint/no-unused-vars
+69:9  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+70:12  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+76:11  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+226:30  Warning: 'openViewer' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+399:11  Warning: 'Comp' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/EarningsChart.tsx
+3:25  Warning: 'ResponsiveContainer' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ErrorBoundary.tsx
+118:21  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/ErrorReportButton.tsx
+28:3  Warning: 'Camera' is defined but never used.  @typescript-eslint/no-unused-vars
+29:3  Warning: 'Paperclip' is defined but never used.  @typescript-eslint/no-unused-vars
+86:29  Error: React Hook "useToast" cannot be called inside a callback. React Hooks must be called in a React function component or a custom React Hook function.  react-hooks/rules-of-hooks
+88:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+90:24  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+132:79  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+135:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+136:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+139:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+182:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ExportDialog.tsx
+18:20  Warning: 'Calendar' is defined but never used.  @typescript-eslint/no-unused-vars
+20:10  Warning: 'format' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/FeedbackForm.tsx
+10:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+60:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/ImageUploader.tsx
+6:10  Warning: 'ProfileImageViewer' is defined but never used.  @typescript-eslint/no-unused-vars
+6:30  Warning: 'useProfileImageViewer' is defined but never used.  @typescript-eslint/no-unused-vars
+126:20  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/LoginPage.tsx
+11:58  Warning: 'ShieldCheck' is defined but never used.  @typescript-eslint/no-unused-vars
+28:13  Warning: 'userCredential' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/NotificationBell.tsx
+9:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+91:8  Warning: React Hook React.useEffect has missing dependencies: 'haptics' and 'notifications'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/TaskCard.tsx
+10:3  Warning: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Warning: 'ExternalLink' is defined but never used.  @typescript-eslint/no-unused-vars
+33:3  Warning: 'TooltipProvider' is defined but never used.  @typescript-eslint/no-unused-vars
+41:10  Warning: 'RotateCcw' is defined but never used.  @typescript-eslint/no-unused-vars
+51:42  Warning: 'showClient' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+205:9  Warning: 'handleResetPayment' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+230:9  Warning: 'handleUndoCompletion' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+268:9  Warning: 'isDueSoon' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/TaskDetails.tsx
+15:10  Warning: 'Separator' is defined but never used.  @typescript-eslint/no-unused-vars
+32:70  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+134:25  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+134:38  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/components/TaskDiscussionAndActivity.tsx
+4:16  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+4:28  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+10:48  Warning: 'UserIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+33:8  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/TaskForm.tsx
+27:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+27:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+27:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+27:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+27:52  Warning: 'CardDescription' is defined but never used.  @typescript-eslint/no-unused-vars
+30:43  Warning: 'getTasks' is defined but never used.  @typescript-eslint/no-unused-vars
+30:118  Warning: 'getLatestProjectNoForClient' is defined but never used.  @typescript-eslint/no-unused-vars
+31:27  Warning: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+42:3  Warning: 'DialogClose' is defined but never used.  @typescript-eslint/no-unused-vars
+66:12  Warning: 'data' is defined but never used.  @typescript-eslint/no-unused-vars
+174:6  Warning: React Hook React.useEffect has a missing dependency: 'selectedClientName'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+188:6  Warning: React Hook React.useEffect has a missing dependency: 'onSubmit'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+506:38  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/TaskList.tsx
+4:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+4:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+8:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+11:3  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/TicketSnapshotModal.tsx
+281:39  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/ui/bottom-sheet.tsx
+48:3  Warning: 'dismissible' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+49:3  Warning: 'className' is defined but never used.  @typescript-eslint/no-unused-vars
+52:10  Warning: 'isDragging' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+52:22  Warning: 'setIsDragging' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+53:10  Warning: 'dragOffset' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+106:18  Warning: 'state' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/charts.tsx
+277:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/components/ui/deletion-dialog.tsx
+17:3  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+258:23  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/components/ui/loading.tsx
+204:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/components/ui/long-press.tsx
+78:18  Warning: 'state' is defined but never used.  @typescript-eslint/no-unused-vars
+128:6  Warning: React Hook React.useEffect has a missing dependency: 'gestures'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+276:11  Warning: 'gestures' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/mobile-navigation.tsx
+111:25  Warning: 'index' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/mobile-tabs.tsx
+12:3  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'LogOut' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/profile-image-viewer.tsx
+193:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/ui/pull-to-refresh.tsx
+89:6  Warning: React Hook React.useEffect has a missing dependency: 'gestures'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/ui/sidebar.tsx
+5:56  Warning: 'SheetClose' is defined but never used.  @typescript-eslint/no-unused-vars
+7:16  Warning: 'X' is defined but never used.  @typescript-eslint/no-unused-vars
+49:9  Warning: 'edgeSwipeGestures' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/swipe-action.tsx
+79:18  Warning: 'state' is defined but never used.  @typescript-eslint/no-unused-vars
+113:33  Warning: 'direction' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+135:6  Warning: React Hook React.useEffect has a missing dependency: 'gestures'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+141:11  Warning: 'actionWidth' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+155:31  Warning: 'index' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/swipeable-tabs.tsx
+228:6  Warning: React Hook useEffect has a missing dependency: 'navigateToTab'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/ui/toast-system.tsx
+210:6  Warning: React Hook useCallback has a missing dependency: 'hideToast'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/UnifiedLoginPage.tsx
+10:16  Warning: 'TabsContent' is defined but never used.  @typescript-eslint/no-unused-vars
+19:5  Warning: 'Rocket' is defined but never used.  @typescript-eslint/no-unused-vars
+68:23  Warning: 'userCredential' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+115:25  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+130:35  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+166:25  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/creator/[id]/settings/page.tsx
+23:10  Warning: 'KeyRound' is defined but never used.  @typescript-eslint/no-unused-vars
+23:41  Warning: 'UserIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+45:7  Warning: 'settingsFormSchema' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+56:11  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+403:37  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/hooks/use-toast.ts
+21:7  Warning: 'actionTypes' is assigned a value but only used as a type.  @typescript-eslint/no-unused-vars
+
+./src/hooks/use-touch-gestures.ts
+3:31  Warning: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+61:9  Warning: The 'opts' object makes the dependencies of useCallback Hook (at line 174) change on every render. To fix this, wrap the initialization of 'opts' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+61:9  Warning: The 'opts' object makes the dependencies of useCallback Hook (at line 249) change on every render. To fix this, wrap the initialization of 'opts' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+203:6  Warning: React Hook useCallback has a missing dependency: 'updateGestureState'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+211:44  Warning: 'deltaX' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+211:52  Warning: 'deltaY' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/hooks/usePersistedTheme.ts
+12:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/lib/actions.ts
+18:9  Warning: 'apiKey' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+19:9  Warning: 'cloudName' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/auth-utils.ts
+30:43  Warning: 'resourceType' is defined but never used.  @typescript-eslint/no-unused-vars
+30:76  Warning: 'resourceId' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/firebase-admin.ts
+4:34  Warning: 'cert' is defined but never used.  @typescript-eslint/no-unused-vars
+5:10  Warning: 'getAuth' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Warning: 'getFirestore' is defined but never used.  @typescript-eslint/no-unused-vars
+55:32  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+75:25  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+79:28  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+88:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+94:13  Warning: 'field' is defined but never used.  @typescript-eslint/no-unused-vars
+94:28  Warning: 'operator' is defined but never used.  @typescript-eslint/no-unused-vars
+94:46  Warning: 'value' is defined but never used.  @typescript-eslint/no-unused-vars
+94:53  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+97:19  Warning: 'callback' is defined but never used.  @typescript-eslint/no-unused-vars
+97:29  Error: The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type.  @typescript-eslint/no-unsafe-function-type
+
+./src/lib/firebase-service.ts
+11:42  Warning: 'signInWithEmailAndPassword' is defined but never used.  @typescript-eslint/no-unused-vars
+166:25  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/lib/firebase.ts
+42:12  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/notion-converter.ts
+4:18  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+18:13  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+127:80  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+180:60  Warning: 'key' is defined but never used.  @typescript-eslint/no-unused-vars
+199:32  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/tailwind.config.ts
+3:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

@@ -15,6 +15,7 @@ import { ClickableAvatar } from '@/components/ClickableAvatar';
 import { Task, Client } from '@/lib/types';
 import AdminActions from './AdminActions';
 import TaskDetails from '@/components/TaskDetails';
+import TaskDiscussionAndActivity from '@/components/TaskDiscussionAndActivity';
 import { validateRouteId, sanitizeRouteParam } from '@/lib/auth-utils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -89,6 +90,14 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
                   <TaskDetails task={task} />
                 </CardContent>
               </Card>
+
+              {/* Discussion & Activity Log */}
+              <div className="mt-8">
+                <TaskDiscussionAndActivity
+                  taskId={task.id}
+                  currentUser={{ id: 'admin', name: 'Administrator', type: 'admin' }}
+                />
+              </div>
             </div>
 
             {/* Sidebar */}

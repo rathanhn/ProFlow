@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, User, Mail, Sparkles, Layout, ShieldCheck } from 'lucide-react';
 import TaskDetails from '@/components/TaskDetails';
+import TaskDiscussionAndActivity from '@/components/TaskDiscussionAndActivity';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import CreatorActions from './CreatorActions';
 import { Task, Client, Assignee } from '@/lib/types';
@@ -85,6 +86,14 @@ export default async function CreatorTaskDetailPage({ params }: { params: Promis
                 <TaskDetails task={task} />
               </CardContent>
             </Card>
+
+            {/* Discussion & Activity Log */}
+            <div className="mt-8">
+              <TaskDiscussionAndActivity
+                taskId={task.id}
+                currentUser={{ id: creator.id, name: creator.name, type: 'creator' }}
+              />
+            </div>
           </div>
 
           {/* Sidebar */}

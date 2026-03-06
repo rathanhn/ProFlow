@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
-import { 
-  deleteAssignee, 
-  getTasksByAssigneeId, 
+import {
+  deleteAssignee,
+  getTasksByAssigneeId,
   updateTask,
-  getTasks 
+  getTasks
 } from '@/lib/firebase-service';
 
 export async function DELETE(request: NextRequest) {
@@ -58,23 +58,15 @@ export async function DELETE(request: NextRequest) {
         if (reassignTo && reassignTo !== 'unassign') {
           // Reassign to another creator
           await updateTask(task.id, {
-            assignee: reassignTo,
             assigneeId: reassignTo,
-            updatedAt: new Date().toISOString(),
-            reassignedFrom: creatorId,
-            reassignedAt: new Date().toISOString(),
-            reassignedBy: adminEmail
+            updatedAt: new Date().toISOString()
           });
           console.log(`[DELETE CREATOR] Reassigned task ${task.id} to ${reassignTo}`);
         } else {
           // Unassign the task
           await updateTask(task.id, {
-            assignee: null,
-            assigneeId: null,
-            updatedAt: new Date().toISOString(),
-            unassignedFrom: creatorId,
-            unassignedAt: new Date().toISOString(),
-            unassignedBy: adminEmail
+            assigneeId: '',
+            updatedAt: new Date().toISOString()
           });
           console.log(`[DELETE CREATOR] Unassigned task ${task.id}`);
         }
@@ -137,7 +129,7 @@ export async function DELETE(request: NextRequest) {
 
   } catch (error) {
     console.error('[DELETE CREATOR] Error:', error);
-    
+
     // Log the error for debugging
     try {
       await adminDb.collection('error_logs').add({
@@ -151,9 +143,9 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { 
-        error: 'Failed to delete creator', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
+      {
+        error: 'Failed to delete creator',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

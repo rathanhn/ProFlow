@@ -9,7 +9,7 @@ export interface ProFlowTask {
   pages: number;
   rate: number;
   workStatus: 'Pending' | 'In Progress' | 'Completed';
-  paymentStatus: 'Paid' | 'Unpaid' | 'Partially Paid';
+  paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
   notes?: string;
   acceptedDate?: string;
   submissionDate?: string;
@@ -22,7 +22,7 @@ export interface ProFlowTask {
  * Convert Notion CSV/JSON data to ProFlow task format
  * This function helps map common Notion field names to ProFlow format
  */
-export function convertNotionToProFlow(notionData: NotionTaskRow[], defaultRate: number = 100, defaultPaymentStatus: 'Paid' | 'Unpaid' | 'Partially Paid' = 'Unpaid'): ProFlowTask[] {
+export function convertNotionToProFlow(notionData: NotionTaskRow[], defaultRate: number = 100, defaultPaymentStatus: 'Paid' | 'Unpaid' | 'Partial' = 'Unpaid'): ProFlowTask[] {
   console.log('Converting Notion data:', notionData);
 
   return notionData.map((row, index) => {
@@ -57,7 +57,7 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[], defaultRate:
     // Map status values
     let workStatus: 'Pending' | 'In Progress' | 'Completed' = 'Pending';
     const statusValue = (row.status || row.Status || row.workStatus || '').toLowerCase();
-    
+
     if (statusValue.includes('progress') || statusValue.includes('working') || statusValue.includes('active')) {
       workStatus = 'In Progress';
     } else if (statusValue.includes('complete') || statusValue.includes('done') || statusValue.includes('finished')) {
@@ -65,12 +65,12 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[], defaultRate:
     }
 
     // Map payment status
-    let paymentStatus: 'Paid' | 'Unpaid' | 'Partially Paid' = defaultPaymentStatus;
+    let paymentStatus: 'Paid' | 'Unpaid' | 'Partial' = defaultPaymentStatus;
     const paymentValue = (row.paymentStatus || row['Payment Status'] || row.payment || row.Payment || '').toLowerCase();
 
     if (paymentValue.includes('paid') && !paymentValue.includes('unpaid')) {
       if (paymentValue.includes('partial') || paymentValue.includes('part')) {
-        paymentStatus = 'Partially Paid';
+        paymentStatus = 'Partial';
       } else {
         paymentStatus = 'Paid';
       }
@@ -88,20 +88,20 @@ export function convertNotionToProFlow(notionData: NotionTaskRow[], defaultRate:
 
     // Date handling
     const acceptedDate = formatDate(
-      row.acceptedDate || 
-      row['Accepted Date'] || 
-      row.startDate || 
-      row['Start Date'] || 
-      row.created || 
+      row.acceptedDate ||
+      row['Accepted Date'] ||
+      row.startDate ||
+      row['Start Date'] ||
+      row.created ||
       new Date().toISOString()
     );
 
     const submissionDate = formatDate(
-      row.submissionDate || 
-      row['Submission Date'] || 
-      row.dueDate || 
-      row['Due Date'] || 
-      row.deadline || 
+      row.submissionDate ||
+      row['Submission Date'] ||
+      row.dueDate ||
+      row['Due Date'] ||
+      row.deadline ||
       new Date(new Date().setDate(new Date().getDate() + 14)).toISOString()
     );
 
@@ -198,7 +198,7 @@ function isValidTask(projectName: string, pages: number, rate: number, rawRow: a
  */
 function formatDate(dateInput: any): string {
   if (!dateInput) return new Date().toISOString().split('T')[0];
-  
+
   try {
     const date = new Date(dateInput);
     if (isNaN(date.getTime())) {

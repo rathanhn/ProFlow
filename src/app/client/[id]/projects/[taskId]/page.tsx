@@ -19,6 +19,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { Task, Client, Assignee } from '@/lib/types';
 import ClientActions from './ClientActions';
+import TaskDiscussionAndActivity from '@/components/TaskDiscussionAndActivity';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
@@ -203,6 +204,14 @@ export default function ClientProjectDetailPage({ params }: { params: Promise<{ 
                 )}
               </CardContent>
             </Card>
+
+            {/* Discussion & Activity Log */}
+            <div className="mt-8">
+              <TaskDiscussionAndActivity
+                taskId={task.id}
+                currentUser={{ id: client.id, name: client.name, type: 'client' }}
+              />
+            </div>
           </div>
 
           <div className="lg:col-span-4 space-y-8">

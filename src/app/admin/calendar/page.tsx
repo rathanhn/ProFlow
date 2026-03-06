@@ -57,15 +57,15 @@ export default function AdminCalendarPage() {
     try {
       setLoading(true);
       const tasks = await getTasks();
-      
+
       // Convert tasks to calendar events
       const calendarEvents: CalendarEvent[] = tasks.map(task => ({
         id: task.id,
         title: task.projectName,
         date: task.submissionDate,
         type: 'deadline',
-        status: task.workStatus === 'completed' ? 'completed' : 
-                new Date(task.submissionDate) < new Date() ? 'overdue' : 'upcoming',
+        status: task.workStatus === 'Completed' ? 'completed' :
+          new Date(task.submissionDate) < new Date() ? 'overdue' : 'upcoming',
         clientName: task.clientName,
         description: `Task deadline for ${task.projectName}`
       }));
@@ -108,17 +108,17 @@ export default function AdminCalendarPage() {
     const startingDayOfWeek = firstDay.getDay();
 
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day));
     }
-    
+
     return days;
   };
 
@@ -133,7 +133,7 @@ export default function AdminCalendarPage() {
   const getEventColor = (event: CalendarEvent) => {
     if (event.status === 'overdue') return 'bg-red-100 text-red-800 border-red-200';
     if (event.status === 'completed') return 'bg-green-100 text-green-800 border-green-200';
-    
+
     switch (event.type) {
       case 'deadline': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'meeting': return 'bg-purple-100 text-purple-800 border-purple-200';
@@ -164,7 +164,7 @@ export default function AdminCalendarPage() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -172,7 +172,7 @@ export default function AdminCalendarPage() {
     });
   };
 
-  const filteredEvents = events.filter(event => 
+  const filteredEvents = events.filter(event =>
     filterType === 'all' || event.type === filterType
   );
 
@@ -193,7 +193,7 @@ export default function AdminCalendarPage() {
               View deadlines and schedule overview
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Select value={filterType} onValueChange={(value: 'all' | 'deadline' | 'meeting' | 'milestone') => setFilterType(value)}>
               <SelectTrigger className="w-40">
@@ -241,33 +241,31 @@ export default function AdminCalendarPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="grid grid-cols-7 gap-1">
                   {getDaysInMonth(currentDate).map((day, index) => {
                     if (!day) {
                       return <div key={index} className="p-2 h-24"></div>;
                     }
-                    
+
                     const dayEvents = getEventsForDate(day);
                     const isToday = day.toDateString() === new Date().toDateString();
-                    
+
                     return (
-                      <div 
-                        key={index} 
-                        className={`p-2 h-24 border rounded-lg hover:bg-muted/50 transition-colors ${
-                          isToday ? 'bg-primary/10 border-primary' : 'border-border'
-                        }`}
+                      <div
+                        key={index}
+                        className={`p-2 h-24 border rounded-lg hover:bg-muted/50 transition-colors ${isToday ? 'bg-primary/10 border-primary' : 'border-border'
+                          }`}
                       >
-                        <div className={`text-sm font-medium mb-1 ${
-                          isToday ? 'text-primary' : 'text-foreground'
-                        }`}>
+                        <div className={`text-sm font-medium mb-1 ${isToday ? 'text-primary' : 'text-foreground'
+                          }`}>
                           {day.getDate()}
                         </div>
                         <div className="space-y-1">
                           {dayEvents.slice(0, 2).map(event => {
                             const Icon = getEventIcon(event.type);
                             return (
-                              <div 
+                              <div
                                 key={event.id}
                                 className={`text-xs p-1 rounded border ${getEventColor(event)} truncate`}
                                 title={event.title}
